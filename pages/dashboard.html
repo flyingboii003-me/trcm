@@ -397,10 +397,10 @@ async function openVisitModal(visitId) {
     const gate = visit.gates && visit.gates.gate_number;
     const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
 
-    visitModalTitle.textContent = visit.plate_number || "Detail visit";
-    visitModalSubtitle.textContent =
-      (vendor || "Vendor tidak tersedia") + " · " +
-      (client || "Client tidak tersedia") + " · Visit ID " + visit.id;
+    visitModalTitle.textContent =
+      (client || "Client tidak tersedia") + " · " +
+      (visit.driver_name || "Driver tidak tersedia");
+    visitModalSubtitle.textContent = "Detail visit";
 
     const general = [
       renderDetailItem("ID visit", visit.id, true),
@@ -581,6 +581,8 @@ async function loadVisits() {
       "plate_number",
       "container_num",
       "destination",
+      "vendor",
+      "driver_name",
       "shipment_number",
       "process_status",
       "final_status",
