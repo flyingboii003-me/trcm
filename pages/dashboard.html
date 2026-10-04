@@ -399,8 +399,8 @@ async function openVisitModal(visitId) {
 
     visitModalTitle.textContent = visit.plate_number || "Detail visit";
     visitModalSubtitle.textContent =
-      (vendor || "Vendor tidak tersedia") + " · " +
-      (client || "Client tidak tersedia") + " · Visit ID " + visit.id;
+      (client || "Client tidak tersedia") + " · " +
+      (visit.driver_name || "Driver tidak tersedia");
 
     const general = [
       renderDetailItem("ID visit", visit.id, true),
@@ -581,6 +581,7 @@ async function loadVisits() {
       "plate_number",
       "container_num",
       "destination",
+      "driver_name",
       "shipment_number",
       "process_status",
       "final_status",
