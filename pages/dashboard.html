@@ -51,27 +51,456 @@ html[data-theme="dark"]{color-scheme:dark;--bg:#070b16;--surface:#0f1729;--surfa
 </section>
 </main>
 </div>
-<script>const SUPABASE_URL="https://pcednpmjyfkuomfcmian.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
-const root=document.documentElement,sidebar=document.getElementById("sidebar"),menuButton=document.getElementById("menu-button"),backdrop=document.getElementById("sidebar-backdrop"),themeButton=document.getElementById("theme-button"),themeIcon=document.getElementById("theme-icon"),accountButton=document.getElementById("account-button"),accountName=document.getElementById("account-name");
-const trcmSession=JSON.parse(sessionStorage.getItem("trcm_session")||"null");if(!trcmSession||!trcmSession.access_token||!trcmSession.user){window.location.replace("../index.html")}else{accountName.textContent=trcmSession.user.username||"Akun"}
-const savedTheme=localStorage.getItem("trcm_theme");if(savedTheme==="dark")root.dataset.theme="dark";
-function updateThemeButton(){const dark=root.dataset.theme==="dark";themeIcon.textContent=dark?"light_mode":"dark_mode";themeButton.setAttribute("aria-label",dark?"Gunakan tema light":"Gunakan tema dark");themeButton.setAttribute("title",dark?"Gunakan tema light":"Gunakan tema dark")}
-updateThemeButton();themeButton.addEventListener("click",()=>{const dark=root.dataset.theme==="dark";if(dark)delete root.dataset.theme;else root.dataset.theme="dark";localStorage.setItem("trcm_theme",dark?"light":"dark");updateThemeButton()});
-function toggleMenu(){sidebar.classList.toggle("is-open");backdrop.classList.toggle("is-visible")}function closeMenu(){sidebar.classList.remove("is-open");backdrop.classList.remove("is-visible")}
-menuButton?.addEventListener("click",toggleMenu);backdrop.addEventListener("click",closeMenu);accountButton.addEventListener("click",()=>{sessionStorage.removeItem("trcm_session");window.location.replace("../index.html")});
-const truckTable=document.getElementById("truck-table"),resultCount=document.getElementById("result-count"),filterVendor=document.getElementById("filter-vendor"),filterPlate=document.getElementById("filter-plate"),filterShipment=document.getElementById("filter-shipment"),filterStatus=document.getElementById("filter-status"),filterDate=document.getElementById("filter-date"),resetFilter=document.getElementById("reset-filter"),refreshButton=document.getElementById("refresh-button"),exportButton=document.getElementById("export-button");
-let visits=[];
-const statusLabels={registered:"Terdaftar",started:"Sedang proses",completed:"Selesai"};
-function formatDuration(start,end){if(!start||!end)return "—";const minutes=Math.max(0,Math.round((new Date(end)-new Date(start))/60000));const hours=Math.floor(minutes/60),mins=minutes%60;return hours?hours+"j "+String(mins).padStart(2,"0")+"m":mins+"m"}
-function formatTime(date){if(!date)return "—";return new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(new Date(date))}
-function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
-function renderVendorOptions(){const names=[...new Set(visits.map(v=>v.vendors?.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"id"));filterVendor.innerHTML='<option value="">Semua vendor</option>'+names.map(name=>'<option value="'+escapeHtml(name)+'">'+escapeHtml(name)+"</option>").join("")}
-function filteredVisits(){const plate=filterPlate.value.trim().toLowerCase(),shipment=filterShipment.value.trim().toLowerCase(),vendor=filterVendor.value,status=filterStatus.value,date=filterDate.value;return visits.filter(v=>(!plate||v.plate_number.toLowerCase().includes(plate))&&(!shipment||String(v.shipment_number||"").toLowerCase().includes(shipment))&&(!vendor||v.vendors?.name===vendor)&&(!status||v.process_status===status)&&(!date||String(v.wh_in_at||v.created_at).slice(0,10)===date))}
-function renderTable(){const rows=filteredVisits();resultCount.textContent=rows.length+" truk ditampilkan";if(!rows.length){truckTable.innerHTML='<tr><td colspan="7" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';return}truckTable.innerHTML=rows.map(v=>{const status=v.process_status,client=v.clients?.name||"—";return '<tr title="Detail truk"><td><span class="plate">'+escapeHtml(v.plate_number)+'</span><br><span class="muted">'+escapeHtml(client)+'</span></td><td><span class="destination">'+escapeHtml(v.destination==="inbound"?"Inbound":"Outbound")+"</span></td><td>"+escapeHtml(v.vendors?.name||"—")+"</td><td><span class="shipment">'+escapeHtml(v.shipment_number||"—")+"</span></td><td>"+escapeHtml(v.gates?.gate_number?("Gate "+v.gates.gate_number):"—")+"</td><td><span class="status-badge status-"+status+'"><span class="status-dot"></span>'+statusLabels[status]+"</span></td><td><span class="duration">'+(status==="completed"?formatDuration(v.wh_in_at,v.completed_at):formatDuration(v.wh_in_at,new Date().toISOString()))+'</span><br><span class="muted">'+formatTime(v.registered_at||v.wh_in_at)+'</span></td></tr>'}).join("")}
-function renderStats(){const today=new Date().toISOString().slice(0,10);const todayVisits=visits.filter(v=>String(v.wh_in_at||v.created_at).slice(0,10)===today);const waiting=todayVisits.filter(v=>v.process_status==="registered").length,processing=todayVisits.filter(v=>v.process_status==="started").length,done=todayVisits.filter(v=>v.process_status==="completed").length;const completed=todayVisits.filter(v=>v.process_status==="completed"&&v.wh_in_at&&v.completed_at);const avg=completed.length?completed.reduce((sum,v)=>sum+(new Date(v.completed_at)-new Date(v.wh_in_at)),0)/completed.length:0;document.getElementById("stat-waiting").textContent=waiting;document.getElementById("stat-process").textContent=processing;document.getElementById("stat-done").textContent=done;document.getElementById("stat-average").textContent=avg?formatDuration(new Date(0).toISOString(),new Date(avg).toISOString()):"—"}
-async function loadVisits(){truckTable.innerHTML='<tr><td colspan="7" class="table-state">Memuat data truk...</td></tr>';resultCount.textContent="Memuat data...";refreshButton.disabled=true;try{const select="id,plate_number,container_num,destination,shipment_number,process_status,final_status,wh_in_at,registered_at,started_at,completed_at,created_at,vendors(name),clients(name),gates(gate_number)";const response=await fetch(SUPABASE_URL+"/rest/v1/visits?select="+encodeURIComponent(select)+"&order=created_at.desc",{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+trcmSession.access_token}});if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return}if(!response.ok)throw new Error("Gagal mengambil data dashboard.");visits=await response.json();renderVendorOptions();renderStats();renderTable()}catch(error){truckTable.innerHTML='<tr><td colspan="7" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';resultCount.textContent="Gagal memuat data"}finally{refreshButton.disabled=false}}
-[filterVendor,filterPlate,filterShipment,filterStatus,filterDate].forEach(el=>el.addEventListener("input",renderTable));resetFilter.addEventListener("click",()=>{filterVendor.value="";filterPlate.value="";filterShipment.value="";filterStatus.value="";filterDate.value="";renderTable()});refreshButton.addEventListener("click",loadVisits);
-exportButton.addEventListener("click",()=>{const rows=filteredVisits(),header=["Plat nomor","Tujuan","Vendor","Klien","Nomor shipment","Gerbang","Status","Waktu di gudang"];const csv=[header,...rows.map(v=>[v.plate_number,v.destination==="inbound"?"Inbound":"Outbound",v.vendors?.name||"",v.clients?.name||"",v.shipment_number||"",v.gates?.gate_number||"",statusLabels[v.process_status]||v.process_status,v.process_status==="completed"?formatDuration(v.wh_in_at,v.completed_at):formatDuration(v.wh_in_at,new Date().toISOString())])].map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="trcm-dashboard-"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(url)});
+<script>const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+
+const root = document.documentElement;
+const sidebar = document.getElementById("sidebar");
+const menuButton = document.getElementById("menu-button");
+const backdrop = document.getElementById("sidebar-backdrop");
+const themeButton = document.getElementById("theme-button");
+const themeIcon = document.getElementById("theme-icon");
+const accountButton = document.getElementById("account-button");
+const accountName = document.getElementById("account-name");
+
+let trcmSession = null;
+try {
+  trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null");
+} catch {
+  trcmSession = null;
+}
+
+if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
+  window.location.replace("../index.html");
+} else {
+  const username = trcmSession.user.username || trcmSession.user.auth_email || "Akun";
+  accountName.textContent = username;
+  accountButton.title = "Keluar dari akun " + username;
+}
+
+const savedTheme = localStorage.getItem("trcm_theme");
+if (savedTheme === "dark") {
+  root.dataset.theme = "dark";
+} else {
+  delete root.dataset.theme;
+}
+
+function updateThemeButton() {
+  const dark = root.dataset.theme === "dark";
+  themeIcon.textContent = dark ? "light_mode" : "dark_mode";
+  themeButton.setAttribute("aria-label", dark ? "Gunakan tema light" : "Gunakan tema dark");
+  themeButton.setAttribute("title", dark ? "Gunakan tema light" : "Gunakan tema dark");
+}
+
+updateThemeButton();
+
+themeButton.addEventListener("click", function () {
+  const dark = root.dataset.theme === "dark";
+
+  if (dark) {
+    delete root.dataset.theme;
+    localStorage.setItem("trcm_theme", "light");
+  } else {
+    root.dataset.theme = "dark";
+    localStorage.setItem("trcm_theme", "dark");
+  }
+
+  updateThemeButton();
+});
+
+function toggleMenu() {
+  sidebar.classList.toggle("is-open");
+  backdrop.classList.toggle("is-visible");
+}
+
+function closeMenu() {
+  sidebar.classList.remove("is-open");
+  backdrop.classList.remove("is-visible");
+}
+
+if (menuButton) {
+  menuButton.addEventListener("click", toggleMenu);
+}
+
+backdrop.addEventListener("click", closeMenu);
+
+accountButton.addEventListener("click", function () {
+  sessionStorage.removeItem("trcm_session");
+  window.location.replace("../index.html");
+});
+
+const truckTable = document.getElementById("truck-table");
+const resultCount = document.getElementById("result-count");
+const filterVendor = document.getElementById("filter-vendor");
+const filterPlate = document.getElementById("filter-plate");
+const filterShipment = document.getElementById("filter-shipment");
+const filterStatus = document.getElementById("filter-status");
+const filterDate = document.getElementById("filter-date");
+const resetFilter = document.getElementById("reset-filter");
+const refreshButton = document.getElementById("refresh-button");
+const exportButton = document.getElementById("export-button");
+
+let visits = [];
+
+const statusLabels = {
+  registered: "Terdaftar",
+  started: "Sedang proses",
+  completed: "Selesai"
+};
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, function (character) {
+    const replacements = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    return replacements[character];
+  });
+}
+
+function formatDuration(start, end) {
+  if (!start || !end) {
+    return "—";
+  }
+
+  const startTime = new Date(start);
+  const endTime = new Date(end);
+
+  if (Number.isNaN(startTime.getTime()) || Number.isNaN(endTime.getTime())) {
+    return "—";
+  }
+
+  const minutes = Math.max(0, Math.round((endTime - startTime) / 60000));
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours > 0) {
+    return hours + "j " + String(remainingMinutes).padStart(2, "0") + "m";
+  }
+
+  return remainingMinutes + "m";
+}
+
+function formatTime(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function renderVendorOptions() {
+  const names = Array.from(
+    new Set(
+      visits
+        .map(function (visit) {
+          return visit.vendors && visit.vendors.name;
+        })
+        .filter(Boolean)
+    )
+  ).sort(function (a, b) {
+    return a.localeCompare(b, "id");
+  });
+
+  filterVendor.innerHTML =
+    '<option value="">Semua vendor</option>' +
+    names
+      .map(function (name) {
+        return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + "</option>";
+      })
+      .join("");
+}
+
+function getVisitDate(visit) {
+  return visit.wh_in_at || visit.created_at || null;
+}
+
+function filteredVisits() {
+  const plate = filterPlate.value.trim().toLowerCase();
+  const shipment = filterShipment.value.trim().toLowerCase();
+  const vendor = filterVendor.value;
+  const status = filterStatus.value;
+  const date = filterDate.value;
+
+  return visits.filter(function (visit) {
+    const visitPlate = String(visit.plate_number || "").toLowerCase();
+    const visitShipment = String(visit.shipment_number || "").toLowerCase();
+    const visitDate = getVisitDate(visit);
+
+    return (
+      (!plate || visitPlate.includes(plate)) &&
+      (!shipment || visitShipment.includes(shipment)) &&
+      (!vendor || (visit.vendors && visit.vendors.name) === vendor) &&
+      (!status || visit.process_status === status) &&
+      (!date || String(visitDate).slice(0, 10) === date)
+    );
+  });
+}
+
+function renderTable() {
+  const rows = filteredVisits();
+
+  resultCount.textContent = rows.length + " truk ditampilkan";
+
+  if (!rows.length) {
+    truckTable.innerHTML =
+      '<tr><td colspan="7" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';
+    return;
+  }
+
+  truckTable.innerHTML = rows
+    .map(function (visit) {
+      const status = visit.process_status;
+      const statusLabel = statusLabels[status] || status || "—";
+      const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      const vendor = visit.vendors && visit.vendors.name ? visit.vendors.name : "—";
+      const gate =
+        visit.gates && visit.gates.gate_number
+          ? "Gate " + visit.gates.gate_number
+          : "—";
+      const destination =
+        visit.destination === "inbound" ? "Inbound" : "Outbound";
+      const duration =
+        status === "completed"
+          ? formatDuration(visit.wh_in_at, visit.completed_at)
+          : formatDuration(visit.wh_in_at, new Date().toISOString());
+
+      return (
+        '<tr title="Detail truk">' +
+          '<td><span class="plate">' + escapeHtml(visit.plate_number) + "</span><br>" +
+            '<span class="muted">' + escapeHtml(client) + "</span></td>" +
+          '<td><span class="destination">' + escapeHtml(destination) + "</span></td>" +
+          "<td>" + escapeHtml(vendor) + "</td>" +
+          '<td><span class="shipment">' + escapeHtml(visit.shipment_number || "—") + "</span></td>" +
+          "<td>" + escapeHtml(gate) + "</td>" +
+          '<td><span class="status-badge status-' + escapeHtml(status) + '">' +
+            '<span class="status-dot"></span>' + escapeHtml(statusLabel) +
+          "</span></td>" +
+          '<td><span class="duration">' + escapeHtml(duration) + "</span><br>" +
+            '<span class="muted">' + escapeHtml(formatTime(visit.registered_at || visit.wh_in_at)) + "</span></td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+}
+
+function renderStats() {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayVisits = visits.filter(function (visit) {
+    return String(getVisitDate(visit)).slice(0, 10) === today;
+  });
+
+  const waiting = todayVisits.filter(function (visit) {
+    return visit.process_status === "registered";
+  }).length;
+
+  const processing = todayVisits.filter(function (visit) {
+    return visit.process_status === "started";
+  }).length;
+
+  const done = todayVisits.filter(function (visit) {
+    return visit.process_status === "completed";
+  }).length;
+
+  const completed = todayVisits.filter(function (visit) {
+    return (
+      visit.process_status === "completed" &&
+      visit.wh_in_at &&
+      visit.completed_at
+    );
+  });
+
+  let averageMinutes = 0;
+
+  if (completed.length) {
+    const totalMilliseconds = completed.reduce(function (sum, visit) {
+      return sum + (new Date(visit.completed_at) - new Date(visit.wh_in_at));
+    }, 0);
+
+    averageMinutes = Math.max(
+      0,
+      Math.round(totalMilliseconds / completed.length / 60000)
+    );
+  }
+
+  document.getElementById("stat-waiting").textContent = waiting;
+  document.getElementById("stat-process").textContent = processing;
+  document.getElementById("stat-done").textContent = done;
+  document.getElementById("stat-average").textContent =
+    averageMinutes > 0
+      ? Math.floor(averageMinutes / 60) + "j " +
+        String(averageMinutes % 60).padStart(2, "0") + "m"
+      : "—";
+}
+
+async function loadVisits() {
+  truckTable.innerHTML =
+    '<tr><td colspan="7" class="table-state">Memuat data truk...</td></tr>';
+  resultCount.textContent = "Memuat data...";
+  refreshButton.disabled = true;
+
+  try {
+    const select = [
+      "id",
+      "plate_number",
+      "container_num",
+      "destination",
+      "shipment_number",
+      "process_status",
+      "final_status",
+      "wh_in_at",
+      "registered_at",
+      "started_at",
+      "completed_at",
+      "created_at",
+      "vendors(name)",
+      "clients(name)",
+      "gates(gate_number)"
+    ].join(",");
+
+    const url =
+      SUPABASE_URL +
+      "/rest/v1/visits?select=" +
+      encodeURIComponent(select) +
+      "&order=created_at.desc";
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + trcmSession.access_token
+      }
+    });
+
+    const responseText = await response.text();
+    let data = {};
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      data = {};
+    }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return;
+    }
+
+    if (!response.ok) {
+      const message = data && data.message ? data.message : "Gagal mengambil data dashboard.";
+      throw new Error(message);
+    }
+
+    if (!Array.isArray(data)) {
+      throw new Error("Respons data dashboard tidak valid.");
+    }
+
+    visits = data;
+    renderVendorOptions();
+    renderStats();
+    renderTable();
+  } catch (error) {
+    console.error("TRCM dashboard:", error);
+    truckTable.innerHTML =
+      '<tr><td colspan="7" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
+    resultCount.textContent = "Gagal memuat data";
+  } finally {
+    refreshButton.disabled = false;
+  }
+}
+
+[filterVendor, filterPlate, filterShipment, filterStatus, filterDate].forEach(
+  function (element) {
+    element.addEventListener("input", renderTable);
+    element.addEventListener("change", renderTable);
+  }
+);
+
+resetFilter.addEventListener("click", function () {
+  filterVendor.value = "";
+  filterPlate.value = "";
+  filterShipment.value = "";
+  filterStatus.value = "";
+  filterDate.value = "";
+  renderTable();
+});
+
+refreshButton.addEventListener("click", loadVisits);
+
+exportButton.addEventListener("click", function () {
+  const rows = filteredVisits();
+  const header = [
+    "Plat nomor",
+    "Tujuan",
+    "Vendor",
+    "Klien",
+    "Nomor shipment",
+    "Gerbang",
+    "Status",
+    "Waktu di gudang"
+  ];
+
+  const csvRows = rows.map(function (visit) {
+    const destination =
+      visit.destination === "inbound" ? "Inbound" : "Outbound";
+    const status = statusLabels[visit.process_status] || visit.process_status || "";
+    const duration =
+      visit.process_status === "completed"
+        ? formatDuration(visit.wh_in_at, visit.completed_at)
+        : formatDuration(visit.wh_in_at, new Date().toISOString());
+
+    return [
+      visit.plate_number || "",
+      destination,
+      visit.vendors && visit.vendors.name ? visit.vendors.name : "",
+      visit.clients && visit.clients.name ? visit.clients.name : "",
+      visit.shipment_number || "",
+      visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
+      status,
+      duration
+    ];
+  });
+
+  const csv = [header, ...csvRows]
+    .map(function (row) {
+      return row
+        .map(function (value) {
+          return '"' + String(value).replace(/"/g, '""') + '"';
+        })
+        .join(",");
+    })
+    .join("\r\n");
+
+  const blob = new Blob(["\ufeff" + csv], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = url;
+  anchor.download =
+    "trcm-dashboard-" + new Date().toISOString().slice(0, 10) + ".csv";
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+});
+
 loadVisits();</script>
 </body>
 </html>
