@@ -39,13 +39,13 @@ html[data-theme="dark"]{color-scheme:dark;--bg:#070b16;--surface:#0f1729;--surfa
 <section class="panel">
 <div class="panel-header"><div><h3>Aktivitas truk</h3><p id="result-count">Memuat data...</p></div><button class="export-button" id="export-button" type="button"><span class="material-symbols-rounded">download</span><span>Ekspor Excel</span></button></div>
 <div class="filters">
-<label><span>Vendor</span><select id="filter-vendor"><option value="">Semua vendor</option></select></label>
+<label><span>Klien</span><select id="filter-client"><option value="">Semua klien</option></select></label>
 <label><span>Plat nomor</span><input id="filter-plate" type="search" placeholder="Cari plat"></label>
 <label><span>Status</span><select id="filter-status"><option value="">Semua status</option><option value="registered">Terdaftar</option><option value="started">Sedang proses</option><option value="completed">Selesai</option></select></label>
 <label><span>Tanggal</span><input id="filter-date" type="date"></label>
 <button class="reset-button" id="reset-filter" type="button"><span class="material-symbols-rounded">restart_alt</span><span>Atur ulang</span></button>
 </div>
-<div class="table-wrap"><table><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th>Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Klien</th><th>Status</th><th>Jam masuk</th><th>Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
 </section>
 </section>
 <div class="modal-backdrop" id="visit-modal-backdrop" aria-hidden="true"><section class="visit-modal" id="visit-modal" role="dialog" aria-modal="true" aria-labelledby="visit-modal-title"><header class="modal-header"><div><span class="modal-kicker">Detail visit</span><h2 id="visit-modal-title">—</h2><p id="visit-modal-subtitle">—</p></div><button class="modal-close" id="visit-modal-close" type="button" aria-label="Tutup detail"><span class="material-symbols-rounded">close</span></button></header><div class="modal-body" id="visit-modal-body"><div class="modal-loading">Memuat detail visit...</div></div></section></div></main>
@@ -136,7 +136,7 @@ accountButton.addEventListener("click", function () {
 
 const truckTable = document.getElementById("truck-table");
 const resultCount = document.getElementById("result-count");
-const filterVendor = document.getElementById("filter-vendor");
+const filterClient = document.getElementById("filter-client");
 const filterPlate = document.getElementById("filter-plate");
 const filterStatus = document.getElementById("filter-status");
 const filterDate = document.getElementById("filter-date");
@@ -205,12 +205,12 @@ function formatTime(value) {
   }).format(date);
 }
 
-function renderVendorOptions() {
+function renderKlienOptions() {
   const names = Array.from(
     new Set(
       visits
         .map(function (visit) {
-          return visit.vendor;
+          return visit.client;
         })
         .filter(Boolean)
     )
@@ -218,8 +218,8 @@ function renderVendorOptions() {
     return a.localeCompare(b, "id");
   });
 
-  filterVendor.innerHTML =
-    '<option value="">Semua vendor</option>' +
+  filterClient.innerHTML =
+    '<option value="">Semua klien</option>' +
     names
       .map(function (name) {
         return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + "</option>";
@@ -233,7 +233,7 @@ function getVisitDate(visit) {
 
 function filteredVisits() {
   const plate = filterPlate.value.trim().toLowerCase();
-  const vendor = filterVendor.value;
+  const client = filterClient.value;
   const status = filterStatus.value;
   const date = filterDate.value;
 
@@ -243,7 +243,7 @@ function filteredVisits() {
 
     return (
       (!plate || visitPlate.includes(plate)) &&
-      (!vendor || (visit.vendor) === vendor) &&
+      (!client || (visit.client) === client) &&
       (!status || visit.process_status === status) &&
       (!date || String(visitDate).slice(0, 10) === date)
     );
@@ -321,7 +321,7 @@ async function openVisitModal(visitId) {
       "plate_number",
       "container_num",
       "destination",
-      "vendor",
+      "client",
       "client_id",
       "driver_name",
       "driver_phone",
@@ -387,7 +387,7 @@ async function openVisitModal(visitId) {
 
     const visit = data[0];
     const card = visit.cards && visit.cards.card_number;
-    const vendor = visit.vendor;
+    const client = visit.client;
     const client = visit.clients && visit.clients.name;
     const gate = visit.gates && visit.gates.gate_number;
     const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
@@ -403,7 +403,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Plat nomor", visit.plate_number, true),
       renderDetailItem("Nomor kontainer", visit.container_num, true),
       renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
-      renderDetailItem("Vendor", vendor),
+      renderDetailItem("Klien", client),
       renderDetailItem("Client", client),
       renderDetailItem("Nama sopir", visit.driver_name),
       renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
@@ -482,7 +482,7 @@ function renderTable() {
       const status = visit.process_status;
       const statusLabel = statusLabels[status] || status || "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
-      const vendor = visit.vendor || "—";
+      const client = visit.client || "—";
       const destination =
         visit.destination === "inbound" ? "Inbound" : "Outbound";
       
@@ -494,7 +494,7 @@ function renderTable() {
             <span class="muted">${escapeHtml(visit.driver_name || "—")} / ${escapeHtml(client)}</span>
           </td>
           <td><span class="destination">${escapeHtml(destination)}</span></td>
-          <td>${escapeHtml(vendor)}</td>
+          <td>${escapeHtml(client)}</td>
           <td>
             <span class="status-badge status-${escapeHtml(status)}">
               <span class="status-dot"></span>${escapeHtml(statusLabel)}
@@ -576,7 +576,7 @@ async function loadVisits() {
       "plate_number",
       "container_num",
       "destination",
-      "vendor",
+      "client",
       "driver_name",
       "shipment_number",
       "process_status",
@@ -630,7 +630,7 @@ async function loadVisits() {
     }
 
     visits = data;
-    renderVendorOptions();
+    renderKlienOptions();
     renderStats();
     renderTable();
   } catch (error) {
@@ -643,7 +643,7 @@ async function loadVisits() {
   }
 }
 
-[filterVendor, filterPlate, filterStatus, filterDate].forEach(
+[filterClient, filterPlate, filterStatus, filterDate].forEach(
   function (element) {
     element.addEventListener("input", renderTable);
     element.addEventListener("change", renderTable);
@@ -674,7 +674,7 @@ document.addEventListener("keydown", function (event) {
 });
 
 resetFilter.addEventListener("click", function () {
-  filterVendor.value = "";
+  filterClient.value = "";
   filterPlate.value = "";
   filterStatus.value = "";
   filterDate.value = "";
@@ -688,7 +688,7 @@ exportButton.addEventListener("click", function () {
   const header = [
     "Plat nomor",
     "Tujuan",
-    "Vendor",
+    "Klien",
     "Klien",
     "Nomor shipment",
     "Gerbang",
@@ -708,7 +708,7 @@ exportButton.addEventListener("click", function () {
     return [
       visit.plate_number || "",
       destination,
-      visit.vendor || "",
+      visit.client || "",
       visit.clients && visit.clients.name ? visit.clients.name : "",
       visit.shipment_number || "",
       visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
