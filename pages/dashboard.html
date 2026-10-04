@@ -212,7 +212,7 @@ function renderVendorOptions() {
     new Set(
       visits
         .map(function (visit) {
-          return visit.vendors && visit.vendors.name;
+          return visit.vendor;
         })
         .filter(Boolean)
     )
@@ -248,7 +248,7 @@ function filteredVisits() {
     return (
       (!plate || visitPlate.includes(plate)) &&
       (!shipment || visitShipment.includes(shipment)) &&
-      (!vendor || (visit.vendors && visit.vendors.name) === vendor) &&
+      (!vendor || (visit.vendor) === vendor) &&
       (!status || visit.process_status === status) &&
       (!date || String(visitDate).slice(0, 10) === date)
     );
@@ -322,266 +322,12 @@ async function openVisitModal(visitId) {
   try {
     const select = [
       "id",
-      "card_id",
       "plate_number",
       "container_num",
       "destination",
-      "vendor_id",
+      "vendor",
       "client_id",
       "driver_name",
-      "driver_phone",
-      "truck_type",
-      "license_type",
-      "license_num",
-      "license_exp",
-      "vehicle_exp",
-      "vehicle_inspect_exp",
-      "shipment_type",
-      "shipment_number",
-      "manifest_number",
-      "gate_id",
-      "line_number_id",
-      "seal_number",
-      "notes",
-      "process_status",
-      "final_status",
-      "wh_in_at",
-      "registered_at",
-      "started_at",
-      "completed_at",
-      "wh_out_at",
-      "created_at",
-      "updated_at",
-      "cards(card_number)",
-      "vendors(name)",
-      "clients(name)",
-      "gates(gate_number)",
-      "line_numbers(line_number)",
-      "photos(id,photo_type,file_location,created_at)"
-    ].join(",");
-
-    const url = SUPABASE_URL +
-      "/rest/v1/visits?select=" + encodeURIComponent(select) +
-      "&id=eq." + encodeURIComponent(visitId) +
-      "&limit=1";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + trcmSession.access_token
-      }
-    });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = {};
-    }
-
-    if (!response.ok) {
-      throw new Error(data && data.message ? data.message : "Gagal mengambil detail visit.");
-    }
-
-    if (!Array.isArray(data) || !data.length) {
-      throw new Error("Visit tidak ditemukan.");
-    }
-
-    const visit = data[0];
-    const card = visit.cards && visit.cards.card_number;
-    const vendor = visit.vendors && visit.vendors.name;
-    const client = visit.clients && visit.clients.name;
-    const gate = visit.gates && visit.gates.gate_number;
-    const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
-
-    visitModalTitle.textContent = visit.plate_number || "Detail visit";
-    visitModalSubtitle.textContent =
-      (client || "Client tidak tersedia") + " · " +
-      (visit.driver_name || "Driver tidak tersedia");
-
-    const general = [
-      renderDetailItem("ID visit", visit.id, true),
-      renderDetailItem("Nomor kartu", card, true),
-      renderDetailItem("Plat nomor", visit.plate_number, true),
-      renderDetailItem("Nomor kontainer", visit.container_num, true),
-      renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
-      renderDetailItem("Vendor", vendor),
-      renderDetailItem("Client", client),
-      renderDetailItem("Nama sopir", visit.driver_name),
-      renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
-      renderDetailItem("Tipe truck", visit.truck_type)
-    ].join("");
-
-    const documents = [
-      renderDetailItem("Tipe SIM", visit.license_type),
-      renderDetailItem("Nomor SIM", visit.license_num, true),
-      renderDetailItem("Masa berlaku SIM", visit.license_exp),
-      renderDetailItem("Masa berlaku kendaraan", visit.vehicle_exp),
-      renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
-      renderDetailItem("Tipe shipment", visit.shipment_type),
-      renderDetailItem("Nomor shipment", visit.shipment_number, true),
-      renderDetailItem("Nomor manifest / loading list", visit.manifest_number, true),
-      renderDetailItem("Nomor gerbang", gate),
-      renderDetailItem("Nomor line", lineNumber),
-      renderDetailItem("Nomor segel", visit.seal_number, true),
-      renderDetailItem("Status proses", statusLabel(visit.process_status)),
-      renderDetailItem("Status akhir", statusLabel(visit.final_status))
-    ].join("");
-
-    const times = [
-      renderDetailItem("WH In", formatDateTime(visit.wh_in_at), true),
-      renderDetailItem("Terdaftar", formatDateTime(visit.registered_at), true),
-      renderDetailItem("Mulai", formatDateTime(visit.started_at), true),
-      renderDetailItem("Selesai", formatDateTime(visit.completed_at), true),
-      renderDetailItem("WH Out", formatDateTime(visit.wh_out_at), true),
-      renderDetailItem("Dibuat", formatDateTime(visit.created_at), true),
-      renderDetailItem("Diperbarui", formatDateTime(visit.updated_at), true),
-      renderDetailItem("Catatan", visit.notes)
-    ].join("");
-
-    const photos = Array.isArray(visit.photos) ? visit.photos : [];
-    const photoHtml = photos.length
-      ? photos.map(function (photo) {
-          return '<div class="photo-item"><span class="photo-type">' +
-            escapeHtml(photoTypeLabel(photo.photo_type)) +
-            '</span><span class="photo-location">' +
-            escapeHtml(photo.file_location) +
-            '</span><span class="event-meta">' +
-            escapeHtml(formatDateTime(photo.created_at)) +
-            "</span></div>";
-        }).join("")
-      : '<div class="modal-empty">Belum ada foto yang tercatat untuk visit ini.</div>';
-
-    visitModalBody.innerHTML =
-      '<section class="detail-section"><h3>Identitas visit</h3><div class="detail-grid">' +
-        general + "</div></section>" +
-      '<section class="detail-section"><h3>Shipment dan operasional</h3><div class="detail-grid">' +
-        documents + "</div></section>" +
-      '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
-        times + "</div></section>" +
-      '<section class="detail-section"><h3>Foto visit</h3><div class="photo-list">' +
-        photoHtml + "</div></section>";
-  } catch (error) {
-    console.error("TRCM visit detail:", error);
-    visitModalBody.innerHTML =
-      '<div class="modal-error">' + escapeHtml(error.message || "Detail visit gagal dimuat.") + "</div>";
-  }
-}
-
-function renderTable() {
-  const rows = filteredVisits();
-
-  resultCount.textContent = rows.length + " truk ditampilkan";
-
-  if (!rows.length) {
-    truckTable.innerHTML =
-      '<tr><td colspan="6" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';
-    return;
-  }
-
-  truckTable.innerHTML = rows
-    .map(function (visit) {
-      const status = visit.process_status;
-      const statusLabel = statusLabels[status] || status || "—";
-      const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
-      const vendor = visit.vendors && visit.vendors.name ? visit.vendors.name : "—";
-      const destination =
-        visit.destination === "inbound" ? "Inbound" : "Outbound";
-      
-
-      return `
-        <tr title="Detail truk">
-          <td>
-            <span class="plate">${escapeHtml(visit.plate_number)}</span><br>
-            <span class="muted">${escapeHtml(visit.driver_name || "—")} / ${escapeHtml(client)}</span>
-          </td>
-          <td><span class="destination">${escapeHtml(destination)}</span></td>
-          <td>${escapeHtml(vendor)}</td>
-          <td>
-            <span class="status-badge status-${escapeHtml(status)}">
-              <span class="status-dot"></span>${escapeHtml(statusLabel)}
-            </span>
-          </td>
-          <td>
-            <span class="duration">${escapeHtml(formatTime(visit.wh_in_at))}</span><br>
-            <span class="muted">${escapeHtml(formatDateTime(visit.wh_in_at))}</span>
-          </td>
-          <td>
-            <button class="action-button detail-button" type="button" data-visit-id="${escapeHtml(visit.id)}">
-              <span class="material-symbols-rounded">visibility</span>
-              <span>Detail</span>
-            </button>
-          </td>
-        </tr>`;
-    })
-    .join("");
-}
-
-function renderStats() {
-  const today = new Date().toISOString().slice(0, 10);
-  const todayVisits = visits.filter(function (visit) {
-    return String(getVisitDate(visit)).slice(0, 10) === today;
-  });
-
-  const waiting = todayVisits.filter(function (visit) {
-    return visit.process_status === "registered";
-  }).length;
-
-  const processing = todayVisits.filter(function (visit) {
-    return visit.process_status === "started";
-  }).length;
-
-  const done = todayVisits.filter(function (visit) {
-    return visit.process_status === "completed";
-  }).length;
-
-  const completed = todayVisits.filter(function (visit) {
-    return (
-      visit.process_status === "completed" &&
-      visit.wh_in_at &&
-      visit.completed_at
-    );
-  });
-
-  let averageMinutes = 0;
-
-  if (completed.length) {
-    const totalMilliseconds = completed.reduce(function (sum, visit) {
-      return sum + (new Date(visit.completed_at) - new Date(visit.wh_in_at));
-    }, 0);
-
-    averageMinutes = Math.max(
-      0,
-      Math.round(totalMilliseconds / completed.length / 60000)
-    );
-  }
-
-  document.getElementById("stat-waiting").textContent = waiting;
-  document.getElementById("stat-process").textContent = processing;
-  document.getElementById("stat-done").textContent = done;
-  document.getElementById("stat-average").textContent =
-    averageMinutes > 0
-      ? Math.floor(averageMinutes / 60) + "j " +
-        String(averageMinutes % 60).padStart(2, "0") + "m"
-      : "—";
-}
-
-async function loadVisits() {
-  truckTable.innerHTML =
-    '<tr><td colspan="6" class="table-state">Memuat data truk...</td></tr>';
-  resultCount.textContent = "Memuat data...";
-  refreshButton.disabled = true;
-
-  try {
-    const select = [
-      "id",
-      "plate_number",
-      "container_num",
-      "destination",
-      "driver_name",
       "shipment_number",
       "process_status",
       "final_status",
@@ -590,7 +336,6 @@ async function loadVisits() {
       "started_at",
       "completed_at",
       "created_at",
-      "vendors(name)",
       "clients(name)",
       "gates(gate_number)"
     ].join(",");
@@ -713,7 +458,7 @@ exportButton.addEventListener("click", function () {
     return [
       visit.plate_number || "",
       destination,
-      visit.vendors && visit.vendors.name ? visit.vendors.name : "",
+      visit.vendor ? visit.vendor.name : "",
       visit.clients && visit.clients.name ? visit.clients.name : "",
       visit.shipment_number || "",
       visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
