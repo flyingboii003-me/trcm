@@ -321,6 +321,7 @@ async function openVisitModal(visitId) {
       "plate_number",
       "container_num",
       "destination",
+      "vendor",
       "client",
       "client_id",
       "driver_name",
@@ -387,8 +388,7 @@ async function openVisitModal(visitId) {
 
     const visit = data[0];
     const card = visit.cards && visit.cards.card_number;
-    const client = visit.client;
-    const client = visit.clients && visit.clients.name;
+    const client = visit.client || (visit.clients && visit.clients.name) || "—";
     const gate = visit.gates && visit.gates.gate_number;
     const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
 
@@ -404,7 +404,6 @@ async function openVisitModal(visitId) {
       renderDetailItem("Nomor kontainer", visit.container_num, true),
       renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
       renderDetailItem("Klien", client),
-      renderDetailItem("Client", client),
       renderDetailItem("Nama sopir", visit.driver_name),
       renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
       renderDetailItem("Tipe truck", visit.truck_type)
@@ -481,8 +480,8 @@ function renderTable() {
     .map(function (visit) {
       const status = visit.process_status;
       const statusLabel = statusLabels[status] || status || "—";
-      const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
-      const client = visit.client || "—";
+      const client = visit.client || (visit.clients && visit.clients.name) || "—";
+      const vendor = visit.vendor || "—";
       const destination =
         visit.destination === "inbound" ? "Inbound" : "Outbound";
       
@@ -494,7 +493,7 @@ function renderTable() {
             <span class="muted">${escapeHtml(visit.driver_name || "—")} / ${escapeHtml(client)}</span>
           </td>
           <td><span class="destination">${escapeHtml(destination)}</span></td>
-          <td>${escapeHtml(client)}</td>
+          <td>${escapeHtml(vendor)}</td>
           <td>
             <span class="status-badge status-${escapeHtml(status)}">
               <span class="status-dot"></span>${escapeHtml(statusLabel)}
@@ -689,7 +688,7 @@ exportButton.addEventListener("click", function () {
     "Plat nomor",
     "Tujuan",
     "Klien",
-    "Klien",
+    "Vendor",
     "Nomor shipment",
     "Gerbang",
     "Status",
@@ -709,7 +708,7 @@ exportButton.addEventListener("click", function () {
       visit.plate_number || "",
       destination,
       visit.client || "",
-      visit.clients && visit.clients.name ? visit.clients.name : "",
+      visit.vendor || "",
       visit.shipment_number || "",
       visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
       status,
