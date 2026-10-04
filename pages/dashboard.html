@@ -41,7 +41,6 @@ html[data-theme="dark"]{color-scheme:dark;--bg:#070b16;--surface:#0f1729;--surfa
 <div class="filters">
 <label><span>Vendor</span><select id="filter-vendor"><option value="">Semua vendor</option></select></label>
 <label><span>Plat nomor</span><input id="filter-plate" type="search" placeholder="Cari plat"></label>
-<label><span>Nomor shipment</span><input id="filter-shipment" type="search" placeholder="Cari shipment"></label>
 <label><span>Status</span><select id="filter-status"><option value="">Semua status</option><option value="registered">Terdaftar</option><option value="started">Sedang proses</option><option value="completed">Selesai</option></select></label>
 <label><span>Tanggal</span><input id="filter-date" type="date"></label>
 <button class="reset-button" id="reset-filter" type="button"><span class="material-symbols-rounded">restart_alt</span><span>Atur ulang</span></button>
@@ -139,7 +138,6 @@ const truckTable = document.getElementById("truck-table");
 const resultCount = document.getElementById("result-count");
 const filterVendor = document.getElementById("filter-vendor");
 const filterPlate = document.getElementById("filter-plate");
-const filterShipment = document.getElementById("filter-shipment");
 const filterStatus = document.getElementById("filter-status");
 const filterDate = document.getElementById("filter-date");
 const resetFilter = document.getElementById("reset-filter");
@@ -235,19 +233,16 @@ function getVisitDate(visit) {
 
 function filteredVisits() {
   const plate = filterPlate.value.trim().toLowerCase();
-  const shipment = filterShipment.value.trim().toLowerCase();
   const vendor = filterVendor.value;
   const status = filterStatus.value;
   const date = filterDate.value;
 
   return visits.filter(function (visit) {
     const visitPlate = String(visit.plate_number || "").toLowerCase();
-    const visitShipment = String(visit.shipment_number || "").toLowerCase();
     const visitDate = getVisitDate(visit);
 
     return (
       (!plate || visitPlate.includes(plate)) &&
-      (!shipment || visitShipment.includes(shipment)) &&
       (!vendor || (visit.vendor) === vendor) &&
       (!status || visit.process_status === status) &&
       (!date || String(visitDate).slice(0, 10) === date)
@@ -397,10 +392,10 @@ async function openVisitModal(visitId) {
     const gate = visit.gates && visit.gates.gate_number;
     const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
 
-    visitModalTitle.textContent =
-      (client || "Client tidak tersedia") + " · " +
-      (visit.driver_name || "Driver tidak tersedia");
-    visitModalSubtitle.textContent = "Detail visit";
+    visitModalTitle.textContent = visit.plate_number || "Detail visit";
+    visitModalSubtitle.textContent =
+      (visit.driver_name || "Driver tidak tersedia") + " · " +
+      (client || "Client tidak tersedia");
 
     const general = [
       renderDetailItem("ID visit", visit.id, true),
@@ -487,7 +482,7 @@ function renderTable() {
       const status = visit.process_status;
       const statusLabel = statusLabels[status] || status || "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
-      const vendor = visit.vendor ? visit.vendor.name : "—";
+      const vendor = visit.vendor || "—";
       const destination =
         visit.destination === "inbound" ? "Inbound" : "Outbound";
       
@@ -648,7 +643,7 @@ async function loadVisits() {
   }
 }
 
-[filterVendor, filterPlate, filterShipment, filterStatus, filterDate].forEach(
+[filterVendor, filterPlate, filterStatus, filterDate].forEach(
   function (element) {
     element.addEventListener("input", renderTable);
     element.addEventListener("change", renderTable);
@@ -681,7 +676,6 @@ document.addEventListener("keydown", function (event) {
 resetFilter.addEventListener("click", function () {
   filterVendor.value = "";
   filterPlate.value = "";
-  filterShipment.value = "";
   filterStatus.value = "";
   filterDate.value = "";
   renderTable();
@@ -714,7 +708,7 @@ exportButton.addEventListener("click", function () {
     return [
       visit.plate_number || "",
       destination,
-      visit.vendor ? visit.vendor.name : "",
+      visit.vendor || "",
       visit.clients && visit.clients.name ? visit.clients.name : "",
       visit.shipment_number || "",
       visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
