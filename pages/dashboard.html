@@ -12,7 +12,7 @@
 :root{color-scheme:light;--bg:#f3f6fc;--surface:#fff;--surface2:#f1f5fb;--border:#dde5f1;--primary:#2563eb;--text:#0b1426;--muted:#3d4b66;--active-bg:#eff6ff;--active-border:#dbeafe;--sidebar-collapsed:72px;--sidebar-expanded:240px;--topbar:60px;--transition:.22s ease}
 html[data-theme="dark"]{color-scheme:dark;--bg:#070b16;--surface:#0f1729;--surface2:#162238;--border:#1f2c45;--primary:#3b82f6;--text:#e6edf7;--muted:#94a3b8;--active-bg:#172554;--active-border:#1e3a8a}
 *{box-sizing:border-box}html,body{min-height:100%}body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;-webkit-font-smoothing:antialiased;transition:background var(--transition),color var(--transition)}.app-shell{min-height:100vh}.sidebar{position:fixed;z-index:20;inset:0 auto 0 0;width:var(--sidebar-collapsed);padding:14px 10px;background:var(--surface);border-right:1px solid var(--border);transition:width var(--transition),background var(--transition),border-color var(--transition);overflow:hidden}.sidebar:hover,.sidebar:focus-within{width:var(--sidebar-expanded)}.brand{height:44px;display:flex;align-items:center;gap:12px;padding:0 9px;margin-bottom:20px;white-space:nowrap}.brand-mark{width:36px;height:36px;display:grid;place-items:center;flex:0 0 auto;border-radius:10px;background:var(--primary);color:#fff}.brand-mark .material-symbols-rounded{font-size:20px}.brand-name{font-size:17px;font-weight:700;opacity:0;transition:opacity var(--transition)}.sidebar:hover .brand-name,.sidebar:focus-within .brand-name{opacity:1}.nav{display:flex;flex-direction:column;gap:5px}.nav-link{height:44px;display:flex;align-items:center;gap:13px;padding:0 11px;color:var(--muted);border:1px solid transparent;border-radius:10px;text-decoration:none;white-space:nowrap;transition:background var(--transition),color var(--transition),border-color var(--transition)}.nav-link .material-symbols-rounded{font-size:21px;flex:0 0 auto}.nav-link span:last-child{opacity:0;transition:opacity var(--transition)}.sidebar:hover .nav-link span:last-child,.sidebar:focus-within .nav-link span:last-child{opacity:1}.nav-link:hover{color:var(--text);background:var(--surface2)}.nav-link.active{color:var(--primary);background:var(--active-bg);border-color:var(--active-border)}.main{margin-left:var(--sidebar-collapsed);min-height:100vh;transition:margin-left var(--transition)}.topbar{height:var(--topbar);position:sticky;top:0;z-index:10;display:flex;align-items:center;padding:0 28px;background:color-mix(in srgb,var(--surface) 84%,transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}.topbar-title{margin:0;font-size:17px;font-weight:700}.theme-button{width:38px;height:38px;display:grid;place-items:center;margin-left:auto;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:color var(--transition),background var(--transition),border-color var(--transition)}.theme-button:hover{color:var(--text);background:var(--surface2)}.theme-button .material-symbols-rounded{font-size:20px}.account-button{height:38px;display:inline-flex;align-items:center;gap:8px;margin-left:8px;padding:0 11px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:color var(--transition),background var(--transition),border-color var(--transition)}.account-button:hover{color:var(--text);background:var(--surface2)}.account-button .material-symbols-rounded{font-size:20px}.account-name{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:500}.content{padding:28px 32px 36px}.page-intro{margin-bottom:20px}.page-intro h2{margin:0 0 5px;font-size:17px;font-weight:700}.page-intro p{margin:0;color:var(--muted);font-size:13px}.placeholder{min-height:240px;display:grid;place-items:center;padding:28px;background:var(--surface);border:1px solid var(--border);border-radius:16px;color:var(--muted);text-align:center}.placeholder strong{display:block;margin-bottom:6px;color:var(--text);font-size:14px}.placeholder span{font-size:12px}@media(max-width:700px){.sidebar{width:0;padding:14px 0;border-right:0}.sidebar.is-open{width:240px;padding:14px 10px;box-shadow:12px 0 30px rgba(11,20,38,.12)}.sidebar .brand-name,.sidebar .nav-link span:last-child{opacity:1}.main{margin-left:0}.topbar{padding:0 18px}.content{padding:22px 18px}.menu-button{width:38px;height:38px;display:grid;place-items:center;margin-right:10px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:10px;cursor:pointer}.sidebar-backdrop{display:block;position:fixed;inset:0;z-index:15;background:rgba(11,20,38,.25);opacity:0;visibility:hidden;transition:opacity var(--transition),visibility var(--transition)}.sidebar-backdrop.is-visible{opacity:1;visibility:visible}}@media(min-width:701px){.menu-button,.sidebar-backdrop{display:none}}
-.page-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}.page-heading h2{margin:0 0 5px;font-size:17px;font-weight:700}.page-heading p{margin:0;color:var(--muted);font-size:13px}.refresh-button,.export-button,.reset-button{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:background var(--transition),color var(--transition),border-color var(--transition)}.refresh-button:hover,.export-button:hover,.reset-button:hover{color:var(--text);background:var(--surface2)}.refresh-button .material-symbols-rounded,.export-button .material-symbols-rounded,.reset-button .material-symbols-rounded{font-size:18px}.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:20px}.stat-card{position:relative;min-height:112px;padding:20px 20px 17px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}.stat-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px}.status-waiting::before{background:#64748b}.status-process::before{background:var(--primary)}.status-done::before{background:#84cc16}.status-time::before{background:#a3a34a}.stat-label{display:block;color:var(--muted);font-size:12px;font-weight:500}.stat-value{display:block;margin-top:9px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:21px;font-weight:600;line-height:1.1}.stat-note{display:block;margin-top:7px;color:var(--muted);font-size:11px}.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}.panel-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 20px 16px}.panel-header h3{margin:0 0 4px;font-size:14px;font-weight:700}.panel-header p{margin:0;color:var(--muted);font-size:11px}.filters{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr auto;gap:10px;padding:0 20px 18px;border-bottom:1px solid var(--border)}.filters label{min-width:0}.filters label span{display:block;margin:0 0 6px;color:var(--muted);font-size:11px;font-weight:500}.filters input,.filters select{width:100%;height:38px;padding:0 10px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;outline:none;font-size:12px}.filters input:focus,.filters select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}.reset-button{align-self:end}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:13px 20px;text-align:left;border-bottom:1px solid var(--border);font-size:12px;white-space:nowrap}th{color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:var(--surface2)}tbody tr{cursor:pointer;transition:background var(--transition)}tbody tr:hover{background:var(--surface2)}tbody tr:last-child td{border-bottom:0}.plate{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:600}.muted{color:var(--muted);font-size:10px}.shipment{font-family:"JetBrains Mono",monospace;font-size:11px}.destination{display:inline-flex;padding:4px 7px;border-radius:7px;background:var(--surface2);font-size:10px;font-weight:600}.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600}.status-dot{width:7px;height:7px;border-radius:50%;background:currentColor}.status-registered{color:#64748b}.status-started{color:var(--primary)}.status-completed{color:#65a30d}.duration{font-family:"JetBrains Mono",monospace;font-size:11px}.table-state{text-align:center;color:var(--muted);padding:32px!important}.error-state{color:#dc2626}@media(max-width:1000px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.reset-button{width:100%}}@media(max-width:700px){.page-heading{align-items:flex-start}.page-heading .refresh-button span:last-child{display:none}.stats-grid{grid-template-columns:1fr}.panel-header{align-items:flex-start}.export-button span:last-child{display:none}.filters{grid-template-columns:1fr;padding:0 14px 16px}.panel-header{padding:16px}.filters input,.filters select{height:40px}}</style>
+.page-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}.page-heading h2{margin:0 0 5px;font-size:17px;font-weight:700}.page-heading p{margin:0;color:var(--muted);font-size:13px}.refresh-button,.export-button,.reset-button{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:background var(--transition),color var(--transition),border-color var(--transition)}.refresh-button:hover,.export-button:hover,.reset-button:hover{color:var(--text);background:var(--surface2)}.refresh-button .material-symbols-rounded,.export-button .material-symbols-rounded,.reset-button .material-symbols-rounded{font-size:18px}.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:20px}.stat-card{position:relative;min-height:112px;padding:20px 20px 17px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}.stat-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px}.status-waiting::before{background:#64748b}.status-process::before{background:var(--primary)}.status-done::before{background:#84cc16}.status-time::before{background:#a3a34a}.stat-label{display:block;color:var(--muted);font-size:12px;font-weight:500}.stat-value{display:block;margin-top:9px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:21px;font-weight:600;line-height:1.1}.stat-note{display:block;margin-top:7px;color:var(--muted);font-size:11px}.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}.panel-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 20px 16px}.panel-header h3{margin:0 0 4px;font-size:14px;font-weight:700}.panel-header p{margin:0;color:var(--muted);font-size:11px}.filters{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr auto;gap:10px;padding:0 20px 18px;border-bottom:1px solid var(--border)}.filters label{min-width:0}.filters label span{display:block;margin:0 0 6px;color:var(--muted);font-size:11px;font-weight:500}.filters input,.filters select{width:100%;height:38px;padding:0 10px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;outline:none;font-size:12px}.filters input:focus,.filters select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}.reset-button{align-self:end}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:13px 20px;text-align:left;border-bottom:1px solid var(--border);font-size:12px;white-space:nowrap}th{color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:var(--surface2)}tbody tr{cursor:pointer;transition:background var(--transition)}tbody tr:hover{background:var(--surface2)}tbody tr:last-child td{border-bottom:0}.plate{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:600}.muted{color:var(--muted);font-size:10px}.shipment{font-family:"JetBrains Mono",monospace;font-size:11px}.destination{display:inline-flex;padding:4px 7px;border-radius:7px;background:var(--surface2);font-size:10px;font-weight:600}.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600}.status-dot{width:7px;height:7px;border-radius:50%;background:currentColor}.status-registered{color:#64748b}.status-started{color:var(--primary)}.status-completed{color:#65a30d}.duration{font-family:"JetBrains Mono",monospace;font-size:11px}.table-state{text-align:center;color:var(--muted);padding:32px!important}.error-state{color:#dc2626}@media(max-width:1000px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.reset-button{width:100%}}@media(max-width:700px){.page-heading{align-items:flex-start}.page-heading .refresh-button span:last-child{display:none}.stats-grid{grid-template-columns:1fr}.panel-header{align-items:flex-start}.export-button span:last-child{display:none}.filters{grid-template-columns:1fr;padding:0 14px 16px}.panel-header{padding:16px}.filters input,.filters select{height:40px}}.action-button{height:34px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;color:var(--primary);background:var(--active-bg);border:1px solid var(--active-border);border-radius:9px;font-size:11px;font-weight:600;cursor:pointer}.action-button:hover{background:var(--active-border)}.action-button .material-symbols-rounded{font-size:17px}.modal-backdrop{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(11,20,38,.52);opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--transition),visibility var(--transition)}.modal-backdrop.is-visible{opacity:1;visibility:visible;pointer-events:auto}.visit-modal{width:min(920px,100%);max-height:min(86vh,820px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 70px rgba(11,20,38,.24);transform:translateY(10px) scale(.99);transition:transform var(--transition)}.modal-backdrop.is-visible .visit-modal{transform:translateY(0) scale(1)}.modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid var(--border)}.modal-kicker{display:block;margin-bottom:5px;color:var(--primary);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.modal-header h2{margin:0;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:20px}.modal-header p{margin:6px 0 0;color:var(--muted);font-size:12px}.modal-close{width:36px;height:36px;display:grid;place-items:center;flex:0 0 auto;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:9px;cursor:pointer}.modal-close:hover{color:var(--text)}.modal-close .material-symbols-rounded{font-size:19px}.modal-body{overflow:auto;padding:22px 24px}.detail-section{margin-bottom:22px}.detail-section:last-child{margin-bottom:0}.detail-section h3{margin:0 0 11px;font-size:12px;font-weight:700}.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.detail-item{min-width:0;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px}.detail-label{display:block;margin-bottom:6px;color:var(--muted);font-size:10px}.detail-value{display:block;overflow-wrap:anywhere;color:var(--text);font-size:12px;font-weight:600}.detail-value.mono{font-family:"JetBrains Mono",monospace;font-size:11px}.detail-events{display:flex;flex-direction:column;gap:8px}.event-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:9px}.event-status{font-size:11px;font-weight:600}.event-meta{color:var(--muted);font-size:10px}.photo-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.photo-item{padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px}.photo-type{display:block;margin-bottom:5px;font-size:11px;font-weight:700}.photo-location{display:block;color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:10px;overflow-wrap:anywhere}.modal-loading,.modal-empty{padding:28px;text-align:center;color:var(--muted);font-size:12px}.modal-error{padding:16px;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;font-size:12px}@media(max-width:700px){.modal-backdrop{padding:10px}.visit-modal{max-height:92vh;border-radius:14px}.modal-header{padding:17px 16px}.modal-body{padding:17px 16px}.detail-grid{grid-template-columns:1fr}.photo-list{grid-template-columns:1fr}}</style>
 </head>
 <body>
 <div class="app-shell">
@@ -46,10 +46,10 @@ html[data-theme="dark"]{color-scheme:dark;--bg:#070b16;--surface:#0f1729;--surfa
 <label><span>Tanggal</span><input id="filter-date" type="date"></label>
 <button class="reset-button" id="reset-filter" type="button"><span class="material-symbols-rounded">restart_alt</span><span>Atur ulang</span></button>
 </div>
-<div class="table-wrap"><table><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Shipment</th><th>Gerbang</th><th>Status</th><th>Waktu</th></tr></thead><tbody id="truck-table"><tr><td colspan="7" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th>Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
 </section>
 </section>
-</main>
+<div class="modal-backdrop" id="visit-modal-backdrop" aria-hidden="true"><section class="visit-modal" id="visit-modal" role="dialog" aria-modal="true" aria-labelledby="visit-modal-title"><header class="modal-header"><div><span class="modal-kicker">Detail visit</span><h2 id="visit-modal-title">—</h2><p id="visit-modal-subtitle">—</p></div><button class="modal-close" id="visit-modal-close" type="button" aria-label="Tutup detail"><span class="material-symbols-rounded">close</span></button></header><div class="modal-body" id="visit-modal-body"><div class="modal-loading">Memuat detail visit...</div></div></section></div></main>
 </div>
 <script>const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
@@ -62,6 +62,12 @@ const themeButton = document.getElementById("theme-button");
 const themeIcon = document.getElementById("theme-icon");
 const accountButton = document.getElementById("account-button");
 const accountName = document.getElementById("account-name");
+const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
+const visitModal = document.getElementById("visit-modal");
+const visitModalClose = document.getElementById("visit-modal-close");
+const visitModalTitle = document.getElementById("visit-modal-title");
+const visitModalSubtitle = document.getElementById("visit-modal-subtitle");
+const visitModalBody = document.getElementById("visit-modal-body");
 
 let trcmSession = null;
 try {
@@ -249,6 +255,222 @@ function filteredVisits() {
   });
 }
 
+function formatDateTime(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function displayValue(value) {
+  return value === null || value === undefined || value === "" ? "—" : String(value);
+}
+
+function photoTypeLabel(type) {
+  const labels = {
+    seal_initial: "Seal awal",
+    seal_final: "Seal akhir"
+  };
+
+  return labels[type] || displayValue(type);
+}
+
+function statusLabel(value) {
+  const labels = {
+    registered: "Terdaftar",
+    started: "Sedang proses",
+    completed: "Selesai",
+    parked: "Parkir",
+    processing: "Proses",
+    cancelled: "Batal"
+  };
+
+  return labels[value] || displayValue(value);
+}
+
+function renderDetailItem(label, value, mono) {
+  return '<div class="detail-item"><span class="detail-label">' +
+    escapeHtml(label) + '</span><span class="detail-value' +
+    (mono ? ' mono' : '') + '">' + escapeHtml(displayValue(value)) +
+    "</span></div>";
+}
+
+function closeVisitModal() {
+  visitModalBackdrop.classList.remove("is-visible");
+  visitModalBackdrop.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+async function openVisitModal(visitId) {
+  visitModalBackdrop.classList.add("is-visible");
+  visitModalBackdrop.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  visitModalTitle.textContent = "Memuat...";
+  visitModalSubtitle.textContent = "";
+  visitModalBody.innerHTML = '<div class="modal-loading">Memuat detail visit...</div>';
+
+  try {
+    const select = [
+      "id",
+      "card_id",
+      "plate_number",
+      "container_num",
+      "destination",
+      "vendor_id",
+      "client_id",
+      "driver_name",
+      "driver_phone",
+      "truck_type",
+      "license_type",
+      "license_num",
+      "license_exp",
+      "vehicle_exp",
+      "vehicle_inspect_exp",
+      "shipment_type",
+      "shipment_number",
+      "manifest_number",
+      "gate_id",
+      "line_number_id",
+      "seal_number",
+      "notes",
+      "process_status",
+      "final_status",
+      "wh_in_at",
+      "registered_at",
+      "started_at",
+      "completed_at",
+      "wh_out_at",
+      "created_at",
+      "updated_at",
+      "cards(card_number)",
+      "vendors(name)",
+      "clients(name)",
+      "gates(gate_number)",
+      "line_numbers(line_number)",
+      "photos(id,photo_type,file_location,created_at)"
+    ].join(",");
+
+    const url = SUPABASE_URL +
+      "/rest/v1/visits?select=" + encodeURIComponent(select) +
+      "&id=eq." + encodeURIComponent(visitId) +
+      "&limit=1";
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + trcmSession.access_token
+      }
+    });
+
+    const responseText = await response.text();
+    let data = {};
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      data = {};
+    }
+
+    if (!response.ok) {
+      throw new Error(data && data.message ? data.message : "Gagal mengambil detail visit.");
+    }
+
+    if (!Array.isArray(data) || !data.length) {
+      throw new Error("Visit tidak ditemukan.");
+    }
+
+    const visit = data[0];
+    const card = visit.cards && visit.cards.card_number;
+    const vendor = visit.vendors && visit.vendors.name;
+    const client = visit.clients && visit.clients.name;
+    const gate = visit.gates && visit.gates.gate_number;
+    const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
+
+    visitModalTitle.textContent = visit.plate_number || "Detail visit";
+    visitModalSubtitle.textContent =
+      (vendor || "Vendor tidak tersedia") + " · " +
+      (client || "Client tidak tersedia") + " · Visit ID " + visit.id;
+
+    const general = [
+      renderDetailItem("ID visit", visit.id, true),
+      renderDetailItem("Nomor kartu", card, true),
+      renderDetailItem("Plat nomor", visit.plate_number, true),
+      renderDetailItem("Nomor kontainer", visit.container_num, true),
+      renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
+      renderDetailItem("Vendor", vendor),
+      renderDetailItem("Client", client),
+      renderDetailItem("Nama sopir", visit.driver_name),
+      renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
+      renderDetailItem("Tipe truck", visit.truck_type)
+    ].join("");
+
+    const documents = [
+      renderDetailItem("Tipe SIM", visit.license_type),
+      renderDetailItem("Nomor SIM", visit.license_num, true),
+      renderDetailItem("Masa berlaku SIM", visit.license_exp),
+      renderDetailItem("Masa berlaku kendaraan", visit.vehicle_exp),
+      renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
+      renderDetailItem("Tipe shipment", visit.shipment_type),
+      renderDetailItem("Nomor shipment", visit.shipment_number, true),
+      renderDetailItem("Nomor manifest / loading list", visit.manifest_number, true),
+      renderDetailItem("Nomor gerbang", gate),
+      renderDetailItem("Nomor line", lineNumber),
+      renderDetailItem("Nomor segel", visit.seal_number, true),
+      renderDetailItem("Status proses", statusLabel(visit.process_status)),
+      renderDetailItem("Status akhir", statusLabel(visit.final_status))
+    ].join("");
+
+    const times = [
+      renderDetailItem("WH In", formatDateTime(visit.wh_in_at), true),
+      renderDetailItem("Terdaftar", formatDateTime(visit.registered_at), true),
+      renderDetailItem("Mulai", formatDateTime(visit.started_at), true),
+      renderDetailItem("Selesai", formatDateTime(visit.completed_at), true),
+      renderDetailItem("WH Out", formatDateTime(visit.wh_out_at), true),
+      renderDetailItem("Dibuat", formatDateTime(visit.created_at), true),
+      renderDetailItem("Diperbarui", formatDateTime(visit.updated_at), true),
+      renderDetailItem("Catatan", visit.notes)
+    ].join("");
+
+    const photos = Array.isArray(visit.photos) ? visit.photos : [];
+    const photoHtml = photos.length
+      ? photos.map(function (photo) {
+          return '<div class="photo-item"><span class="photo-type">' +
+            escapeHtml(photoTypeLabel(photo.photo_type)) +
+            '</span><span class="photo-location">' +
+            escapeHtml(photo.file_location) +
+            '</span><span class="event-meta">' +
+            escapeHtml(formatDateTime(photo.created_at)) +
+            "</span></div>";
+        }).join("")
+      : '<div class="modal-empty">Belum ada foto yang tercatat untuk visit ini.</div>';
+
+    visitModalBody.innerHTML =
+      '<section class="detail-section"><h3>Identitas visit</h3><div class="detail-grid">' +
+        general + "</div></section>" +
+      '<section class="detail-section"><h3>Shipment dan operasional</h3><div class="detail-grid">' +
+        documents + "</div></section>" +
+      '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
+        times + "</div></section>" +
+      '<section class="detail-section"><h3>Foto visit</h3><div class="photo-list">' +
+        photoHtml + "</div></section>";
+  } catch (error) {
+    console.error("TRCM visit detail:", error);
+    visitModalBody.innerHTML =
+      '<div class="modal-error">' + escapeHtml(error.message || "Detail visit gagal dimuat.") + "</div>";
+  }
+}
+
 function renderTable() {
   const rows = filteredVisits();
 
@@ -256,7 +478,7 @@ function renderTable() {
 
   if (!rows.length) {
     truckTable.innerHTML =
-      '<tr><td colspan="7" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';
+      '<tr><td colspan="6" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';
     return;
   }
 
@@ -266,30 +488,23 @@ function renderTable() {
       const statusLabel = statusLabels[status] || status || "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
       const vendor = visit.vendors && visit.vendors.name ? visit.vendors.name : "—";
-      const gate =
-        visit.gates && visit.gates.gate_number
-          ? "Gate " + visit.gates.gate_number
-          : "—";
       const destination =
         visit.destination === "inbound" ? "Inbound" : "Outbound";
-      const duration =
-        status === "completed"
-          ? formatDuration(visit.wh_in_at, visit.completed_at)
-          : formatDuration(visit.wh_in_at, new Date().toISOString());
+      
 
       return (
         '<tr title="Detail truk">' +
           '<td><span class="plate">' + escapeHtml(visit.plate_number) + "</span><br>" +
-            '<span class="muted">' + escapeHtml(client) + "</span></td>" +
+            '<span class="muted">' + escapeHtml(visit.driver_name || "—") + " / " + escapeHtml(client) + "</span></td>" +
           '<td><span class="destination">' + escapeHtml(destination) + "</span></td>" +
           "<td>" + escapeHtml(vendor) + "</td>" +
-          '<td><span class="shipment">' + escapeHtml(visit.shipment_number || "—") + "</span></td>" +
-          "<td>" + escapeHtml(gate) + "</td>" +
           '<td><span class="status-badge status-' + escapeHtml(status) + '">' +
             '<span class="status-dot"></span>' + escapeHtml(statusLabel) +
           "</span></td>" +
-          '<td><span class="duration">' + escapeHtml(duration) + "</span><br>" +
-            '<span class="muted">' + escapeHtml(formatTime(visit.registered_at || visit.wh_in_at)) + "</span></td>" +
+          '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + "</span><br>" +
+            '<span class="muted">' + escapeHtml(formatDateTime(visit.wh_in_at)) + "</span></td>" +
+          '<td><button class="action-button detail-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '">' +
+            '<span class="material-symbols-rounded">visibility</span><span>Detail</span></button></td> +
         "</tr>"
       );
     })
@@ -347,7 +562,7 @@ function renderStats() {
 
 async function loadVisits() {
   truckTable.innerHTML =
-    '<tr><td colspan="7" class="table-state">Memuat data truk...</td></tr>';
+    '<tr><td colspan="6" class="table-state">Memuat data truk...</td></tr>';
   resultCount.textContent = "Memuat data...";
   refreshButton.disabled = true;
 
@@ -415,7 +630,7 @@ async function loadVisits() {
   } catch (error) {
     console.error("TRCM dashboard:", error);
     truckTable.innerHTML =
-      '<tr><td colspan="7" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
+      '<tr><td colspan="6" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
     resultCount.textContent = "Gagal memuat data";
   } finally {
     refreshButton.disabled = false;
@@ -428,6 +643,29 @@ async function loadVisits() {
     element.addEventListener("change", renderTable);
   }
 );
+
+truckTable.addEventListener("click", function (event) {
+  const button = event.target.closest(".detail-button");
+
+  if (!button) {
+    return;
+  }
+
+  openVisitModal(button.dataset.visitId);
+});
+
+visitModalClose.addEventListener("click", closeVisitModal);
+visitModalBackdrop.addEventListener("click", function (event) {
+  if (event.target === visitModalBackdrop) {
+    closeVisitModal();
+  }
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape" && visitModalBackdrop.classList.contains("is-visible")) {
+    closeVisitModal();
+  }
+});
 
 resetFilter.addEventListener("click", function () {
   filterVendor.value = "";
