@@ -492,21 +492,30 @@ function renderTable() {
         visit.destination === "inbound" ? "Inbound" : "Outbound";
       
 
-      return (
-        '<tr title="Detail truk">' +
-          '<td><span class="plate">' + escapeHtml(visit.plate_number) + "</span><br>" +
-            '<span class="muted">' + escapeHtml(visit.driver_name || "—") + " / " + escapeHtml(client) + "</span></td>" +
-          '<td><span class="destination">' + escapeHtml(destination) + "</span></td>" +
-          "<td>" + escapeHtml(vendor) + "</td>" +
-          '<td><span class="status-badge status-' + escapeHtml(status) + '">' +
-            '<span class="status-dot"></span>' + escapeHtml(statusLabel) +
-          "</span></td>" +
-          '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + "</span><br>" +
-            '<span class="muted">' + escapeHtml(formatDateTime(visit.wh_in_at)) + "</span></td>" +
-          '<td><button class="action-button detail-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '">' +
-            '<span class="material-symbols-rounded">visibility</span><span>Detail</span></button></td>' +
-        "</tr>"
-      );
+      return `
+        <tr title="Detail truk">
+          <td>
+            <span class="plate">${escapeHtml(visit.plate_number)}</span><br>
+            <span class="muted">${escapeHtml(visit.driver_name || "—")} / ${escapeHtml(client)}</span>
+          </td>
+          <td><span class="destination">${escapeHtml(destination)}</span></td>
+          <td>${escapeHtml(vendor)}</td>
+          <td>
+            <span class="status-badge status-${escapeHtml(status)}">
+              <span class="status-dot"></span>${escapeHtml(statusLabel)}
+            </span>
+          </td>
+          <td>
+            <span class="duration">${escapeHtml(formatTime(visit.wh_in_at))}</span><br>
+            <span class="muted">${escapeHtml(formatDateTime(visit.wh_in_at))}</span>
+          </td>
+          <td>
+            <button class="action-button detail-button" type="button" data-visit-id="${escapeHtml(visit.id)}">
+              <span class="material-symbols-rounded">visibility</span>
+              <span>Detail</span>
+            </button>
+          </td>
+        </tr>`;
     })
     .join("");
 }
