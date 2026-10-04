@@ -322,7 +322,6 @@ async function openVisitModal(visitId) {
       "container_num",
       "destination",
       "vendor",
-      "client",
       "client_id",
       "driver_name",
       "driver_phone",
@@ -388,7 +387,7 @@ async function openVisitModal(visitId) {
 
     const visit = data[0];
     const card = visit.cards && visit.cards.card_number;
-    const client = visit.client || (visit.clients && visit.clients.name) || "—";
+    const client = (visit.clients && visit.clients.name) || "—";
     const gate = visit.gates && visit.gates.gate_number;
     const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
 
