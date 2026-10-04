@@ -210,7 +210,7 @@ function renderKlienOptions() {
     new Set(
       visits
         .map(function (visit) {
-          return visit.client;
+          return visit.client || (visit.clients && visit.clients.name);
         })
         .filter(Boolean)
     )
@@ -243,7 +243,7 @@ function filteredVisits() {
 
     return (
       (!plate || visitPlate.includes(plate)) &&
-      (!client || (visit.client) === client) &&
+      (!client || (visit.client || (visit.clients && visit.clients.name)) === client) &&
       (!status || visit.process_status === status) &&
       (!date || String(visitDate).slice(0, 10) === date)
     );
@@ -575,7 +575,8 @@ async function loadVisits() {
       "plate_number",
       "container_num",
       "destination",
-      "client",
+      "vendor",
+      "client_id",
       "driver_name",
       "shipment_number",
       "process_status",
@@ -585,7 +586,6 @@ async function loadVisits() {
       "started_at",
       "completed_at",
       "created_at",
-      
       "clients(name)",
       "gates(gate_number)"
     ].join(",");
