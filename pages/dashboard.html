@@ -18,8 +18,7 @@
     <div class="sidebar-inner">
       <div class="sidebar-brand">
         <a href="dashboard.html" class="d-flex align-items-center gap-2 text-decoration-none">
-          <span class="sidebar-brand-mark"><i class="bi bi-truck-front-fill"></i></span>
-          <span class="sidebar-brand-text">TRCM</span>
+          <span class="sidebar-brand-mark"><img src="https://newsroom.cj.net/medialibrary/download/?attach_id=302&size=full" alt="CJ Logistics"></span>
         </a>
       </div>
       <div class="sidebar-section">
@@ -64,20 +63,20 @@
           <h1>Dashboard TRCM</h1>
         </div>
       </div>
-      <div class="navbar-search-wrapper">
-        <i class="bi bi-search navbar-search-icon" aria-hidden="true"></i>
-        <input id="global-search" class="navbar-search-input" type="search" placeholder="Cari plat atau vendor" autocomplete="off" aria-label="Cari plat atau vendor">
-      </div>
       <div class="navbar-actions">
         <button class="navbar-action-btn d-none d-md-inline-flex" id="refresh-button" type="button" aria-label="Perbarui data" title="Perbarui data">
           <i class="bi bi-arrow-clockwise"></i>
         </button>
-        <div class="navbar-account">
-          <button class="navbar-account-button" id="account-button" type="button" aria-label="Keluar dari akun" title="Keluar dari akun">
+        <div class="dropdown navbar-account">
+          <button class="navbar-account-button dropdown-toggle" id="account-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Buka menu akun" title="Menu akun">
             <span class="navbar-avatar"><i class="bi bi-person-fill"></i></span>
-            <span class="navbar-account-copy d-none d-sm-flex"><strong id="account-name">Akun</strong><small>Keluar</small></span>
-            <i class="bi bi-box-arrow-right"></i>
+            <span class="navbar-account-copy d-none d-sm-flex"><strong id="account-name">Akun</strong><small>Akun</small></span>
           </button>
+          <ul class="dropdown-menu dropdown-menu-end navbar-account-menu" aria-labelledby="account-button">
+            <li><div class="dropdown-header"><strong id="account-menu-name">Akun</strong><span>Menu akun</span></div></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button class="dropdown-item account-menu-action" id="account-logout" type="button"><i class="bi bi-box-arrow-right"></i><span>Keluar</span></button></li>
+          </ul>
         </div>
       </div>
     </header>
@@ -183,7 +182,7 @@
             <div class="table-responsive">
               <table class="table table-hover align-middle trcm-table mb-0">
                 <thead>
-                  <tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="text-end">Aksi</th></tr>
+                  <tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr>
                 </thead>
                 <tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody>
               </table>
@@ -204,6 +203,7 @@
     <div class="modal-card-body" id="visit-modal-body"><div class="modal-loading">Memuat detail visit...</div></div>
   </section>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 
@@ -211,13 +211,12 @@ const root = document.documentElement;
 const sidebar = document.getElementById("sidebar");
 const menuButton = document.getElementById("menu-button");
 const backdrop = document.getElementById("sidebar-backdrop");
-const themeButton = document.getElementById("theme-button");
-const themeIcon = document.getElementById("theme-icon");
 const accountButton = document.getElementById("account-button");
 const accountName = document.getElementById("account-name");
+const accountMenuName = document.getElementById("account-menu-name");
 const sidebarAccountName = document.getElementById("sidebar-account-name");
 const refreshButtonMobile = document.getElementById("refresh-button-mobile");
-const globalSearch = document.getElementById("global-search");
+const accountLogout = document.getElementById("account-logout");
 const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
 const visitModal = document.getElementById("visit-modal");
 const visitModalClose = document.getElementById("visit-modal-close");
@@ -237,8 +236,8 @@ if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
 } else {
   const username = trcmSession.user.username || trcmSession.user.auth_email || "Akun";
   accountName.textContent = username;
+  accountMenuName.textContent = username;
   sidebarAccountName.textContent = username;
-  accountButton.title = "Keluar dari akun " + username;
 }
 
 function toggleMenu() {
@@ -257,7 +256,7 @@ if (menuButton) {
 
 backdrop.addEventListener("click", closeMenu);
 
-accountButton.addEventListener("click", function () {
+accountLogout.addEventListener("click", function () {
   sessionStorage.removeItem("trcm_session");
   window.location.replace("../index.html");
 });
@@ -630,7 +629,7 @@ function renderTable() {
             <span class="duration">${escapeHtml(formatTime(visit.wh_in_at))}</span><br>
             <span class="muted">${escapeHtml(formatDateTime(visit.wh_in_at))}</span>
           </td>
-          <td>
+          <td class="action-cell">
             <button class="action-button detail-button" type="button" data-visit-id="${escapeHtml(visit.id)}">
               <i class="bi bi-eye"></i>
               <span>Detail</span>
@@ -810,10 +809,7 @@ resetFilter.addEventListener("click", function () {
 refreshButton.addEventListener("click", loadVisits);
 refreshButtonMobile.addEventListener("click", loadVisits);
 
-globalSearch.addEventListener("input", function () {
-  filterPlate.value = globalSearch.value;
-  renderTable();
-});
+
 
 exportButton.addEventListener("click", function () {
   const rows = filteredVisits();
