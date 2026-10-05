@@ -150,10 +150,6 @@
     .then(function (loaded) {
       if (loaded) {
         setActiveMenu();
-        setPageTitle();
-        setAccountNames();
-        setupMobileSidebar();
-        setupLogout();
       }
       return loaded;
     });
@@ -164,7 +160,17 @@
     loadFragment("../components/visit-detail.html", detailContainer, false),
     loadFragment("../components/table-toolbar.html", tableToolbarContainer, false)
   ]).then(function (results) {
-    return results.every(Boolean);
+    const loaded = results.every(Boolean);
+
+    if (loaded) {
+      setActiveMenu();
+      setPageTitle();
+      setAccountNames();
+      setupMobileSidebar();
+      setupLogout();
+    }
+
+    return loaded;
   });
 
   window.trcmStatusBadge = function (status) {
