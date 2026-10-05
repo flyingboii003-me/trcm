@@ -23,7 +23,14 @@
   <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
   <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
-    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div></div>
+    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
+    <div class="pagination-wrap">
+      <div class="pagination-summary" id="pagination-summary"></div>
+      <nav aria-label="Paginasi riwayat">
+        <ul class="pagination pagination-spark mb-0" id="pagination-controls"></ul>
+      </nav>
+    </div>
+    </div>
   </section>
 </div></main>
   </div>
@@ -69,6 +76,8 @@ const refreshButton = document.getElementById("refresh-button");
 const exportButton = document.getElementById("export-button");
 
 let visits = [];
+const PAGE_SIZE = 10;
+let currentPage = 1;
 
 const statusLabels = {
   registered: "Terdaftar",
@@ -390,51 +399,76 @@ async function openVisitModal(visitId) {
 
 function renderTable() {
   const rows = filteredVisits();
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  currentPage = Math.min(currentPage, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = rows.slice(start, start + PAGE_SIZE);
+  resultCount.textContent = rows.length + " pendaftaran";
+  renderPagination(rows.length, totalPages);
 
-  resultCount.textContent = rows.length + " truk ditampilkan";
-
-  if (!rows.length) {
-    truckTable.innerHTML =
-      '<tr><td colspan="6" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';
+  if (!pageRows.length) {
+    truckTable.innerHTML = '<tr><td colspan="6" class="table-state">Tidak ada data yang sesuai dengan filter.</td></tr>';
     return;
   }
 
-  truckTable.innerHTML = rows
-    .map(function (visit) {
-      const status = visit.process_status;
-      const statusLabel = statusLabels[status] || status || "—";
-      const client = visit.client || (visit.clients && visit.clients.name) || "—";
-      const vendor = visit.vendor || "—";
-      const destination =
-        visit.destination === "inbound" ? "Inbound" : "Outbound";
-      
+  truckTable.innerHTML = pageRows.map(function (visit) {
+    const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
+    const status = statusLabels[visit.process_status] || visit.process_status || "—";
+    const client = visit.client || (visit.clients && visit.clients.name) || "—";
+    const secondary = visit.driver_name || visit.driver || client;
+    return '<tr>' +
+      '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
+      '<td><span class="destination">' + escapeHtml(destination) + '</span></td>' +
+      '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
+      '<td><span class="status-badge status-' + escapeHtml(visit.process_status || "") + '"><span class="status-dot"></span>' + escapeHtml(status) + '</span></td>' +
+      '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
+      '<td class="action-cell"><button class="action-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '" title="Lihat detail" aria-label="Lihat detail"><i class="bi bi-eye"></i></button></td>' +
+    '</tr>';
+  }).join("");
 
-      return `
-        <tr title="Detail truk">
-          <td>
-            <span class="plate">${escapeHtml(visit.plate_number)}</span><br>
-            <span class="muted">${escapeHtml(visit.driver_name || "—")} / ${escapeHtml(client)}</span>
-          </td>
-          <td><span class="destination">${escapeHtml(destination)}</span></td>
-          <td>${escapeHtml(vendor)}</td>
-          <td>
-            ${window.trcmStatusBadge(status)}
-          </td>
-          <td>
-            <span class="duration">${escapeHtml(formatTime(visit.wh_in_at))}</span><br>
-            <span class="muted">${escapeHtml(formatDateTime(visit.wh_in_at))}</span>
-          </td>
-          <td class="action-cell">
-            <button class="action-button detail-button" type="button" data-visit-id="${escapeHtml(visit.id)}">
-              <i class="bi bi-eye"></i>
-              <span>Detail</span>
-            </button>
-          </td>
-        </tr>`;
-    })
-    .join("");
+  truckTable.querySelectorAll("[data-visit-id]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      openVisitDetail(button.getAttribute("data-visit-id"));
+    });
+  });
 }
 
+function renderPagination(totalRows, totalPages) {
+  const controls = document.getElementById("pagination-controls");
+  const summary = document.getElementById("pagination-summary");
+  if (!controls || !summary) return;
+  if (!totalRows) {
+    summary.textContent = "";
+    controls.innerHTML = "";
+    return;
+  }
+  const start = (currentPage - 1) * PAGE_SIZE + 1;
+  const end = Math.min(currentPage * PAGE_SIZE, totalRows);
+  summary.textContent = "Menampilkan " + start + "–" + end + " dari " + totalRows + " pendaftaran";
+
+  const items = [];
+  const addPage = function(page, label, disabled, active) {
+    items.push('<li class="page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '') + '"><button class="page-link" type="button" data-page="' + page + '"' + (disabled ? ' disabled' : '') + '>' + label + '</button></li>');
+  };
+  addPage(currentPage - 1, '<i class="bi bi-chevron-left"></i>', currentPage === 1, false);
+  for (let page = 1; page <= totalPages; page += 1) {
+    if (totalPages > 7 && page > 3 && page < totalPages - 2 && Math.abs(page - currentPage) > 1) {
+      if (!items.some(item => item.includes('pagination-ellipsis'))) {
+        items.push('<li class="page-item pagination-ellipsis disabled"><span class="page-link">…</span></li>');
+      }
+      continue;
+    }
+    addPage(page, String(page), false, page === currentPage);
+  }
+  addPage(currentPage + 1, '<i class="bi bi-chevron-right"></i>', currentPage === totalPages, false);
+  controls.innerHTML = items.join("");
+  controls.querySelectorAll("[data-page]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      currentPage = Number(button.getAttribute("data-page"));
+      renderTable();
+    });
+  });
+}
 function renderStats() {}
 
 async function loadVisits() {
@@ -547,6 +581,7 @@ document.addEventListener("keydown", function (event) {
 });
 
 resetFilter.addEventListener("click", function () {
+  currentPage = 1;
   filterClient.value = "";
   filterPlate.value = "";
   filterStatus.value = "";
@@ -559,6 +594,8 @@ refreshButton.addEventListener("click", loadVisits);
 
 
 exportButton.addEventListener("click", function () {
+  exportButton.disabled = true;
+  exportButton.classList.add("is-exporting");
   const rows = filteredVisits();
   const header = [
     "Plat nomor",
@@ -617,6 +654,8 @@ exportButton.addEventListener("click", function () {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
+  exportButton.disabled = false;
+  exportButton.classList.remove("is-exporting");
 });
 
 loadVisits();
