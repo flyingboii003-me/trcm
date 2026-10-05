@@ -370,3 +370,67 @@ button,input,select{font:inherit}
     max-width:140px;
   }
 }
+
+/* Spark Admin table action button */
+.action-cell{
+  white-space:nowrap;
+  text-align:right;
+}
+.detail-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  min-height:36px;
+  padding:.45rem .75rem;
+  border:1px solid rgba(11,19,15,.10);
+  border-radius:var(--radius-md);
+  background:#fff;
+  color:var(--text-main);
+  box-shadow:var(--shadow-sm);
+  font-family:inherit;
+  font-size:.75rem;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.detail-button i{
+  color:var(--cj-blue);
+  font-size:.9rem;
+}
+.detail-button:hover,
+.detail-button:focus-visible{
+  color:var(--cj-blue);
+  border-color:rgba(0,110,205,.24);
+  background:#F8FBFE;
+  box-shadow:0 4px 12px rgba(11,19,15,.06);
+}
+.detail-button:active{
+  color:#fff;
+  border-color:var(--cj-blue);
+  background:var(--cj-blue);
+  transform:translateY(1px);
+}
+.detail-button:active i{
+  color:#fff;
+}
+@media(max-width:768px){
+  .action-cell{
+    min-width:84px;
+  }
+  .detail-button{
+    min-height:34px;
+    padding:.4rem .65rem;
+  }
+}
+@media(max-width:480px){
+  .detail-button{
+    min-height:32px;
+    padding:.38rem .55rem;
+    font-size:.7rem;
+  }
+  .detail-button i{
+    font-size:.82rem;
+  }
+}
