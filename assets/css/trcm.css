@@ -364,3 +364,106 @@ a{color:inherit}
   .sidebar-wrapper{width:280px}
   .navbar-actions{margin-left:auto}
 }
+
+
+/* Spark Admin alignment for the split dashboard/history experience */
+.sidebar-wrapper{
+  width:280px;
+  padding:2rem 1.5rem;
+  transform:none;
+}
+.main-wrapper{margin-left:280px}
+.sidebar-brand{padding-left:.5rem;margin-bottom:2.5rem;gap:.75rem}
+.sidebar-brand-mark{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px;
+  border-radius:10px;
+  background:#fff;
+  overflow:hidden;
+}
+.sidebar-brand-mark img{display:block;width:100%;height:100%;object-fit:contain}
+.sidebar-brand-text{display:inline-block}
+.sidebar-toggle-btn{display:none!important}
+.navbar-custom{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  display:flex!important;
+  align-items:center;
+  justify-content:space-between;
+  min-height:80px;
+  margin-top:-2rem;
+  margin-left:-2.5rem;
+  margin-right:-2.5rem;
+  padding:1.25rem 2.5rem;
+}
+.navbar-left{display:flex;align-items:center;min-width:0;flex:1}
+.navbar-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:.75rem;flex:0 0 auto}
+.welcome-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:2rem;
+  padding:24px 28px;
+  border:1px solid var(--trcm-border);
+  border-radius:24px;
+  background:linear-gradient(135deg,#fff 0%,#f6f8fc 100%);
+  box-shadow:0 8px 24px rgba(15,26,46,.05);
+}
+.welcome-card-copy{max-width:760px}
+.welcome-kicker{display:block;margin-bottom:6px;font-size:.72rem;font-weight:700;letter-spacing:.08em;color:var(--trcm-primary-text)}
+.welcome-card h2{margin:0 0 8px;font-size:1.35rem;font-weight:700;color:var(--trcm-text)}
+.welcome-card p{margin:0;color:var(--trcm-muted);font-size:.9rem;line-height:1.65}
+.welcome-card a{color:var(--trcm-primary-text);font-weight:700;text-decoration:none}
+.welcome-card a:hover{text-decoration:underline}
+.welcome-card-icon{
+  width:58px;height:58px;flex:0 0 58px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:16px;background:rgba(0,110,205,.1);color:var(--trcm-primary);
+  font-size:1.35rem;
+}
+.operational-chart{min-height:250px}
+.recent-result-count{color:var(--trcm-muted)}
+.content-card-header p{margin:.25rem 0 0;color:var(--trcm-muted);font-size:.78rem}
+@media(min-width:1200px){
+  .sidebar-wrapper,.sidebar-wrapper:hover,.sidebar-wrapper:focus-within,.sidebar-wrapper.is-pinned-open{width:280px;transform:none}
+  .main-wrapper{margin-left:280px}
+}
+@media(min-width:768px) and (max-width:1199.98px){
+  .sidebar-wrapper{width:280px;transform:none}
+  .main-wrapper{margin-left:280px}
+  .sidebar-toggle-btn{display:none!important}
+}
+@media(max-width:767.98px){
+  .sidebar-wrapper{
+    width:280px;
+    transform:translateX(-100%);
+    padding:1.5rem;
+  }
+  .sidebar-wrapper.is-open{transform:translateX(0)}
+  .main-wrapper{margin-left:0}
+  .sidebar-toggle-btn{display:inline-flex!important}
+  .navbar-custom{
+    min-height:64px;
+    margin-top:-22px;
+    margin-left:-16px;
+    margin-right:-16px;
+    padding:12px 16px;
+  }
+  .navbar-actions{gap:6px}
+  .navbar-account-button{min-height:40px;padding:5px}
+  .navbar-action-btn{width:38px;height:38px;flex-basis:38px}
+  .welcome-card{padding:20px;align-items:flex-start}
+  .welcome-card-icon{display:none}
+}
+@media(max-width:479.98px){
+  .welcome-card{margin-bottom:1.5rem}
+  .welcome-card h2{font-size:1.15rem}
+  .welcome-card p{font-size:.82rem}
+}
