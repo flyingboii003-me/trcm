@@ -215,6 +215,9 @@ const themeButton = document.getElementById("theme-button");
 const themeIcon = document.getElementById("theme-icon");
 const accountButton = document.getElementById("account-button");
 const accountName = document.getElementById("account-name");
+const sidebarAccountName = document.getElementById("sidebar-account-name");
+const refreshButtonMobile = document.getElementById("refresh-button-mobile");
+const globalSearch = document.getElementById("global-search");
 const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
 const visitModal = document.getElementById("visit-modal");
 const visitModalClose = document.getElementById("visit-modal-close");
@@ -234,38 +237,9 @@ if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
 } else {
   const username = trcmSession.user.username || trcmSession.user.auth_email || "Akun";
   accountName.textContent = username;
+  sidebarAccountName.textContent = username;
   accountButton.title = "Keluar dari akun " + username;
 }
-
-const savedTheme = localStorage.getItem("trcm_theme");
-if (savedTheme === "dark") {
-  root.dataset.theme = "dark";
-} else {
-  delete root.dataset.theme;
-}
-
-function updateThemeButton() {
-  const dark = root.dataset.theme === "dark";
-  themeIcon.textContent = dark ? "light_mode" : "dark_mode";
-  themeButton.setAttribute("aria-label", dark ? "Gunakan tema light" : "Gunakan tema dark");
-  themeButton.setAttribute("title", dark ? "Gunakan tema light" : "Gunakan tema dark");
-}
-
-updateThemeButton();
-
-themeButton.addEventListener("click", function () {
-  const dark = root.dataset.theme === "dark";
-
-  if (dark) {
-    delete root.dataset.theme;
-    localStorage.setItem("trcm_theme", "light");
-  } else {
-    root.dataset.theme = "dark";
-    localStorage.setItem("trcm_theme", "dark");
-  }
-
-  updateThemeButton();
-});
 
 function toggleMenu() {
   sidebar.classList.toggle("is-open");
@@ -834,6 +808,12 @@ resetFilter.addEventListener("click", function () {
 });
 
 refreshButton.addEventListener("click", loadVisits);
+refreshButtonMobile.addEventListener("click", loadVisits);
+
+globalSearch.addEventListener("input", function () {
+  filterPlate.value = globalSearch.value;
+  renderTable();
+});
 
 exportButton.addEventListener("click", function () {
   const rows = filteredVisits();
