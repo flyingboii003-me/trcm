@@ -170,3 +170,110 @@ button,input,select{font:inherit}
 .alert-green-card .welcome-kicker{background:rgba(255,255,255,.1)}
 .stat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
 .stat-trend{font-size:.7rem;color:var(--text-muted);font-weight:700;letter-spacing:.08em}
+
+/* Dashboard / Riwayat refinement — Spark Admin responsive behavior */
+.table-subline{
+  display:block;
+  margin-top:.25rem;
+  color:var(--text-muted);
+  font-size:.72rem;
+  font-weight:500;
+  line-height:1.35;
+  white-space:normal;
+}
+.dashboard-chart-row .card-body{
+  min-width:0;
+}
+.operational-chart{
+  width:100%;
+  min-height:220px;
+}
+.pagination-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:1rem 1.25rem;
+  border-top:1px solid rgba(11,19,15,.06);
+  background:#fff;
+}
+.pagination-summary{
+  color:var(--text-muted);
+  font-size:.75rem;
+}
+.pagination-spark{
+  gap:.35rem;
+}
+.pagination-spark .page-link{
+  min-width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:.35rem .65rem;
+  border:1px solid rgba(11,19,15,.08);
+  border-radius:var(--radius-md)!important;
+  color:var(--text-main);
+  background:#fff;
+  font-size:.75rem;
+  font-weight:700;
+}
+.pagination-spark .page-item.active .page-link{
+  color:#fff;
+  background:var(--cj-blue);
+  border-color:var(--cj-blue);
+}
+.pagination-spark .page-item:not(.active):not(.disabled) .page-link:hover{
+  color:var(--cj-blue);
+  border-color:rgba(0,110,205,.2);
+  background:#EEF5FB;
+}
+.pagination-spark .page-item.disabled .page-link{
+  color:#A5AFB8;
+  background:#F8FAF9;
+}
+#export-button.is-exporting{
+  opacity:.7;
+  pointer-events:none;
+}
+@media(max-width:768px){
+  .dashboard-chart-row .card{
+    margin-bottom:0;
+  }
+  .dashboard-chart-row .card-body{
+    padding-left:0!important;
+    padding-right:0!important;
+    overflow:hidden;
+  }
+  .dashboard-chart-row .operational-chart{
+    min-height:220px;
+    margin:0 auto;
+  }
+  .pagination-wrap{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .pagination-spark{
+    width:100%;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+}
+@media(max-width:480px){
+  .dashboard-chart-row .card{
+    padding:1rem;
+  }
+  .dashboard-chart-row .card-header{
+    margin-bottom:.75rem;
+  }
+  .dashboard-chart-row .operational-chart{
+    min-height:205px;
+  }
+  .pagination-wrap{
+    padding:.85rem 1rem;
+  }
+  .pagination-spark .page-link{
+    min-width:34px;
+    height:34px;
+  }
+}
