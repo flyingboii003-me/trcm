@@ -18,7 +18,7 @@
     <div class="sidebar-inner">
       <div class="sidebar-brand">
         <a href="dashboard.html" class="d-flex align-items-center gap-2 text-decoration-none">
-          <span class="sidebar-brand-mark"><img src="https://newsroom.cj.net/medialibrary/download/?attach_id=302&size=full" alt="CJ Logistics"></span>
+          <span class="sidebar-brand-mark">T</span><span class="sidebar-brand-text">TRCM</span>
         </a>
       </div>
       <div class="sidebar-section">
@@ -64,7 +64,7 @@
         </div>
       </div>
       <div class="navbar-actions">
-        <button class="navbar-action-btn d-none d-md-inline-flex" id="refresh-button" type="button" aria-label="Perbarui data" title="Perbarui data">
+        <button class="navbar-action-btn" id="refresh-button" type="button" aria-label="Perbarui data" title="Perbarui data">
           <i class="bi bi-arrow-clockwise"></i>
         </button>
         <div class="dropdown navbar-account">
@@ -89,9 +89,6 @@
             <h2>Aktivitas hari ini</h2>
             <p>Pantau status truk dan waktu di gudang secara ringkas.</p>
           </div>
-          <button class="btn btn-primary d-inline-flex align-items-center gap-2" id="refresh-button-mobile" type="button">
-            <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
-          </button>
         </div>
 
         <div class="row g-3 mb-4">
@@ -649,24 +646,23 @@ function renderTable() {
 }
 
 function renderStats() {
-  const today = new Date().toISOString().slice(0, 10);
-  const todayVisits = visits.filter(function (visit) {
-    return String(getVisitDate(visit)).slice(0, 10) === today;
+  const activeVisits = visits.filter(function (visit) {
+    return visit.process_status !== "wh_out";
   });
 
-  const waiting = todayVisits.filter(function (visit) {
+  const waiting = activeVisits.filter(function (visit) {
     return visit.process_status === "registered";
   }).length;
 
-  const processing = todayVisits.filter(function (visit) {
+  const processing = activeVisits.filter(function (visit) {
     return visit.process_status === "started";
   }).length;
 
-  const done = todayVisits.filter(function (visit) {
+  const done = visits.filter(function (visit) {
     return visit.process_status === "completed";
   }).length;
 
-  const completed = todayVisits.filter(function (visit) {
+  const completed = visits.filter(function (visit) {
     return (
       visit.process_status === "completed" &&
       visit.wh_in_at &&
@@ -815,7 +811,6 @@ resetFilter.addEventListener("click", function () {
 });
 
 refreshButton.addEventListener("click", loadVisits);
-refreshButtonMobile.addEventListener("click", loadVisits);
 
 
 
