@@ -43,15 +43,15 @@
         <div class="row g-3 mb-4">
           <div class="col-12 col-sm-6 col-xl-3"><div class="card card-stat d-flex flex-column justify-content-between h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Menunggu</div><div class="stat-value" id="stat-waiting">—</div><div class="stat-note">Terdaftar</div>
+            <div class="stat-label">Menunggu</div><div class="stat-value stat-value-with-unit" id="stat-waiting">—</div><div class="stat-note">Terdaftar</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Sedang proses</div><div class="stat-value" id="stat-process">—</div><div class="stat-note">Berada di gudang</div>
+            <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note">Berada di gudang</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
-            <div class="stat-label">Selesai</div><div class="stat-value" id="stat-done">—</div><div class="stat-note">Visit selesai</div>
+            <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note">Visit selesai</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
@@ -92,7 +92,7 @@
         <section class="card content-card">
           <div class="card-header content-card-header">
             <div><h3 class="card-title">Riwayat Pendaftaran</h3><p id="recent-result-count">Memuat data...</p></div>
-            <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="riwayat.html"><i class="bi bi-arrow-right"></i><span>Lihat semua riwayat</span></a>
+            <a class="btn btn-primary dashboard-history-link" href="riwayat.html"><span>Lihat Semua</span></a>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
@@ -153,9 +153,9 @@ function renderStats() {
   const done = visits.filter(v => v.process_status === "completed").length;
   const completed = visits.filter(v => v.process_status === "completed" && v.wh_in_at && v.completed_at);
   const avg = completed.length ? Math.max(0,Math.round(completed.reduce((sum,v) => sum + (new Date(v.completed_at)-new Date(v.wh_in_at)),0)/completed.length/60000)) : 0;
-  document.getElementById("stat-waiting").textContent = waiting;
-  document.getElementById("stat-process").textContent = processing;
-  document.getElementById("stat-done").textContent = done;
+  document.getElementById("stat-waiting").textContent = waiting + " Armada";
+  document.getElementById("stat-process").textContent = processing + " Armada";
+  document.getElementById("stat-done").textContent = done + " Armada";
   document.getElementById("stat-average").textContent = avg ? Math.floor(avg/60) + "j " + String(avg%60).padStart(2,"0") + "m" : "—";
 }
 function renderCharts() {
@@ -257,7 +257,9 @@ function renderRecent() {
   }
   recentTable.innerHTML = rows.map(function(visit) {
     const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
-    const secondary = visit.driver_name || (visit.clients && visit.clients.name) || "—";
+    const driverName = String(visit.driver_name || "—").trim();
+    const clientName = String((visit.clients && visit.clients.name) || "—").trim();
+    const secondary = driverName + " / " + clientName;
     return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
   }).join("");
 }
