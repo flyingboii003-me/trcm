@@ -18,63 +18,23 @@
   <div id="sidebar-container"></div>
 
   <div class="main-wrapper">
-    <header class="navbar-custom">
-      <div class="navbar-left">
-        <button class="sidebar-toggle-btn" id="menu-button" type="button" aria-label="Buka menu" aria-expanded="false">
-          <i class="bi bi-list"></i>
-        </button>
-        <div class="navbar-page-title">
-          <span class="navbar-eyebrow">TRCM</span>
-          <h1>Dashboard TRCM</h1>
-        </div>
-      </div>
-      <div class="navbar-actions">
-        <button class="navbar-action-btn" id="refresh-button" type="button" aria-label="Perbarui data" title="Perbarui data">
-          <i class="bi bi-arrow-clockwise"></i>
-        </button>
-        <div class="dropdown navbar-account">
-          <button class="navbar-account-button dropdown-toggle" id="account-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Buka menu akun" title="Menu akun">
-            <span class="navbar-avatar"><i class="bi bi-person-fill"></i></span>
-            <span class="navbar-account-copy d-none d-sm-flex"><strong id="account-name">Akun</strong><small>Akun</small></span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end navbar-account-menu" aria-labelledby="account-button">
-            <li><div class="dropdown-header"><strong id="account-menu-name">Akun</strong><span>Menu akun</span></div></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><button class="dropdown-item account-menu-action" id="account-logout" type="button"><i class="bi bi-box-arrow-right"></i><span>Keluar</span></button></li>
-          </ul>
-        </div>
-      </div>
-    </header>
+    <div id="topbar-container"></div>
 
     <main class="content-wrapper"><div class="container-fluid px-0">
   <div class="page-header"><div><div class="page-header-kicker">DATA OPERASIONAL</div><h2>Riwayat pendaftaran truk</h2><p>Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div></div>
   <section class="card content-card">
     <div class="card-header content-card-header"><div><h3 class="card-title">Pendaftaran truk</h3><p id="result-count">Memuat data...</p></div><button class="btn btn-primary d-inline-flex align-items-center gap-2" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
-    <div class="card-body p-0"><div class="filter-toolbar">
-      <div class="filter-field"><label for="filter-client">Klien</label><select id="filter-client" class="form-select"><option value="">Semua klien</option></select></div>
-      <div class="filter-field"><label for="filter-plate">Plat nomor</label><div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span><input id="filter-plate" class="form-control" type="search" placeholder="Cari plat"></div></div>
-      <div class="filter-field"><label for="filter-status">Status</label><select id="filter-status" class="form-select"><option value="">Semua status</option><option value="registered">Terdaftar</option><option value="started">Sedang proses</option><option value="completed">Selesai</option></select></div>
-      <div class="filter-field"><label for="filter-date">Tanggal</label><input id="filter-date" class="form-control" type="date"></div>
-      <button class="btn btn-light border align-self-end" id="reset-filter" type="button"><i class="bi bi-arrow-counterclockwise me-1"></i>Atur ulang</button>
-    </div>
+    <div class="card-body p-0"><div id="table-toolbar-container"></div>
     <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div></div>
   </section>
 </div></main>
   </div>
 </div>
 
-<div class="modal-backdrop-custom" id="visit-modal-backdrop" aria-hidden="true">
-  <section class="modal-card-custom" id="visit-modal" role="dialog" aria-modal="true" aria-labelledby="visit-modal-title">
-    <header class="modal-card-header">
-      <div><span class="modal-kicker">DETAIL VISIT</span><h2 id="visit-modal-title">—</h2><p id="visit-modal-subtitle">—</p></div>
-      <button class="btn-close" id="visit-modal-close" type="button" aria-label="Tutup detail"></button>
-    </header>
-    <div class="modal-card-body" id="visit-modal-body"><div class="modal-loading">Memuat detail visit...</div></div>
-  </section>
-</div>
+<div id="visit-detail-container"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-window.trcmSidebarReady.then(async function () {
+window.trcmComponentsReady.then(async function () {
 const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 
@@ -459,9 +419,7 @@ function renderTable() {
           <td><span class="destination">${escapeHtml(destination)}</span></td>
           <td>${escapeHtml(vendor)}</td>
           <td>
-            <span class="status-badge status-${escapeHtml(status)}">
-              <span class="status-dot"></span>${escapeHtml(statusLabel)}
-            </span>
+            ${window.trcmStatusBadge(status)}
           </td>
           <td>
             <span class="duration">${escapeHtml(formatTime(visit.wh_in_at))}</span><br>
