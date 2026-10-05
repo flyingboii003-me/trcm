@@ -21,7 +21,7 @@ passwordToggle.addEventListener("click",()=>{
   const isPassword=passwordInput.type==="password";
   passwordInput.type=isPassword?"text":"password";
   passwordToggle.setAttribute("aria-label",isPassword?"Sembunyikan kata sandi":"Tampilkan kata sandi");
-  passwordToggle.querySelector("span").textContent=isPassword?"visibility_off":"visibility";
+  passwordToggle.querySelector("i").className=isPassword?"bi bi-eye-slash":"bi bi-eye";
 });
 
 loginForm.addEventListener("submit",async event=>{
