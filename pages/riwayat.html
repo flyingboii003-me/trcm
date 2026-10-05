@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - Dashboard Truck Registration & Control Management">
+<title>Riwayat — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+
+    <main class="content-wrapper"><div class="container-fluid px-0">
+  <div class="page-header"><div><div class="page-header-kicker">DATA OPERASIONAL</div><h2>Riwayat pendaftaran truk</h2><p>Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div></div>
+  <section class="card content-card">
+    <div class="card-header content-card-header"><div><h3 class="card-title">Pendaftaran truk</h3><p id="result-count">Memuat data...</p></div><button class="btn btn-primary d-inline-flex align-items-center gap-2" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
+    <div class="card-body p-0"><div id="table-toolbar-container"></div>
+    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div></div>
+  </section>
+</div></main>
+  </div>
+</div>
+
+<div id="visit-detail-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+window.trcmComponentsReady.then(async function () {
+const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+
+const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
+const visitModal = document.getElementById("visit-modal");
+const visitModalClose = document.getElementById("visit-modal-close");
+const visitModalTitle = document.getElementById("visit-modal-title");
+const visitModalSubtitle = document.getElementById("visit-modal-subtitle");
+const visitModalBody = document.getElementById("visit-modal-body");
+
+let trcmSession = null;
+try {
+  trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null");
+} catch {
+  trcmSession = null;
+}
+
+if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
+  window.location.replace("../index.html");
+} else {
+  // Account and sidebar state are handled by the shared component module.
+}
+
+
+const truckTable = document.getElementById("truck-table");
+const resultCount = document.getElementById("result-count");
+const filterClient = document.getElementById("filter-client");
+const filterPlate = document.getElementById("filter-plate");
+const filterStatus = document.getElementById("filter-status");
+const filterDate = document.getElementById("filter-date");
+const resetFilter = document.getElementById("reset-filter");
+const refreshButton = document.getElementById("refresh-button");
+const exportButton = document.getElementById("export-button");
+
+let visits = [];
+
+const statusLabels = {
+  registered: "Terdaftar",
+  started: "Sedang proses",
+  completed: "Selesai"
+};
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, function (character) {
+    const replacements = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    return replacements[character];
+  });
+}
+
+function formatDuration(start, end) {
+  if (!start || !end) {
+    return "—";
+  }
+
+  const startTime = new Date(start);
+  const endTime = new Date(end);
+
+  if (Number.isNaN(startTime.getTime()) || Number.isNaN(endTime.getTime())) {
+    return "—";
+  }
+
+  const minutes = Math.max(0, Math.round((endTime - startTime) / 60000));
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours > 0) {
+    return hours + "j " + String(remainingMinutes).padStart(2, "0") + "m";
+  }
+
+  return remainingMinutes + "m";
+}
+
+function formatTime(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function renderKlienOptions() {
+  const names = Array.from(
+    new Set(
+      visits
+        .map(function (visit) {
+          return visit.client || (visit.clients && visit.clients.name);
+        })
+        .filter(Boolean)
+    )
+  ).sort(function (a, b) {
+    return a.localeCompare(b, "id");
+  });
+
+  filterClient.innerHTML =
+    '<option value="">Semua klien</option>' +
+    names
+      .map(function (name) {
+        return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + "</option>";
+      })
+      .join("");
+}
+
+function getVisitDate(visit) {
+  return visit.wh_in_at || visit.created_at || null;
+}
+
+function filteredVisits() {
+  const plate = filterPlate.value.trim().toLowerCase();
+  const client = filterClient.value;
+  const status = filterStatus.value;
+  const date = filterDate.value;
+
+  return visits.filter(function (visit) {
+    const visitPlate = String(visit.plate_number || "").toLowerCase();
+    const visitDate = getVisitDate(visit);
+
+    return (
+      (!plate || visitPlate.includes(plate)) &&
+      (!client || (visit.client || (visit.clients && visit.clients.name)) === client) &&
+      (!status || visit.process_status === status) &&
+      (!date || String(visitDate).slice(0, 10) === date)
+    );
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function displayValue(value) {
+  return value === null || value === undefined || value === "" ? "—" : String(value);
+}
+
+function photoTypeLabel(type) {
+  const labels = {
+    seal_initial: "Seal awal",
+    seal_final: "Seal akhir"
+  };
+
+  return labels[type] || displayValue(type);
+}
+
+function statusLabel(value) {
+  const labels = {
+    registered: "Terdaftar",
+    started: "Sedang proses",
+    completed: "Selesai",
+    parked: "Parkir",
+    processing: "Proses",
+    cancelled: "Batal"
+  };
+
+  return labels[value] || displayValue(value);
+}
+
+function renderDetailItem(label, value, mono) {
+  return '<div class="detail-item"><span class="detail-label">' +
+    escapeHtml(label) + '</span><span class="detail-value' +
+    (mono ? ' mono' : '') + '">' + escapeHtml(displayValue(value)) +
+    "</span></div>";
+}
+
+function closeVisitModal() {
+  visitModalBackdrop.classList.remove("is-visible");
+  visitModalBackdrop.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+async function openVisitModal(visitId) {
+  visitModalBackdrop.classList.add("is-visible");
+  visitModalBackdrop.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  visitModalTitle.textContent = "Memuat...";
+  visitModalSubtitle.textContent = "";
+  visitModalBody.innerHTML = '<div class="modal-loading">Memuat detail visit...</div>';
+
+  try {
+    const select = [
+      "id",
+      "card_id",
+      "plate_number",
+      "container_num",
+      "destination",
+      "vendor",
+      "client_id",
+      "driver_name",
+      "driver_phone",
+      "truck_type",
+      "license_type",
+      "license_num",
+      "license_exp",
+      "vehicle_exp",
+      "vehicle_inspect_exp",
+      "shipment_type",
+      "shipment_number",
+      "manifest_number",
+      "gate_id",
+      "line_number_id",
+      "seal_number",
+      "notes",
+      "process_status",
+      "final_status",
+      "wh_in_at",
+      "registered_at",
+      "started_at",
+      "completed_at",
+      "wh_out_at",
+      "created_at",
+      "updated_at",
+      "cards(card_number)",
+      
+      "clients(name)",
+      "gates(gate_number)",
+      "line_numbers(line_number)",
+      "photos(id,photo_type,file_location,created_at)"
+    ].join(",");
+
+    const url = SUPABASE_URL +
+      "/rest/v1/visits?select=" + encodeURIComponent(select) +
+      "&id=eq." + encodeURIComponent(visitId) +
+      "&limit=1";
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + trcmSession.access_token
+      }
+    });
+
+    const responseText = await response.text();
+    let data = {};
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      data = {};
+    }
+
+    if (!response.ok) {
+      throw new Error(data && data.message ? data.message : "Gagal mengambil detail visit.");
+    }
+
+    if (!Array.isArray(data) || !data.length) {
+      throw new Error("Visit tidak ditemukan.");
+    }
+
+    const visit = data[0];
+    const card = visit.cards && visit.cards.card_number;
+    const client = (visit.clients && visit.clients.name) || "—";
+    const gate = visit.gates && visit.gates.gate_number;
+    const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
+
+    visitModalTitle.textContent = visit.plate_number || "Detail visit";
+    visitModalSubtitle.textContent =
+      (visit.driver_name || "Driver tidak tersedia") + " · " +
+      (client || "Client tidak tersedia");
+
+    const general = [
+      renderDetailItem("ID visit", visit.id, true),
+      renderDetailItem("Nomor kartu", card, true),
+      renderDetailItem("Plat nomor", visit.plate_number, true),
+      renderDetailItem("Nomor kontainer", visit.container_num, true),
+      renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
+      renderDetailItem("Klien", client),
+      renderDetailItem("Nama sopir", visit.driver_name),
+      renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
+      renderDetailItem("Tipe truck", visit.truck_type)
+    ].join("");
+
+    const documents = [
+      renderDetailItem("Tipe SIM", visit.license_type),
+      renderDetailItem("Nomor SIM", visit.license_num, true),
+      renderDetailItem("Masa berlaku SIM", visit.license_exp),
+      renderDetailItem("Masa berlaku kendaraan", visit.vehicle_exp),
+      renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
+      renderDetailItem("Tipe shipment", visit.shipment_type),
+      renderDetailItem("Nomor shipment", visit.shipment_number, true),
+      renderDetailItem("Nomor manifest / loading list", visit.manifest_number, true),
+      renderDetailItem("Nomor gerbang", gate),
+      renderDetailItem("Nomor line", lineNumber),
+      renderDetailItem("Nomor segel", visit.seal_number, true),
+      renderDetailItem("Status proses", statusLabel(visit.process_status)),
+      renderDetailItem("Status akhir", statusLabel(visit.final_status))
+    ].join("");
+
+    const times = [
+      renderDetailItem("WH In", formatDateTime(visit.wh_in_at), true),
+      renderDetailItem("Terdaftar", formatDateTime(visit.registered_at), true),
+      renderDetailItem("Mulai", formatDateTime(visit.started_at), true),
+      renderDetailItem("Selesai", formatDateTime(visit.completed_at), true),
+      renderDetailItem("WH Out", formatDateTime(visit.wh_out_at), true),
+      renderDetailItem("Dibuat", formatDateTime(visit.created_at), true),
+      renderDetailItem("Diperbarui", formatDateTime(visit.updated_at), true),
+      renderDetailItem("Catatan", visit.notes)
+    ].join("");
+
+    const photos = Array.isArray(visit.photos) ? visit.photos : [];
+    const photoHtml = photos.length
+      ? photos.map(function (photo) {
+          return '<div class="photo-item"><span class="photo-type">' +
+            escapeHtml(photoTypeLabel(photo.photo_type)) +
+            '</span><span class="photo-location">' +
+            escapeHtml(photo.file_location) +
+            '</span><span class="event-meta">' +
+            escapeHtml(formatDateTime(photo.created_at)) +
+            "</span></div>";
+        }).join("")
+      : '<div class="modal-empty">Belum ada foto yang tercatat untuk visit ini.</div>';
+
+    visitModalBody.innerHTML =
+      '<section class="detail-section"><h3>Identitas visit</h3><div class="detail-grid">' +
+        general + "</div></section>" +
+      '<section class="detail-section"><h3>Shipment dan operasional</h3><div class="detail-grid">' +
+        documents + "</div></section>" +
+      '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
+        times + "</div></section>" +
+      '<section class="detail-section"><h3>Foto visit</h3><div class="photo-list">' +
+        photoHtml + "</div></section>";
+  } catch (error) {
+    console.error("TRCM visit detail:", error);
+    visitModalBody.innerHTML =
+      '<div class="modal-error">' + escapeHtml(error.message || "Detail visit gagal dimuat.") + "</div>";
+  }
+}
+
+function renderTable() {
+  const rows = filteredVisits();
+
+  resultCount.textContent = rows.length + " truk ditampilkan";
+
+  if (!rows.length) {
+    truckTable.innerHTML =
+      '<tr><td colspan="6" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';
+    return;
+  }
+
+  truckTable.innerHTML = rows
+    .map(function (visit) {
+      const status = visit.process_status;
+      const statusLabel = statusLabels[status] || status || "—";
+      const client = visit.client || (visit.clients && visit.clients.name) || "—";
+      const vendor = visit.vendor || "—";
+      const destination =
+        visit.destination === "inbound" ? "Inbound" : "Outbound";
+      
+
+      return `
+        <tr title="Detail truk">
+          <td>
+            <span class="plate">${escapeHtml(visit.plate_number)}</span><br>
+            <span class="muted">${escapeHtml(visit.driver_name || "—")} / ${escapeHtml(client)}</span>
+          </td>
+          <td><span class="destination">${escapeHtml(destination)}</span></td>
+          <td>${escapeHtml(vendor)}</td>
+          <td>
+            ${window.trcmStatusBadge(status)}
+          </td>
+          <td>
+            <span class="duration">${escapeHtml(formatTime(visit.wh_in_at))}</span><br>
+            <span class="muted">${escapeHtml(formatDateTime(visit.wh_in_at))}</span>
+          </td>
+          <td class="action-cell">
+            <button class="action-button detail-button" type="button" data-visit-id="${escapeHtml(visit.id)}">
+              <i class="bi bi-eye"></i>
+              <span>Detail</span>
+            </button>
+          </td>
+        </tr>`;
+    })
+    .join("");
+}
+
+function renderStats() {}
+
+async function loadVisits() {
+  truckTable.innerHTML =
+    '<tr><td colspan="6" class="table-state">Memuat data truk...</td></tr>';
+  resultCount.textContent = "Memuat data...";
+  refreshButton.disabled = true;
+
+  try {
+    const select = [
+      "id",
+      "plate_number",
+      "container_num",
+      "destination",
+      "vendor",
+      "client_id",
+      "driver_name",
+      "shipment_number",
+      "process_status",
+      "final_status",
+      "wh_in_at",
+      "registered_at",
+      "started_at",
+      "completed_at",
+      "created_at",
+      "clients(name)",
+      "gates(gate_number)"
+    ].join(",");
+
+    const url =
+      SUPABASE_URL +
+      "/rest/v1/visits?select=" +
+      encodeURIComponent(select) +
+      "&order=created_at.desc";
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + trcmSession.access_token
+      }
+    });
+
+    const responseText = await response.text();
+    let data = {};
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      data = {};
+    }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return;
+    }
+
+    if (!response.ok) {
+      const message = data && data.message ? data.message : "Gagal mengambil data dashboard.";
+      throw new Error(message);
+    }
+
+    if (!Array.isArray(data)) {
+      throw new Error("Respons data dashboard tidak valid.");
+    }
+
+    visits = data;
+    renderKlienOptions();
+    renderStats();
+    renderTable();
+  } catch (error) {
+    console.error("TRCM dashboard:", error);
+    truckTable.innerHTML =
+      '<tr><td colspan="6" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
+    resultCount.textContent = "Gagal memuat data";
+  } finally {
+    refreshButton.disabled = false;
+  }
+}
+
+[filterClient, filterPlate, filterStatus, filterDate].forEach(
+  function (element) {
+    element.addEventListener("input", renderTable);
+    element.addEventListener("change", renderTable);
+  }
+);
+
+truckTable.addEventListener("click", function (event) {
+  const button = event.target.closest(".detail-button");
+
+  if (!button) {
+    return;
+  }
+
+  openVisitModal(button.dataset.visitId);
+});
+
+visitModalClose.addEventListener("click", closeVisitModal);
+visitModalBackdrop.addEventListener("click", function (event) {
+  if (event.target === visitModalBackdrop) {
+    closeVisitModal();
+  }
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape" && visitModalBackdrop.classList.contains("is-visible")) {
+    closeVisitModal();
+  }
+});
+
+resetFilter.addEventListener("click", function () {
+  filterClient.value = "";
+  filterPlate.value = "";
+  filterStatus.value = "";
+  filterDate.value = "";
+  renderTable();
+});
+
+refreshButton.addEventListener("click", loadVisits);
+
+
+
+exportButton.addEventListener("click", function () {
+  const rows = filteredVisits();
+  const header = [
+    "Plat nomor",
+    "Tujuan",
+    "Klien",
+    "Vendor",
+    "Nomor shipment",
+    "Gerbang",
+    "Status",
+    "Waktu di gudang"
+  ];
+
+  const csvRows = rows.map(function (visit) {
+    const destination =
+      visit.destination === "inbound" ? "Inbound" : "Outbound";
+    const status = statusLabels[visit.process_status] || visit.process_status || "";
+    const duration =
+      visit.process_status === "completed"
+        ? formatDuration(visit.wh_in_at, visit.completed_at)
+        : formatDuration(visit.wh_in_at, new Date().toISOString());
+
+    return [
+      visit.plate_number || "",
+      destination,
+      visit.client || "",
+      visit.vendor || "",
+      visit.shipment_number || "",
+      visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
+      status,
+      duration
+    ];
+  });
+
+  const csv = [header, ...csvRows]
+    .map(function (row) {
+      return row
+        .map(function (value) {
+          return '"' + String(value).replace(/"/g, '""') + '"';
+        })
+        .join(",");
+    })
+    .join("\r\n");
+
+  const blob = new Blob(["\ufeff" + csv], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = url;
+  anchor.download =
+    "trcm-dashboard-" + new Date().toISOString().slice(0, 10) + ".csv";
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+});
+
+loadVisits();
+});
+</script>
+</body>
+</html>

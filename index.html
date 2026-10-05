@@ -4,34 +4,54 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="TRCM - Truck Registration & Control Management">
-<title>TRCM — Login</title>
+<title>Masuk — TRCM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
-<style>
-:root{color-scheme:light;--bg:#f3f6fc;--surface:#fff;--surface2:#f1f5fb;--border:#dde5f1;--primary:#2563eb;--primary-hover:#1d4ed8;--text:#0b1426;--muted:#3d4b66;--radius-card:16px;--radius-control:10px;--transition:.22s ease}
-*{box-sizing:border-box}html,body{min-height:100%}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px;background:radial-gradient(circle at 50% 0%,rgba(37,99,235,.10),transparent 38%),var(--bg);color:var(--text);font-family:"Inter",sans-serif;-webkit-font-smoothing:antialiased}button,input{font:inherit}.login-shell{width:min(100%,420px)}.login-card{padding:32px;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:var(--radius-card);box-shadow:0 24px 70px rgba(11,20,38,.12);backdrop-filter:blur(16px)}.brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}.brand-mark{width:42px;height:42px;display:grid;place-items:center;flex:0 0 auto;border-radius:12px;background:var(--primary);color:#fff}.brand-mark .material-symbols-rounded{font-size:23px}.brand-name{margin:0;font-size:20px;line-height:1.2;font-weight:700;letter-spacing:-.02em}.brand-subtitle{margin:3px 0 0;color:var(--muted);font-size:12px}.heading{margin:0 0 8px;font-size:24px;line-height:1.25;font-weight:700;letter-spacing:-.025em}.description{margin:0 0 26px;color:var(--muted);font-size:13px;line-height:1.6}.form-group{margin-bottom:17px}.form-label{display:block;margin-bottom:8px;color:var(--text);font-size:13px;font-weight:500}.input-wrap{position:relative}.input-icon{position:absolute;top:50%;left:13px;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:19px}.form-input{width:100%;height:46px;padding:0 14px 0 43px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-control);outline:none;transition:border-color var(--transition),box-shadow var(--transition)}.form-input::placeholder{color:#71809a}.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.14)}.password-toggle{position:absolute;top:50%;right:7px;width:34px;height:34px;display:grid;place-items:center;transform:translateY(-50%);color:var(--muted);background:transparent;border:0;border-radius:8px;cursor:pointer;transition:color var(--transition),background var(--transition)}.password-toggle:hover{color:var(--text);background:rgba(61,75,102,.08)}.submit-button{width:100%;height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;color:#fff;background:var(--primary);border:1px solid var(--primary);border-radius:var(--radius-control);font-size:13px;font-weight:600;cursor:pointer;transition:background var(--transition),border-color var(--transition),transform var(--transition)}.submit-button:hover{background:var(--primary-hover);border-color:var(--primary-hover)}.submit-button:active{transform:translateY(1px)}.submit-button:disabled{opacity:.65;cursor:not-allowed}.login-footer{margin-top:22px;color:#71809a;font-size:11px;line-height:1.5;text-align:center}.mono{font-family:"JetBrains Mono",monospace}.toast{position:fixed;top:24px;right:24px;z-index:1000;width:min(calc(100vw - 36px),360px);display:flex;align-items:flex-start;gap:12px;padding:14px 15px;border:1px solid #f2b8b5;border-radius:12px;background:#fff;box-shadow:0 16px 45px rgba(11,20,38,.18);opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .22s ease,transform .22s ease,visibility .22s ease}.toast.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.toast-icon{color:#dc2626;font-size:21px;flex:0 0 auto}.toast-title{margin:0;color:var(--text);font-size:13px;font-weight:600;line-height:1.35}.toast-help{display:block;margin-top:3px;color:var(--muted);font-size:11px;line-height:1.45}.toast-close{margin-left:auto;padding:0 0 0 8px;color:#71809a;background:none;border:0;cursor:pointer}.toast-close:hover{color:var(--text)}@media(max-width:700px){body{padding:18px}.login-card{padding:26px 22px}.toast{top:16px;right:18px;left:18px;width:auto}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="assets/css/trcm.css">
 </head>
 <body>
-<div class="toast" id="login-toast" role="alert" aria-live="assertive" aria-atomic="true"><span class="material-symbols-rounded toast-icon" aria-hidden="true">error</span><div><p class="toast-title">Username / Password salah</p><span class="toast-help">Hubungi admin untuk kredensial login</span></div><button class="toast-close" id="toast-close" type="button" aria-label="Tutup notifikasi"><span class="material-symbols-rounded" aria-hidden="true">close</span></button></div>
-<main class="login-shell"><section class="login-card" aria-labelledby="login-title">
-<header class="brand"><div class="brand-mark" aria-hidden="true"><span class="material-symbols-rounded">local_shipping</span></div><div><h1 class="brand-name">TRCM</h1><p class="brand-subtitle">Truck Registration &amp; Control Management</p></div></header>
-<div><h2 id="login-title" class="heading">Masuk ke TRCM</h2><p class="description">Masukkan username dan password untuk melanjutkan ke sistem.</p></div>
-<form id="login-form" novalidate>
-<div class="form-group"><label class="form-label" for="username">Username</label><div class="input-wrap"><span class="material-symbols-rounded input-icon" aria-hidden="true">person</span><input class="form-input" id="username" name="username" type="text" autocomplete="username" placeholder="Masukkan username" required></div></div>
-<div class="form-group"><label class="form-label" for="password">Password</label><div class="input-wrap"><span class="material-symbols-rounded input-icon" aria-hidden="true">lock</span><input class="form-input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required><button class="password-toggle" id="password-toggle" type="button" aria-label="Tampilkan password" title="Tampilkan password"><span class="material-symbols-rounded" aria-hidden="true">visibility</span></button></div></div>
-<button class="submit-button" id="login-button" type="submit"><span id="login-button-label">Masuk</span><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></button>
-</form>
-<footer class="login-footer">TRCM <span class="mono">v1.0</span></footer>
-</section></main>
-<script>
-const SUPABASE_URL="https://pcednpmjyfkuomfcmian.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",USERNAME_LOGIN_URL=SUPABASE_URL+"/functions/v1/username-login";
-const loginForm=document.getElementById("login-form"),usernameInput=document.getElementById("username"),passwordInput=document.getElementById("password"),passwordToggle=document.getElementById("password-toggle"),loginButton=document.getElementById("login-button"),loginButtonLabel=document.getElementById("login-button-label"),loginToast=document.getElementById("login-toast"),toastClose=document.getElementById("toast-close");let toastTimer;
-function showToast(){clearTimeout(toastTimer);loginToast.classList.add("is-visible");toastTimer=setTimeout(()=>loginToast.classList.remove("is-visible"),5000)}function hideToast(){clearTimeout(toastTimer);loginToast.classList.remove("is-visible")}
-toastClose.addEventListener("click",hideToast);
-passwordToggle.addEventListener("click",()=>{const isPassword=passwordInput.type==="password";passwordInput.type=isPassword?"text":"password";passwordToggle.setAttribute("aria-label",isPassword?"Sembunyikan password":"Tampilkan password");passwordToggle.setAttribute("title",isPassword?"Sembunyikan password":"Tampilkan password");passwordToggle.querySelector(".material-symbols-rounded").textContent=isPassword?"visibility_off":"visibility"});
-loginForm.addEventListener("submit",async event=>{event.preventDefault();hideToast();const username=usernameInput.value.trim(),password=passwordInput.value;if(!username||!password){showToast();(!username?usernameInput:passwordInput).focus();return}loginButton.disabled=true;loginButtonLabel.textContent="Memproses...";try{const response=await fetch(USERNAME_LOGIN_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({username,password})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Username atau password salah.");if(!data.access_token||!data.refresh_token||!data.user)throw new Error("Respons autentikasi dari server tidak valid.");sessionStorage.setItem("trcm_session",JSON.stringify(data));window.location.href="pages/dashboard.html"}catch(error){showToast()}finally{loginButton.disabled=false;loginButtonLabel.textContent="Masuk"}});
-</script>
+<div class="login-wrapper">
+  <div class="login-bg-shape login-bg-shape-1" aria-hidden="true"></div>
+  <div class="login-bg-shape login-bg-shape-2" aria-hidden="true"></div>
+  <main class="login-card" aria-labelledby="login-title">
+    <a href="index.html" class="login-brand text-decoration-none">
+      <span class="login-brand-mark" aria-hidden="true"><img src="data:image/png;base64,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" alt="CJ Logistics"></span>
+    </a>
+    <p class="login-subtitle">Truck Registration &amp; Control Management</p>
+    <h1 id="login-title" class="visually-hidden">Masuk ke TRCM</h1>
+    <div id="login-error" class="login-error" role="alert" aria-live="assertive">
+      <strong data-error-title>Gagal masuk</strong>
+      <span data-error-message>Periksa nama pengguna dan kata sandi, lalu coba lagi.</span>
+    </div>
+    <form action="#" method="post" id="loginForm" novalidate>
+      <div class="login-form-group">
+        <label for="username" class="login-form-label">Nama pengguna</label>
+        <div class="login-input-group">
+          <span class="login-input-icon" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+          <input id="username" name="username" type="text" class="login-input" autocomplete="username" placeholder="Masukkan nama pengguna" required>
+        </div>
+      </div>
+      <div class="login-form-group">
+        <label for="password" class="login-form-label">Kata sandi</label>
+        <div class="login-input-group">
+          <span class="login-input-icon" aria-hidden="true"><i class="bi bi-shield-lock-fill"></i></span>
+          <input id="password" name="password" type="password" class="login-input login-input-password" autocomplete="current-password" placeholder="Masukkan kata sandi" required>
+          <button type="button" class="password-toggle-btn" id="toggle-password" aria-label="Tampilkan kata sandi">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-login" id="btn-submit">
+        <span id="btn-submit-label">Masuk</span>
+        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+      </button>
+    </form>
+    <p class="login-footer-text">TRCM <span class="font-monospace">v1.0</span></p>
+  </main>
+</div>
+<script src="assets/js/auth.js"></script>
 </body>
 </html>
