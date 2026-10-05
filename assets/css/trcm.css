@@ -264,3 +264,14 @@ a{color:inherit}
 .login-brand-mark{width:170px;height:auto;display:block;background:transparent;border-radius:0;padding:0;color:inherit}
 .login-brand-mark img{display:block;width:100%;height:auto;object-fit:contain}
 .login-brand{align-items:center;gap:0}
+
+
+.sidebar-brand-mark img{object-fit:cover;object-position:left center}
+@media(min-width:768px){
+  .sidebar-wrapper:hover .sidebar-brand-mark,.sidebar-wrapper:focus-within .sidebar-brand-mark{width:190px;height:42px;flex-basis:190px;padding:0;background:transparent}
+  .sidebar-wrapper:hover .sidebar-brand-mark img,.sidebar-wrapper:focus-within .sidebar-brand-mark img{object-fit:contain;object-position:center}
+}
+@media(max-width:767.98px){
+  .sidebar-wrapper.is-open .sidebar-brand-mark{width:190px;height:42px;flex-basis:190px;padding:0;background:transparent}
+  .sidebar-wrapper.is-open .sidebar-brand-mark img{object-fit:contain;object-position:center}
+}
