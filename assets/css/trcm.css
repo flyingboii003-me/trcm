@@ -275,3 +275,16 @@ a{color:inherit}
   .sidebar-wrapper.is-open .sidebar-brand-mark{width:190px;height:42px;flex-basis:190px;padding:0;background:transparent}
   .sidebar-wrapper.is-open .sidebar-brand-mark img{object-fit:contain;object-position:center}
 }
+
+
+@media(min-width:768px){
+  .sidebar-toggle-btn{display:inline-flex;flex:0 0 38px}
+  .sidebar-wrapper.is-pinned-open{width:280px}
+  .sidebar-wrapper.is-pinned-open .sidebar-inner{padding:20px 16px}
+  .sidebar-wrapper.is-pinned-open .sidebar-brand{padding:0 10px}
+  .sidebar-wrapper.is-pinned-open .sidebar-brand-text,.sidebar-wrapper.is-pinned-open .sidebar-section-title,.sidebar-wrapper.is-pinned-open .sidebar-menu-link span,.sidebar-wrapper.is-pinned-open .sidebar-account-copy{display:block}
+  .sidebar-wrapper.is-pinned-open .sidebar-menu-link{justify-content:flex-start;padding:0 12px}
+  .sidebar-wrapper.is-pinned-open .sidebar-account{justify-content:flex-start;padding:8px 10px}
+  .sidebar-wrapper.is-pinned-open .sidebar-brand-mark{width:190px;height:42px;flex-basis:190px;padding:0;background:transparent}
+  .sidebar-wrapper.is-pinned-open .sidebar-brand-mark img{object-fit:contain;object-position:center}
+}
