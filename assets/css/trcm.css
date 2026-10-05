@@ -221,3 +221,46 @@ a{color:inherit}
   html{scroll-behavior:auto}
   *,*::before,*::after{transition-duration:.01ms!important}
 }
+
+/* Final navigation refinements */
+.sidebar-brand-mark{width:44px;height:44px;overflow:hidden;background:#fff;border-radius:9px;padding:4px;flex:0 0 44px}
+.sidebar-brand-mark img{display:block;width:100%;height:100%;object-fit:contain}
+.sidebar-account{transition:background .15s ease}
+.navbar-account{position:relative}
+.navbar-account-button.dropdown-toggle::after{margin-left:2px;border-top-color:#7d8995}
+.navbar-account-menu{min-width:220px;margin-top:8px!important;padding:7px;border:1px solid var(--trcm-border);border-radius:10px;box-shadow:0 14px 36px rgba(31,45,61,.12)}
+.navbar-account-menu .dropdown-header{display:flex;flex-direction:column;gap:2px;padding:9px 10px}
+.navbar-account-menu .dropdown-header strong{color:var(--trcm-text);font-size:12px}
+.navbar-account-menu .dropdown-header span{color:var(--trcm-muted);font-size:10px}
+.navbar-account-menu .dropdown-divider{border-color:var(--trcm-border);margin:5px 0}
+.account-menu-action{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;border-radius:7px;color:var(--trcm-text);font-size:12px}
+.account-menu-action:hover{background:#f2f6fa;color:var(--trcm-danger)}
+.action-column{text-align:center!important;width:110px}
+.action-cell{text-align:center!important;vertical-align:middle!important}
+.action-cell .action-button{margin:0 auto}
+.action-button{min-width:76px;justify-content:center;line-height:1.2}
+@media(min-width:768px){
+  .sidebar-wrapper{width:80px}
+  .sidebar-inner{padding:20px 10px}
+  .sidebar-brand{padding:0 8px}
+  .sidebar-brand-text,.sidebar-section-title,.sidebar-menu-link span,.sidebar-account-copy{display:none}
+  .sidebar-menu-link{justify-content:center;padding:0}
+  .sidebar-menu-link i{width:auto}
+  .sidebar-account{justify-content:center;padding:8px 0}
+  .main-wrapper{margin-left:80px}
+  .sidebar-wrapper:hover,.sidebar-wrapper:focus-within{width:280px}
+  .sidebar-wrapper:hover .sidebar-inner,.sidebar-wrapper:focus-within .sidebar-inner{padding:20px 16px}
+  .sidebar-wrapper:hover .sidebar-brand,.sidebar-wrapper:focus-within .sidebar-brand{padding:0 10px}
+  .sidebar-wrapper:hover .sidebar-brand-text,.sidebar-wrapper:hover .sidebar-section-title,.sidebar-wrapper:hover .sidebar-menu-link span,.sidebar-wrapper:hover .sidebar-account-copy,
+  .sidebar-wrapper:focus-within .sidebar-brand-text,.sidebar-wrapper:focus-within .sidebar-section-title,.sidebar-wrapper:focus-within .sidebar-menu-link span,.sidebar-wrapper:focus-within .sidebar-account-copy{display:block}
+  .sidebar-wrapper:hover .sidebar-menu-link,.sidebar-wrapper:focus-within .sidebar-menu-link{justify-content:flex-start;padding:0 12px}
+  .sidebar-wrapper:hover .sidebar-account,.sidebar-wrapper:focus-within .sidebar-account{justify-content:flex-start;padding:8px 10px}
+  .sidebar-wrapper:hover .sidebar-brand-mark,.sidebar-wrapper:focus-within .sidebar-brand-mark{width:38px;height:38px;flex-basis:38px}
+}
+@media(max-width:767.98px){
+  .sidebar-brand-mark{width:42px;height:42px;flex-basis:42px}
+  .navbar-account-button{padding-right:2px}
+}
+.login-brand-mark{width:170px;height:auto;display:block;background:transparent;border-radius:0;padding:0;color:inherit}
+.login-brand-mark img{display:block;width:100%;height:auto;object-fit:contain}
+.login-brand{align-items:center;gap:0}
