@@ -1,27 +1,22 @@
-    <header class="navbar-custom">
-      <div class="navbar-left">
-        <button class="sidebar-toggle-btn" id="menu-button" type="button" aria-label="Buka menu" aria-expanded="false">
-          <i class="bi bi-list"></i>
-        </button>
-        <div class="navbar-page-title">
-          <span class="navbar-eyebrow" data-page-eyebrow>TRCM</span>
-          <h1 data-page-title>TRCM</h1>
-        </div>
-      </div>
-      <div class="navbar-actions">
-        <button class="navbar-action-btn" id="refresh-button" type="button" aria-label="Perbarui data" title="Perbarui data">
-          <i class="bi bi-arrow-clockwise"></i>
-        </button>
-        <div class="dropdown navbar-account">
-          <button class="navbar-account-button dropdown-toggle" id="account-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Buka menu akun" title="Menu akun">
-            <span class="navbar-avatar"><i class="bi bi-person-fill"></i></span>
-            <span class="navbar-account-copy d-none d-sm-flex"><strong id="account-name">Akun</strong><small>Akun</small></span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end navbar-account-menu" aria-labelledby="account-button">
-            <li><div class="dropdown-header"><strong id="account-menu-name">Akun</strong><span>Menu akun</span></div></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><button class="dropdown-item account-menu-action" id="account-logout" type="button"><i class="bi bi-box-arrow-right"></i><span>Keluar</span></button></li>
-          </ul>
-        </div>
-      </div>
-    </header>
+<header class="navbar-custom">
+  <div class="navbar-left">
+    <button class="sidebar-toggle-btn" id="menu-button" type="button" aria-label="Toggle Navigation" aria-expanded="false"><i class="bi bi-list"></i></button>
+    <div class="navbar-page-title"><span data-page-eyebrow>TRCM</span><h1 data-page-title>TRCM</h1></div>
+  </div>
+  <div class="navbar-actions">
+    <button class="navbar-action-btn" id="refresh-button" type="button" aria-label="Perbarui data" title="Perbarui data"><i class="bi bi-arrow-clockwise"></i></button>
+    <div class="dropdown">
+      <button class="navbar-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="profile-dropdown">
+        <span class="navbar-profile-img trcm-profile-icon"><i class="bi bi-person-fill"></i></span>
+        <span class="navbar-profile-name d-none d-md-inline" id="account-name">Akun</span>
+        <i class="bi bi-chevron-down navbar-profile-caret"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-profile" aria-labelledby="profile-dropdown">
+        <li class="dropdown-header">Menu Akun</li>
+        <li><button class="dropdown-item" type="button"><i class="bi bi-person"></i> Profil</button></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><button class="dropdown-item text-danger account-menu-action" id="account-logout" type="button"><i class="bi bi-box-arrow-right"></i> Keluar</button></li>
+      </ul>
+    </div>
+  </div>
+</header>
