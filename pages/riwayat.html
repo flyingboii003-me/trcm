@@ -78,16 +78,6 @@ window.trcmSidebarReady.then(async function () {
 const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 
-const root = document.documentElement;
-const sidebar = document.getElementById("sidebar");
-const menuButton = document.getElementById("menu-button");
-const backdrop = document.getElementById("sidebar-backdrop");
-const accountButton = document.getElementById("account-button");
-const accountName = document.getElementById("account-name");
-const accountMenuName = document.getElementById("account-menu-name");
-const sidebarAccountName = document.getElementById("sidebar-account-name");
-const refreshButtonMobile = document.getElementById("refresh-button-mobile");
-const accountLogout = document.getElementById("account-logout");
 const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
 const visitModal = document.getElementById("visit-modal");
 const visitModalClose = document.getElementById("visit-modal-close");
@@ -105,40 +95,9 @@ try {
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
   window.location.replace("../index.html");
 } else {
-  const username = trcmSession.user.username || trcmSession.user.auth_email || "Akun";
-  accountName.textContent = username;
-  accountMenuName.textContent = username;
-  sidebarAccountName.textContent = username;
+  // Account and sidebar state are handled by the shared component module.
 }
 
-function toggleMenu() {
-  if (window.matchMedia("(min-width: 768px)").matches) {
-    sidebar.classList.toggle("is-pinned-open");
-    menuButton.setAttribute("aria-expanded", sidebar.classList.contains("is-pinned-open") ? "true" : "false");
-    return;
-  }
-
-  sidebar.classList.toggle("is-open");
-  backdrop.classList.toggle("is-visible");
-  menuButton.setAttribute("aria-expanded", sidebar.classList.contains("is-open") ? "true" : "false");
-}
-
-function closeMenu() {
-  sidebar.classList.remove("is-open");
-  backdrop.classList.remove("is-visible");
-  menuButton.setAttribute("aria-expanded", "false");
-}
-
-if (menuButton) {
-  menuButton.addEventListener("click", toggleMenu);
-}
-
-backdrop.addEventListener("click", closeMenu);
-
-accountLogout.addEventListener("click", function () {
-  sessionStorage.removeItem("trcm_session");
-  window.location.replace("../index.html");
-});
 
 const truckTable = document.getElementById("truck-table");
 const resultCount = document.getElementById("result-count");
