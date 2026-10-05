@@ -246,7 +246,7 @@ a{color:inherit}
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  overflow:hidden;
+  overflow:visible;
   border-radius:0;
   padding:0;
   background:transparent;
@@ -256,7 +256,7 @@ a{color:inherit}
   display:block;
   width:190px;
   max-width:100%;
-  height:auto;
+  height:48px;
   max-height:48px;
   object-fit:contain;
   object-position:left center;
