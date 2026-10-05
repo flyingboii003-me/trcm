@@ -288,3 +288,57 @@ a{color:inherit}
   .sidebar-wrapper.is-pinned-open .sidebar-brand-mark{width:190px;height:42px;flex-basis:190px;padding:0;background:transparent}
   .sidebar-wrapper.is-pinned-open .sidebar-brand-mark img{object-fit:contain;object-position:center}
 }
+
+
+/* Final Spark layout restoration */
+@media(min-width:1200px){
+  .sidebar-wrapper{width:280px}
+  .main-wrapper{margin-left:280px}
+  .sidebar-inner{padding:20px 16px}
+  .sidebar-brand{padding:0 10px}
+  .sidebar-brand-text,.sidebar-section-title,.sidebar-menu-link span,.sidebar-account-copy{display:block}
+  .sidebar-menu-link{justify-content:flex-start;padding:0 12px}
+  .sidebar-account{justify-content:flex-start;padding:8px 10px}
+}
+@media(min-width:768px) and (max-width:1199.98px){
+  .sidebar-wrapper{width:280px}
+  .main-wrapper{margin-left:280px}
+  .sidebar-inner{padding:20px 16px}
+  .sidebar-brand{padding:0 10px}
+  .sidebar-brand-text,.sidebar-section-title,.sidebar-menu-link span,.sidebar-account-copy{display:block}
+  .sidebar-menu-link{justify-content:flex-start;padding:0 12px}
+  .sidebar-account{justify-content:flex-start;padding:8px 10px}
+}
+@media(min-width:768px){
+  .sidebar-toggle-btn{display:none!important}
+  .sidebar-wrapper:hover,.sidebar-wrapper:focus-within,.sidebar-wrapper.is-pinned-open{width:280px}
+  .sidebar-wrapper:hover .sidebar-inner,.sidebar-wrapper:focus-within .sidebar-inner,.sidebar-wrapper.is-pinned-open .sidebar-inner{padding:20px 16px}
+  .sidebar-wrapper:hover .sidebar-brand,.sidebar-wrapper:focus-within .sidebar-brand,.sidebar-wrapper.is-pinned-open .sidebar-brand{padding:0 10px}
+  .sidebar-wrapper:hover .sidebar-brand-text,.sidebar-wrapper:hover .sidebar-section-title,.sidebar-wrapper:hover .sidebar-menu-link span,.sidebar-wrapper:hover .sidebar-account-copy,
+  .sidebar-wrapper:focus-within .sidebar-brand-text,.sidebar-wrapper:focus-within .sidebar-section-title,.sidebar-wrapper:focus-within .sidebar-menu-link span,.sidebar-wrapper:focus-within .sidebar-account-copy,
+  .sidebar-wrapper.is-pinned-open .sidebar-brand-text,.sidebar-wrapper.is-pinned-open .sidebar-section-title,.sidebar-wrapper.is-pinned-open .sidebar-menu-link span,.sidebar-wrapper.is-pinned-open .sidebar-account-copy{display:block}
+  .sidebar-wrapper:hover .sidebar-menu-link,.sidebar-wrapper:focus-within .sidebar-menu-link,.sidebar-wrapper.is-pinned-open .sidebar-menu-link{justify-content:flex-start;padding:0 12px}
+  .sidebar-wrapper:hover .sidebar-account,.sidebar-wrapper:focus-within .sidebar-account,.sidebar-wrapper.is-pinned-open .sidebar-account{justify-content:flex-start;padding:8px 10px}
+}
+.navbar-actions{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.navbar-left{min-width:0;flex:1}
+.navbar-custom{padding-left:28px;padding-right:28px}
+.navbar-action-btn{flex:0 0 38px}
+.navbar-account{flex:0 0 auto}
+.login-card{padding:40px 36px}
+.login-brand{display:flex;width:100%;justify-content:center;margin:0 0 18px;padding:0}
+.login-brand-mark{width:min(220px,100%);height:auto;display:block;background:transparent;border-radius:0;padding:0}
+.login-brand-mark img{display:block;width:100%;height:auto;object-fit:contain}
+@media(max-width:767.98px){
+  .navbar-custom{padding:0 16px}
+  .navbar-left{min-width:0}
+  .navbar-page-title h1{font-size:14px}
+  .navbar-actions{gap:6px}
+  .navbar-account-button{min-height:40px;padding-left:5px;padding-right:5px}
+  .navbar-account-button::after{margin-left:1px}
+  .navbar-action-btn{width:36px;height:36px;flex-basis:36px}
+  .login-card{padding:32px 22px}
+  .login-brand{margin-bottom:16px}
+  .login-brand-mark{width:min(210px,100%)}
+  .page-header{margin-bottom:20px}
+}
