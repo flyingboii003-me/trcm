@@ -24,7 +24,7 @@
     
     <main class="content-wrapper">
       <div class="container-fluid px-0">
-        <section class="welcome-card">
+        <section class="welcome-card alert-green-card">
           <div class="welcome-card-copy">
             <span class="welcome-kicker">TRCM CJ LOGISTICS</span>
             <h2>Selamat datang di TRCM CJ Logistics</h2>
@@ -35,30 +35,27 @@
 
         <div class="page-header">
           <div>
-            <div class="page-header-kicker">OVERVIEW</div>
-            <h2>Operasional TRCM</h2>
-            <p>Pantau status armada dan performa kunjungan gudang secara ringkas.</p>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Pantau status armada dan performa kunjungan gudang secara ringkas.</p>
           </div>
-          <a class="btn btn-light border d-inline-flex align-items-center gap-2" href="riwayat.html">
-            <i class="bi bi-clock-history"></i><span>Buka Riwayat</span>
-          </a>
+          <a class="btn btn-date-picker" href="riwayat.html"><i class="bi bi-table"></i><span>Buka Riwayat</span></a>
         </div>
 
         <div class="row g-3 mb-4">
-          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-neutral"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
+          <div class="col-12 col-sm-6 col-xl-3"><div class="card card-stat d-flex flex-column justify-content-between h-100"><div class="card-body">
+            <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
             <div class="stat-label">Menunggu</div><div class="stat-value" id="stat-waiting">—</div><div class="stat-note">Terdaftar</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-primary"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
+            <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
             <div class="stat-label">Sedang proses</div><div class="stat-value" id="stat-process">—</div><div class="stat-note">Berada di gudang</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-success"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
+            <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
             <div class="stat-label">Selesai</div><div class="stat-value" id="stat-done">—</div><div class="stat-note">Visit selesai</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-warning"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
+            <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
             <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note">Kunjungan selesai</div>
           </div></div></div>
         </div>
