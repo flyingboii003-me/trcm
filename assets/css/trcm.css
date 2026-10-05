@@ -388,3 +388,68 @@ a{color:inherit}
   }
   .welcome-card-icon{display:none}
 }
+
+
+/* Preserve existing TRCM login/account treatments while staying on Spark structure */
+.login-card{padding:40px 36px}
+.login-brand{
+  display:flex;
+  width:100%;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  margin:0 0 18px;
+  padding:0;
+}
+.login-brand-mark{
+  width:min(220px,100%);
+  height:auto;
+  display:block;
+  background:transparent;
+  border-radius:0;
+  padding:0;
+}
+.login-brand-mark img{
+  display:block;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+}
+.navbar-account{position:relative}
+.navbar-account-button.dropdown-toggle::after{
+  margin-left:2px;
+  border-top-color:#7d8995;
+}
+.navbar-account-menu{
+  min-width:220px;
+  margin-top:8px!important;
+  padding:7px;
+  border:1px solid var(--trcm-border);
+  border-radius:10px;
+  box-shadow:0 14px 36px rgba(31,45,61,.12);
+}
+.navbar-account-menu .dropdown-header{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding:9px 10px;
+}
+.navbar-account-menu .dropdown-header strong{color:var(--trcm-text);font-size:12px}
+.navbar-account-menu .dropdown-header span{color:var(--trcm-muted);font-size:10px}
+.navbar-account-menu .dropdown-divider{border-color:var(--trcm-border);margin:5px 0}
+.account-menu-action{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  width:100%;
+  padding:9px 10px;
+  border-radius:7px;
+  color:var(--trcm-text);
+  font-size:12px;
+}
+.account-menu-action:hover{background:#f2f6fa;color:var(--trcm-danger)}
+@media(max-width:767.98px){
+  .login-card{padding:32px 22px}
+  .login-brand{margin-bottom:16px}
+  .login-brand-mark{width:min(210px,100%)}
+}
