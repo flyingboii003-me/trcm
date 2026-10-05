@@ -422,7 +422,7 @@ function renderTable() {
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td><span class="status-badge status-' + escapeHtml(visit.process_status || "") + '"><span class="status-dot"></span>' + escapeHtml(status) + '</span></td>' +
       '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
-      '<td class="action-cell"><button class="action-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '" title="Lihat detail" aria-label="Lihat detail"><i class="bi bi-eye"></i></button></td>' +
+      '<td class="action-cell"><button class="detail-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '" title="Lihat detail" aria-label="Lihat detail"><i class="bi bi-eye"></i></button></td>' +
     '</tr>';
   }).join("");
 
@@ -620,7 +620,7 @@ exportButton.addEventListener("click", function () {
     return [
       visit.plate_number || "",
       destination,
-      visit.client || "",
+      (visit.clients && visit.clients.name) || "",
       visit.vendor || "",
       visit.shipment_number || "",
       visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
