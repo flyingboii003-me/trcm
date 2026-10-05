@@ -39,6 +39,20 @@
     });
   }
 
+  function setPageTitle() {
+    const titles = {
+      dashboard: "Dashboard TRCM",
+      riwayat: "Riwayat"
+    };
+
+    const key = currentPageKey();
+    const title = titles[key] || "TRCM";
+
+    document.querySelectorAll("[data-page-title]").forEach(function (element) {
+      element.textContent = title;
+    });
+  }
+
   function setAccountNames() {
     let session = null;
 
@@ -136,6 +150,7 @@
     .then(function (loaded) {
       if (loaded) {
         setActiveMenu();
+        setPageTitle();
         setAccountNames();
         setupMobileSidebar();
         setupLogout();
