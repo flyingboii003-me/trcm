@@ -248,7 +248,7 @@ function renderRecent() {
 async function loadDashboard() {
   refreshButton.disabled = true;
   try {
-    const select = ["id","plate_number","driver_name","driver","destination","vendor","client","process_status","wh_in_at","registered_at","started_at","completed_at","created_at"].join(",");
+    const select = ["id","plate_number","driver_name","destination","vendor","client","process_status","wh_in_at","registered_at","started_at","completed_at","created_at"].join(",");
     const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
       headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
     });
