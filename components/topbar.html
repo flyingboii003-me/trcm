@@ -1,0 +1,27 @@
+    <header class="navbar-custom">
+      <div class="navbar-left">
+        <button class="sidebar-toggle-btn" id="menu-button" type="button" aria-label="Buka menu" aria-expanded="false">
+          <i class="bi bi-list"></i>
+        </button>
+        <div class="navbar-page-title">
+          <span class="navbar-eyebrow">TRCM</span>
+          <h1>Dashboard TRCM</h1>
+        </div>
+      </div>
+      <div class="navbar-actions">
+        <button class="navbar-action-btn" id="refresh-button" type="button" aria-label="Perbarui data" title="Perbarui data">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <div class="dropdown navbar-account">
+          <button class="navbar-account-button dropdown-toggle" id="account-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Buka menu akun" title="Menu akun">
+            <span class="navbar-avatar"><i class="bi bi-person-fill"></i></span>
+            <span class="navbar-account-copy d-none d-sm-flex"><strong id="account-name">Akun</strong><small>Akun</small></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end navbar-account-menu" aria-labelledby="account-button">
+            <li><div class="dropdown-header"><strong id="account-menu-name">Akun</strong><span>Menu akun</span></div></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button class="dropdown-item account-menu-action" id="account-logout" type="button"><i class="bi bi-box-arrow-right"></i><span>Keluar</span></button></li>
+          </ul>
+        </div>
+      </div>
+    </header>
