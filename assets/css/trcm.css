@@ -40,7 +40,7 @@ a{color:inherit}
 .sidebar-inner{height:100%;display:flex;flex-direction:column;padding:20px 16px}
 .sidebar-brand{height:48px;padding:0 10px;margin-bottom:28px;display:flex;align-items:center}
 .sidebar-brand a{color:#fff}
-.sidebar-brand-mark{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:var(--trcm-primary);color:#fff;font-size:18px}
+.sidebar-brand-mark{width:190px;height:48px;display:grid;place-items:center;border-radius:0;background:transparent;color:#fff;font-size:18px;overflow:visible}
 .sidebar-brand-text{font-size:19px;font-weight:700;letter-spacing:-.02em}
 .sidebar-section-title{margin:0 10px 10px;color:var(--trcm-sidebar-muted);font-size:10px;font-weight:700;letter-spacing:.1em}
 .sidebar-menu-list{display:flex;flex-direction:column;gap:5px}
