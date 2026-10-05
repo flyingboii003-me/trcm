@@ -4,21 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="TRCM - Dashboard Truck Registration & Control Management">
-<title>TRCM — Dashboard</title>
+<title>Dashboard — TRCM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 <body class="trcm-app">
 <div class="app-layout">
+  
   <aside class="sidebar-wrapper" id="sidebar" aria-label="Navigasi utama">
     <div class="sidebar-inner">
       <div class="sidebar-brand">
         <a href="dashboard.html" class="d-flex align-items-center gap-2 text-decoration-none">
-          <span class="sidebar-brand-mark">T</span><span class="sidebar-brand-text">TRCM</span>
+          <span class="sidebar-brand-mark"><img src="data:image/png;base64,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" alt="CJ Logistics"></span>
+          <span class="sidebar-brand-text">TRCM</span>
         </a>
       </div>
       <div class="sidebar-section">
@@ -30,7 +33,7 @@
           <a class="sidebar-menu-link" href="#" data-page="checker">
             <i class="bi bi-clipboard2-check-fill"></i><span>Checker</span>
           </a>
-          <a class="sidebar-menu-link" href="#" data-page="riwayat">
+          <a class="sidebar-menu-link" href="riwayat.html">
             <i class="bi bi-clock-history"></i><span>Riwayat</span>
           </a>
           <a class="sidebar-menu-link" href="#" data-page="master-data">
@@ -81,107 +84,73 @@
       </div>
     </header>
 
+    
     <main class="content-wrapper">
       <div class="container-fluid px-0">
+        <section class="welcome-card">
+          <div class="welcome-card-copy">
+            <span class="welcome-kicker">TRCM CJ LOGISTICS</span>
+            <h2>Selamat datang di TRCM CJ Logistics</h2>
+            <p>Atur pendaftaran dan transportasi armada di sini. Masuk ke menu <a href="riwayat.html">Riwayat</a> untuk melihat data pendaftaran secara lebih lengkap.</p>
+          </div>
+          <div class="welcome-card-icon" aria-hidden="true"><i class="bi bi-truck-front-fill"></i></div>
+        </section>
+
         <div class="page-header">
           <div>
             <div class="page-header-kicker">OVERVIEW</div>
-            <h2>Aktivitas hari ini</h2>
-            <p>Pantau status truk dan waktu di gudang secara ringkas.</p>
+            <h2>Operasional TRCM</h2>
+            <p>Pantau status armada dan performa kunjungan gudang secara ringkas.</p>
           </div>
+          <a class="btn btn-light border d-inline-flex align-items-center gap-2" href="riwayat.html">
+            <i class="bi bi-clock-history"></i><span>Buka Riwayat</span>
+          </a>
         </div>
 
         <div class="row g-3 mb-4">
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card stat-card h-100">
-              <div class="card-body">
-                <div class="stat-card-top"><span class="stat-icon stat-icon-neutral"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
-                <div class="stat-label">Menunggu</div>
-                <div class="stat-value" id="stat-waiting">—</div>
-                <div class="stat-note">Terdaftar hari ini</div>
-              </div>
-            </div>
+          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
+            <div class="stat-card-top"><span class="stat-icon stat-icon-neutral"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
+            <div class="stat-label">Menunggu</div><div class="stat-value" id="stat-waiting">—</div><div class="stat-note">Terdaftar</div>
+          </div></div></div>
+          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
+            <div class="stat-card-top"><span class="stat-icon stat-icon-primary"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
+            <div class="stat-label">Sedang proses</div><div class="stat-value" id="stat-process">—</div><div class="stat-note">Berada di gudang</div>
+          </div></div></div>
+          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
+            <div class="stat-card-top"><span class="stat-icon stat-icon-success"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
+            <div class="stat-label">Selesai</div><div class="stat-value" id="stat-done">—</div><div class="stat-note">Visit selesai</div>
+          </div></div></div>
+          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
+            <div class="stat-card-top"><span class="stat-icon stat-icon-warning"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
+            <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note">Kunjungan selesai</div>
+          </div></div></div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-xl-6">
+            <section class="card content-card h-100">
+              <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi status visit yang tercatat.</p></div></div>
+              <div class="card-body"><div id="status-chart" class="operational-chart" aria-label="Grafik status armada"></div></div>
+            </section>
           </div>
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card stat-card h-100">
-              <div class="card-body">
-                <div class="stat-card-top"><span class="stat-icon stat-icon-primary"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
-                <div class="stat-label">Sedang proses</div>
-                <div class="stat-value" id="stat-process">—</div>
-                <div class="stat-note">Sedang berada di gudang</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card stat-card h-100">
-              <div class="card-body">
-                <div class="stat-card-top"><span class="stat-icon stat-icon-success"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">HARI INI</span></div>
-                <div class="stat-label">Selesai</div>
-                <div class="stat-value" id="stat-done">—</div>
-                <div class="stat-note">Visit selesai</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card stat-card h-100">
-              <div class="card-body">
-                <div class="stat-card-top"><span class="stat-icon stat-icon-warning"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
-                <div class="stat-label">Waktu di gudang</div>
-                <div class="stat-value stat-value-mono" id="stat-average">—</div>
-                <div class="stat-note">Kunjungan selesai</div>
-              </div>
-            </div>
+          <div class="col-12 col-xl-6">
+            <section class="card content-card h-100">
+              <div class="card-header content-card-header"><div><h3 class="card-title">Tujuan armada</h3><p>Perbandingan Inbound dan Outbound.</p></div></div>
+              <div class="card-body"><div id="destination-chart" class="operational-chart" aria-label="Grafik tujuan armada"></div></div>
+            </section>
           </div>
         </div>
 
         <section class="card content-card">
           <div class="card-header content-card-header">
-            <div>
-              <h3 class="card-title">Aktivitas truk</h3>
-              <p id="result-count">Memuat data...</p>
-            </div>
-            <button class="btn btn-primary d-inline-flex align-items-center gap-2" id="export-button" type="button">
-              <i class="bi bi-download"></i><span>Ekspor Excel</span>
-            </button>
+            <div><h3 class="card-title">5 pendaftaran terbaru</h3><p id="recent-result-count">Memuat data...</p></div>
+            <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="riwayat.html"><i class="bi bi-arrow-right"></i><span>Lihat semua riwayat</span></a>
           </div>
-
           <div class="card-body p-0">
-            <div class="filter-toolbar">
-              <div class="filter-field">
-                <label for="filter-client">Klien</label>
-                <select id="filter-client" class="form-select"><option value="">Semua klien</option></select>
-              </div>
-              <div class="filter-field">
-                <label for="filter-plate">Plat nomor</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-search"></i></span>
-                  <input id="filter-plate" class="form-control" type="search" placeholder="Cari plat">
-                </div>
-              </div>
-              <div class="filter-field">
-                <label for="filter-status">Status</label>
-                <select id="filter-status" class="form-select">
-                  <option value="">Semua status</option>
-                  <option value="registered">Terdaftar</option>
-                  <option value="started">Sedang proses</option>
-                  <option value="completed">Selesai</option>
-                </select>
-              </div>
-              <div class="filter-field">
-                <label for="filter-date">Tanggal</label>
-                <input id="filter-date" class="form-control" type="date">
-              </div>
-              <button class="btn btn-light border align-self-end" id="reset-filter" type="button">
-                <i class="bi bi-arrow-counterclockwise me-1"></i>Atur ulang
-              </button>
-            </div>
-
             <div class="table-responsive">
               <table class="table table-hover align-middle trcm-table mb-0">
-                <thead>
-                  <tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr>
-                </thead>
-                <tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody>
+                <thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Jam masuk</th></tr></thead>
+                <tbody id="recent-truck-table"><tr><td colspan="4" class="table-state">Memuat data pendaftaran...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -203,31 +172,22 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
-
-const root = document.documentElement;
 const sidebar = document.getElementById("sidebar");
 const menuButton = document.getElementById("menu-button");
 const backdrop = document.getElementById("sidebar-backdrop");
-const accountButton = document.getElementById("account-button");
 const accountName = document.getElementById("account-name");
 const accountMenuName = document.getElementById("account-menu-name");
 const sidebarAccountName = document.getElementById("sidebar-account-name");
-const refreshButtonMobile = document.getElementById("refresh-button-mobile");
 const accountLogout = document.getElementById("account-logout");
-const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
-const visitModal = document.getElementById("visit-modal");
-const visitModalClose = document.getElementById("visit-modal-close");
-const visitModalTitle = document.getElementById("visit-modal-title");
-const visitModalSubtitle = document.getElementById("visit-modal-subtitle");
-const visitModalBody = document.getElementById("visit-modal-body");
-
+const refreshButton = document.getElementById("refresh-button");
+const recentTable = document.getElementById("recent-truck-table");
+const recentResultCount = document.getElementById("recent-result-count");
 let trcmSession = null;
-try {
-  trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null");
-} catch {
-  trcmSession = null;
-}
+let visits = [];
+let statusChart = null;
+let destinationChart = null;
 
+try { trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { trcmSession = null; }
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
   window.location.replace("../index.html");
 } else {
@@ -238,643 +198,125 @@ if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
 }
 
 function toggleMenu() {
-  if (window.matchMedia("(min-width: 768px)").matches) {
-    sidebar.classList.toggle("is-pinned-open");
-    menuButton.setAttribute("aria-expanded", sidebar.classList.contains("is-pinned-open") ? "true" : "false");
-    return;
-  }
-
   sidebar.classList.toggle("is-open");
   backdrop.classList.toggle("is-visible");
   menuButton.setAttribute("aria-expanded", sidebar.classList.contains("is-open") ? "true" : "false");
 }
-
 function closeMenu() {
   sidebar.classList.remove("is-open");
   backdrop.classList.remove("is-visible");
   menuButton.setAttribute("aria-expanded", "false");
 }
-
-if (menuButton) {
-  menuButton.addEventListener("click", toggleMenu);
-}
-
+menuButton.addEventListener("click", toggleMenu);
 backdrop.addEventListener("click", closeMenu);
-
 accountLogout.addEventListener("click", function () {
   sessionStorage.removeItem("trcm_session");
   window.location.replace("../index.html");
 });
-
-const truckTable = document.getElementById("truck-table");
-const resultCount = document.getElementById("result-count");
-const filterClient = document.getElementById("filter-client");
-const filterPlate = document.getElementById("filter-plate");
-const filterStatus = document.getElementById("filter-status");
-const filterDate = document.getElementById("filter-date");
-const resetFilter = document.getElementById("reset-filter");
-const refreshButton = document.getElementById("refresh-button");
-const exportButton = document.getElementById("export-button");
-
-let visits = [];
-
-const statusLabels = {
-  registered: "Terdaftar",
-  started: "Sedang proses",
-  completed: "Selesai"
-};
-
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, function (character) {
-    const replacements = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    };
-    return replacements[character];
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
   });
 }
-
-function formatDuration(start, end) {
-  if (!start || !end) {
-    return "—";
-  }
-
-  const startTime = new Date(start);
-  const endTime = new Date(end);
-
-  if (Number.isNaN(startTime.getTime()) || Number.isNaN(endTime.getTime())) {
-    return "—";
-  }
-
-  const minutes = Math.max(0, Math.round((endTime - startTime) / 60000));
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours > 0) {
-    return hours + "j " + String(remainingMinutes).padStart(2, "0") + "m";
-  }
-
-  return remainingMinutes + "m";
-}
-
 function formatTime(value) {
-  if (!value) {
-    return "—";
-  }
-
+  if (!value) return "—";
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return new Intl.DateTimeFormat("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(date);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(date);
 }
-
-function renderKlienOptions() {
-  const names = Array.from(
-    new Set(
-      visits
-        .map(function (visit) {
-          return visit.client || (visit.clients && visit.clients.name);
-        })
-        .filter(Boolean)
-    )
-  ).sort(function (a, b) {
-    return a.localeCompare(b, "id");
-  });
-
-  filterClient.innerHTML =
-    '<option value="">Semua klien</option>' +
-    names
-      .map(function (name) {
-        return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + "</option>";
-      })
-      .join("");
+function formatDuration(start,end) {
+  if (!start || !end) return "—";
+  const minutes = Math.max(0,Math.round((new Date(end)-new Date(start))/60000));
+  return Math.floor(minutes/60) + "j " + String(minutes%60).padStart(2,"0") + "m";
 }
-
-function getVisitDate(visit) {
-  return visit.wh_in_at || visit.created_at || null;
-}
-
-function filteredVisits() {
-  const plate = filterPlate.value.trim().toLowerCase();
-  const client = filterClient.value;
-  const status = filterStatus.value;
-  const date = filterDate.value;
-
-  return visits.filter(function (visit) {
-    const visitPlate = String(visit.plate_number || "").toLowerCase();
-    const visitDate = getVisitDate(visit);
-
-    return (
-      (!plate || visitPlate.includes(plate)) &&
-      (!client || (visit.client || (visit.clients && visit.clients.name)) === client) &&
-      (!status || visit.process_status === status) &&
-      (!date || String(visitDate).slice(0, 10) === date)
-    );
-  });
-}
-
-function formatDateTime(value) {
-  if (!value) {
-    return "—";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(date);
-}
-
-function displayValue(value) {
-  return value === null || value === undefined || value === "" ? "—" : String(value);
-}
-
-function photoTypeLabel(type) {
-  const labels = {
-    seal_initial: "Seal awal",
-    seal_final: "Seal akhir"
-  };
-
-  return labels[type] || displayValue(type);
-}
-
-function statusLabel(value) {
-  const labels = {
-    registered: "Terdaftar",
-    started: "Sedang proses",
-    completed: "Selesai",
-    parked: "Parkir",
-    processing: "Proses",
-    cancelled: "Batal"
-  };
-
-  return labels[value] || displayValue(value);
-}
-
-function renderDetailItem(label, value, mono) {
-  return '<div class="detail-item"><span class="detail-label">' +
-    escapeHtml(label) + '</span><span class="detail-value' +
-    (mono ? ' mono' : '') + '">' + escapeHtml(displayValue(value)) +
-    "</span></div>";
-}
-
-function closeVisitModal() {
-  visitModalBackdrop.classList.remove("is-visible");
-  visitModalBackdrop.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-}
-
-async function openVisitModal(visitId) {
-  visitModalBackdrop.classList.add("is-visible");
-  visitModalBackdrop.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-  visitModalTitle.textContent = "Memuat...";
-  visitModalSubtitle.textContent = "";
-  visitModalBody.innerHTML = '<div class="modal-loading">Memuat detail visit...</div>';
-
-  try {
-    const select = [
-      "id",
-      "card_id",
-      "plate_number",
-      "container_num",
-      "destination",
-      "vendor",
-      "client_id",
-      "driver_name",
-      "driver_phone",
-      "truck_type",
-      "license_type",
-      "license_num",
-      "license_exp",
-      "vehicle_exp",
-      "vehicle_inspect_exp",
-      "shipment_type",
-      "shipment_number",
-      "manifest_number",
-      "gate_id",
-      "line_number_id",
-      "seal_number",
-      "notes",
-      "process_status",
-      "final_status",
-      "wh_in_at",
-      "registered_at",
-      "started_at",
-      "completed_at",
-      "wh_out_at",
-      "created_at",
-      "updated_at",
-      "cards(card_number)",
-      
-      "clients(name)",
-      "gates(gate_number)",
-      "line_numbers(line_number)",
-      "photos(id,photo_type,file_location,created_at)"
-    ].join(",");
-
-    const url = SUPABASE_URL +
-      "/rest/v1/visits?select=" + encodeURIComponent(select) +
-      "&id=eq." + encodeURIComponent(visitId) +
-      "&limit=1";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + trcmSession.access_token
-      }
-    });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = {};
-    }
-
-    if (!response.ok) {
-      throw new Error(data && data.message ? data.message : "Gagal mengambil detail visit.");
-    }
-
-    if (!Array.isArray(data) || !data.length) {
-      throw new Error("Visit tidak ditemukan.");
-    }
-
-    const visit = data[0];
-    const card = visit.cards && visit.cards.card_number;
-    const client = (visit.clients && visit.clients.name) || "—";
-    const gate = visit.gates && visit.gates.gate_number;
-    const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
-
-    visitModalTitle.textContent = visit.plate_number || "Detail visit";
-    visitModalSubtitle.textContent =
-      (visit.driver_name || "Driver tidak tersedia") + " · " +
-      (client || "Client tidak tersedia");
-
-    const general = [
-      renderDetailItem("ID visit", visit.id, true),
-      renderDetailItem("Nomor kartu", card, true),
-      renderDetailItem("Plat nomor", visit.plate_number, true),
-      renderDetailItem("Nomor kontainer", visit.container_num, true),
-      renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
-      renderDetailItem("Klien", client),
-      renderDetailItem("Nama sopir", visit.driver_name),
-      renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
-      renderDetailItem("Tipe truck", visit.truck_type)
-    ].join("");
-
-    const documents = [
-      renderDetailItem("Tipe SIM", visit.license_type),
-      renderDetailItem("Nomor SIM", visit.license_num, true),
-      renderDetailItem("Masa berlaku SIM", visit.license_exp),
-      renderDetailItem("Masa berlaku kendaraan", visit.vehicle_exp),
-      renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
-      renderDetailItem("Tipe shipment", visit.shipment_type),
-      renderDetailItem("Nomor shipment", visit.shipment_number, true),
-      renderDetailItem("Nomor manifest / loading list", visit.manifest_number, true),
-      renderDetailItem("Nomor gerbang", gate),
-      renderDetailItem("Nomor line", lineNumber),
-      renderDetailItem("Nomor segel", visit.seal_number, true),
-      renderDetailItem("Status proses", statusLabel(visit.process_status)),
-      renderDetailItem("Status akhir", statusLabel(visit.final_status))
-    ].join("");
-
-    const times = [
-      renderDetailItem("WH In", formatDateTime(visit.wh_in_at), true),
-      renderDetailItem("Terdaftar", formatDateTime(visit.registered_at), true),
-      renderDetailItem("Mulai", formatDateTime(visit.started_at), true),
-      renderDetailItem("Selesai", formatDateTime(visit.completed_at), true),
-      renderDetailItem("WH Out", formatDateTime(visit.wh_out_at), true),
-      renderDetailItem("Dibuat", formatDateTime(visit.created_at), true),
-      renderDetailItem("Diperbarui", formatDateTime(visit.updated_at), true),
-      renderDetailItem("Catatan", visit.notes)
-    ].join("");
-
-    const photos = Array.isArray(visit.photos) ? visit.photos : [];
-    const photoHtml = photos.length
-      ? photos.map(function (photo) {
-          return '<div class="photo-item"><span class="photo-type">' +
-            escapeHtml(photoTypeLabel(photo.photo_type)) +
-            '</span><span class="photo-location">' +
-            escapeHtml(photo.file_location) +
-            '</span><span class="event-meta">' +
-            escapeHtml(formatDateTime(photo.created_at)) +
-            "</span></div>";
-        }).join("")
-      : '<div class="modal-empty">Belum ada foto yang tercatat untuk visit ini.</div>';
-
-    visitModalBody.innerHTML =
-      '<section class="detail-section"><h3>Identitas visit</h3><div class="detail-grid">' +
-        general + "</div></section>" +
-      '<section class="detail-section"><h3>Shipment dan operasional</h3><div class="detail-grid">' +
-        documents + "</div></section>" +
-      '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
-        times + "</div></section>" +
-      '<section class="detail-section"><h3>Foto visit</h3><div class="photo-list">' +
-        photoHtml + "</div></section>";
-  } catch (error) {
-    console.error("TRCM visit detail:", error);
-    visitModalBody.innerHTML =
-      '<div class="modal-error">' + escapeHtml(error.message || "Detail visit gagal dimuat.") + "</div>";
-  }
-}
-
-function renderTable() {
-  const rows = filteredVisits();
-
-  resultCount.textContent = rows.length + " truk ditampilkan";
-
-  if (!rows.length) {
-    truckTable.innerHTML =
-      '<tr><td colspan="6" class="table-state">Tidak ada data yang sesuai filter.</td></tr>';
-    return;
-  }
-
-  truckTable.innerHTML = rows
-    .map(function (visit) {
-      const status = visit.process_status;
-      const statusLabel = statusLabels[status] || status || "—";
-      const client = visit.client || (visit.clients && visit.clients.name) || "—";
-      const vendor = visit.vendor || "—";
-      const destination =
-        visit.destination === "inbound" ? "Inbound" : "Outbound";
-      
-
-      return `
-        <tr title="Detail truk">
-          <td>
-            <span class="plate">${escapeHtml(visit.plate_number)}</span><br>
-            <span class="muted">${escapeHtml(visit.driver_name || "—")} / ${escapeHtml(client)}</span>
-          </td>
-          <td><span class="destination">${escapeHtml(destination)}</span></td>
-          <td>${escapeHtml(vendor)}</td>
-          <td>
-            <span class="status-badge status-${escapeHtml(status)}">
-              <span class="status-dot"></span>${escapeHtml(statusLabel)}
-            </span>
-          </td>
-          <td>
-            <span class="duration">${escapeHtml(formatTime(visit.wh_in_at))}</span><br>
-            <span class="muted">${escapeHtml(formatDateTime(visit.wh_in_at))}</span>
-          </td>
-          <td class="action-cell">
-            <button class="action-button detail-button" type="button" data-visit-id="${escapeHtml(visit.id)}">
-              <i class="bi bi-eye"></i>
-              <span>Detail</span>
-            </button>
-          </td>
-        </tr>`;
-    })
-    .join("");
-}
-
 function renderStats() {
-  const activeVisits = visits.filter(function (visit) {
-    return visit.process_status !== "wh_out";
-  });
-
-  const waiting = activeVisits.filter(function (visit) {
-    return visit.process_status === "registered";
-  }).length;
-
-  const processing = activeVisits.filter(function (visit) {
-    return visit.process_status === "started";
-  }).length;
-
-  const done = visits.filter(function (visit) {
-    return visit.process_status === "completed";
-  }).length;
-
-  const completed = visits.filter(function (visit) {
-    return (
-      visit.process_status === "completed" &&
-      visit.wh_in_at &&
-      visit.completed_at
-    );
-  });
-
-  let averageMinutes = 0;
-
-  if (completed.length) {
-    const totalMilliseconds = completed.reduce(function (sum, visit) {
-      return sum + (new Date(visit.completed_at) - new Date(visit.wh_in_at));
-    }, 0);
-
-    averageMinutes = Math.max(
-      0,
-      Math.round(totalMilliseconds / completed.length / 60000)
-    );
-  }
-
+  const waiting = visits.filter(v => v.process_status === "registered").length;
+  const processing = visits.filter(v => v.process_status === "started").length;
+  const done = visits.filter(v => v.process_status === "completed").length;
+  const completed = visits.filter(v => v.process_status === "completed" && v.wh_in_at && v.completed_at);
+  const avg = completed.length ? Math.max(0,Math.round(completed.reduce((sum,v) => sum + (new Date(v.completed_at)-new Date(v.wh_in_at)),0)/completed.length/60000)) : 0;
   document.getElementById("stat-waiting").textContent = waiting;
   document.getElementById("stat-process").textContent = processing;
   document.getElementById("stat-done").textContent = done;
-  document.getElementById("stat-average").textContent =
-    averageMinutes > 0
-      ? Math.floor(averageMinutes / 60) + "j " +
-        String(averageMinutes % 60).padStart(2, "0") + "m"
-      : "—";
+  document.getElementById("stat-average").textContent = avg ? Math.floor(avg/60) + "j " + String(avg%60).padStart(2,"0") + "m" : "—";
 }
-
-async function loadVisits() {
-  truckTable.innerHTML =
-    '<tr><td colspan="6" class="table-state">Memuat data truk...</td></tr>';
-  resultCount.textContent = "Memuat data...";
+function renderCharts() {
+  if (typeof ApexCharts === "undefined") return;
+  const statusData = [
+    visits.filter(v => v.process_status === "registered").length,
+    visits.filter(v => v.process_status === "started").length,
+    visits.filter(v => v.process_status === "completed").length
+  ];
+  const destinationData = [
+    visits.filter(v => v.destination === "inbound").length,
+    visits.filter(v => v.destination === "outbound").length
+  ];
+  if (statusChart) statusChart.destroy();
+  if (destinationChart) destinationChart.destroy();
+  statusChart = new ApexCharts(document.querySelector("#status-chart"), {
+    chart:{type:"bar",height:250,toolbar:{show:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
+    series:[{name:"Visit",data:statusData}],
+    xaxis:{categories:["Terdaftar","Sedang proses","Selesai"],labels:{style:{fontFamily:"Plus Jakarta Sans, sans-serif"}}},
+    yaxis:{min:0,forceNiceScale:true},
+    plotOptions:{bar:{borderRadius:6,columnWidth:"45%"}},
+    dataLabels:{enabled:true},
+    colors:["#006ECD"],
+    grid:{borderColor:"#DFE5EF",strokeDashArray:4},
+    tooltip:{y:{formatter:value => value + " visit"}}
+  });
+  destinationChart = new ApexCharts(document.querySelector("#destination-chart"), {
+    chart:{type:"bar",height:250,toolbar:{show:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
+    series:[{name:"Visit",data:destinationData}],
+    xaxis:{categories:["Inbound","Outbound"],labels:{style:{fontFamily:"Plus Jakarta Sans, sans-serif"}}},
+    yaxis:{min:0,forceNiceScale:true},
+    plotOptions:{bar:{borderRadius:6,columnWidth:"35%"}},
+    dataLabels:{enabled:true},
+    colors:["#D97100"],
+    grid:{borderColor:"#DFE5EF",strokeDashArray:4},
+    tooltip:{y:{formatter:value => value + " visit"}}
+  });
+  statusChart.render();
+  destinationChart.render();
+}
+function renderRecent() {
+  const rows = visits.slice().sort((a,b) => new Date(b.created_at || b.wh_in_at || 0)-new Date(a.created_at || a.wh_in_at || 0)).slice(0,5);
+  recentResultCount.textContent = rows.length + " pendaftaran terbaru";
+  if (!rows.length) {
+    recentTable.innerHTML = '<tr><td colspan="4" class="table-state">Belum ada pendaftaran.</td></tr>';
+    return;
+  }
+  recentTable.innerHTML = rows.map(function(visit) {
+    const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
+    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span></td><td><span class="destination">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
+  }).join("");
+}
+async function loadDashboard() {
   refreshButton.disabled = true;
-
   try {
-    const select = [
-      "id",
-      "plate_number",
-      "container_num",
-      "destination",
-      "vendor",
-      "client_id",
-      "driver_name",
-      "shipment_number",
-      "process_status",
-      "final_status",
-      "wh_in_at",
-      "registered_at",
-      "started_at",
-      "completed_at",
-      "created_at",
-      "clients(name)",
-      "gates(gate_number)"
-    ].join(",");
-
-    const url =
-      SUPABASE_URL +
-      "/rest/v1/visits?select=" +
-      encodeURIComponent(select) +
-      "&order=created_at.desc";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + trcmSession.access_token
-      }
+    const select = ["id","plate_number","destination","vendor","process_status","wh_in_at","registered_at","started_at","completed_at","created_at"].join(",");
+    const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
+      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
     });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = {};
-    }
-
+    const data = await response.json().catch(() => ({}));
     if (response.status === 401) {
       sessionStorage.removeItem("trcm_session");
       window.location.replace("../index.html");
       return;
     }
-
-    if (!response.ok) {
-      const message = data && data.message ? data.message : "Gagal mengambil data dashboard.";
-      throw new Error(message);
-    }
-
-    if (!Array.isArray(data)) {
-      throw new Error("Respons data dashboard tidak valid.");
-    }
-
+    if (!response.ok || !Array.isArray(data)) throw new Error(data.message || "Gagal mengambil data dashboard.");
     visits = data;
-    renderKlienOptions();
     renderStats();
-    renderTable();
+    renderCharts();
+    renderRecent();
   } catch (error) {
+    recentTable.innerHTML = '<tr><td colspan="4" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
+    recentResultCount.textContent = "Gagal memuat data";
     console.error("TRCM dashboard:", error);
-    truckTable.innerHTML =
-      '<tr><td colspan="6" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
-    resultCount.textContent = "Gagal memuat data";
   } finally {
     refreshButton.disabled = false;
   }
 }
-
-[filterClient, filterPlate, filterStatus, filterDate].forEach(
-  function (element) {
-    element.addEventListener("input", renderTable);
-    element.addEventListener("change", renderTable);
-  }
-);
-
-truckTable.addEventListener("click", function (event) {
-  const button = event.target.closest(".detail-button");
-
-  if (!button) {
-    return;
-  }
-
-  openVisitModal(button.dataset.visitId);
-});
-
-visitModalClose.addEventListener("click", closeVisitModal);
-visitModalBackdrop.addEventListener("click", function (event) {
-  if (event.target === visitModalBackdrop) {
-    closeVisitModal();
-  }
-});
-
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Escape" && visitModalBackdrop.classList.contains("is-visible")) {
-    closeVisitModal();
-  }
-});
-
-resetFilter.addEventListener("click", function () {
-  filterClient.value = "";
-  filterPlate.value = "";
-  filterStatus.value = "";
-  filterDate.value = "";
-  renderTable();
-});
-
-refreshButton.addEventListener("click", loadVisits);
-
-
-
-exportButton.addEventListener("click", function () {
-  const rows = filteredVisits();
-  const header = [
-    "Plat nomor",
-    "Tujuan",
-    "Klien",
-    "Vendor",
-    "Nomor shipment",
-    "Gerbang",
-    "Status",
-    "Waktu di gudang"
-  ];
-
-  const csvRows = rows.map(function (visit) {
-    const destination =
-      visit.destination === "inbound" ? "Inbound" : "Outbound";
-    const status = statusLabels[visit.process_status] || visit.process_status || "";
-    const duration =
-      visit.process_status === "completed"
-        ? formatDuration(visit.wh_in_at, visit.completed_at)
-        : formatDuration(visit.wh_in_at, new Date().toISOString());
-
-    return [
-      visit.plate_number || "",
-      destination,
-      visit.client || "",
-      visit.vendor || "",
-      visit.shipment_number || "",
-      visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
-      status,
-      duration
-    ];
-  });
-
-  const csv = [header, ...csvRows]
-    .map(function (row) {
-      return row
-        .map(function (value) {
-          return '"' + String(value).replace(/"/g, '""') + '"';
-        })
-        .join(",");
-    })
-    .join("\r\n");
-
-  const blob = new Blob(["\ufeff" + csv], {
-    type: "text/csv;charset=utf-8;"
-  });
-
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-
-  anchor.href = url;
-  anchor.download =
-    "trcm-dashboard-" + new Date().toISOString().slice(0, 10) + ".csv";
-
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-});
-
-loadVisits();</script>
+refreshButton.addEventListener("click", loadDashboard);
+loadDashboard();</script>
 </body>
 </html>
