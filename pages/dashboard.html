@@ -78,13 +78,13 @@
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
               <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by vendor</h3><p>Jumlah visit berdasarkan vendor.</p></div></div>
-              <div class="card-body"><div id="vendor-chart" class="operational-chart" aria-label="Grafik jumlah armada by vendor"></div></div>
+              <div class="card-body"><div id="vendor-chart" class="operational-chart" aria-label="Grafik jumlah armada by vendor"></div><div id="vendor-chart-legend" class="chart-category-legend" aria-label="Legenda vendor"></div></div>
             </section>
           </div>
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
               <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by klien</h3><p>Jumlah visit berdasarkan klien.</p></div></div>
-              <div class="card-body"><div id="client-chart" class="operational-chart" aria-label="Grafik jumlah armada by klien"></div></div>
+              <div class="card-body"><div id="client-chart" class="operational-chart" aria-label="Grafik jumlah armada by klien"></div><div id="client-chart-legend" class="chart-category-legend" aria-label="Legenda klien"></div></div>
             </section>
           </div>
         </div>
@@ -218,7 +218,8 @@ function renderCharts() {
     series:[{name:"Armada",data:vendorEntries.map(entry => entry[1])}],
     colors:["#006ECD"],
     plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},
-    xaxis:{...baseBar.xaxis,categories:vendorEntries.map(entry => entry[0]),labels:{show:false}}
+    xaxis:{...baseBar.xaxis,categories:vendorEntries.map(entry => entry[0]),labels:{show:false}},
+    yaxis:{show:true,labels:{show:true,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"},maxWidth:120}}
   });
 
   clientChart = new ApexCharts(document.querySelector("#client-chart"), {
@@ -227,10 +228,25 @@ function renderCharts() {
     series:[{name:"Armada",data:clientEntries.map(entry => entry[1])}],
     colors:["#EF151E"],
     plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},
-    xaxis:{...baseBar.xaxis,categories:clientEntries.map(entry => entry[0]),labels:{show:false}}
+    xaxis:{...baseBar.xaxis,categories:clientEntries.map(entry => entry[0]),labels:{show:false}},
+    yaxis:{show:true,labels:{show:true,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"},maxWidth:120}}
   });
 
+
   [statusChart,destinationChart,vendorChart,clientChart].forEach(chart => chart.render());
+
+  const renderLegend = function (targetId, entries) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    target.innerHTML = entries.length
+      ? entries.map(function (entry) {
+          return '<span class="chart-category-item"><span class="chart-category-dot"></span><span class="chart-category-name">' + escapeHtml(entry[0]) + '</span><strong>' + entry[1] + '</strong></span>';
+        }).join("")
+      : '<span class="chart-category-empty">Belum ada data</span>';
+  };
+  renderLegend("vendor-chart-legend", vendorEntries);
+  renderLegend("client-chart-legend", clientEntries);
+
 }
 function renderRecent() {
   const rows = visits.slice().sort((a,b) => new Date(b.created_at || b.wh_in_at || 0)-new Date(a.created_at || a.wh_in_at || 0)).slice(0,5);
