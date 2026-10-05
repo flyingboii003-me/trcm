@@ -24,46 +24,42 @@
     
     <main class="content-wrapper">
       <div class="container-fluid px-0">
-        <section class="welcome-card">
+        <section class="welcome-card alert-green-card">
           <div class="welcome-card-copy">
             <span class="welcome-kicker">TRCM CJ LOGISTICS</span>
             <h2>Selamat datang di TRCM CJ Logistics</h2>
             <p>Atur pendaftaran dan transportasi armada di sini. Masuk ke menu <a href="riwayat.html">Riwayat</a> untuk melihat data pendaftaran secara lebih lengkap.</p>
           </div>
-          <div class="welcome-card-icon" aria-hidden="true"><i class="bi bi-truck-front-fill"></i></div>
-        </section>
+          </section>
 
         <div class="page-header">
           <div>
-            <div class="page-header-kicker">OVERVIEW</div>
-            <h2>Operasional TRCM</h2>
-            <p>Pantau status armada dan performa kunjungan gudang secara ringkas.</p>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Pantau status armada dan performa kunjungan gudang secara ringkas.</p>
           </div>
-          <a class="btn btn-light border d-inline-flex align-items-center gap-2" href="riwayat.html">
-            <i class="bi bi-clock-history"></i><span>Buka Riwayat</span>
-          </a>
+          
         </div>
 
         <div class="row g-3 mb-4">
-          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-neutral"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
+          <div class="col-12 col-sm-6 col-xl-3"><div class="card card-stat d-flex flex-column justify-content-between h-100"><div class="card-body">
+            <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
             <div class="stat-label">Menunggu</div><div class="stat-value" id="stat-waiting">—</div><div class="stat-note">Terdaftar</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-primary"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
+            <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
             <div class="stat-label">Sedang proses</div><div class="stat-value" id="stat-process">—</div><div class="stat-note">Berada di gudang</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-success"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
+            <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
             <div class="stat-label">Selesai</div><div class="stat-value" id="stat-done">—</div><div class="stat-note">Visit selesai</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-warning"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
+            <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
             <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note">Kunjungan selesai</div>
           </div></div></div>
         </div>
 
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4 dashboard-chart-row">
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
               <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi status visit yang tercatat.</p></div></div>
@@ -78,9 +74,24 @@
           </div>
         </div>
 
+        <div class="row g-3 mb-4 dashboard-chart-row">
+          <div class="col-12 col-xl-6">
+            <section class="card content-card h-100">
+              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by vendor</h3><p>Jumlah visit berdasarkan vendor.</p></div></div>
+              <div class="card-body"><div id="vendor-chart" class="operational-chart" aria-label="Grafik jumlah armada by vendor"></div><div id="vendor-chart-legend" class="chart-category-legend" aria-label="Legenda vendor"></div></div>
+            </section>
+          </div>
+          <div class="col-12 col-xl-6">
+            <section class="card content-card h-100">
+              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by klien</h3><p>Jumlah visit berdasarkan klien.</p></div></div>
+              <div class="card-body"><div id="client-chart" class="operational-chart" aria-label="Grafik jumlah armada by klien"></div><div id="client-chart-legend" class="chart-category-legend" aria-label="Legenda klien"></div></div>
+            </section>
+          </div>
+        </div>
+
         <section class="card content-card">
           <div class="card-header content-card-header">
-            <div><h3 class="card-title">5 pendaftaran terbaru</h3><p id="recent-result-count">Memuat data...</p></div>
+            <div><h3 class="card-title">Riwayat Pendaftaran</h3><p id="recent-result-count">Memuat data...</p></div>
             <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="riwayat.html"><i class="bi bi-arrow-right"></i><span>Lihat semua riwayat</span></a>
           </div>
           <div class="card-body p-0">
@@ -111,6 +122,8 @@ let trcmSession = null;
 let visits = [];
 let statusChart = null;
 let destinationChart = null;
+let vendorChart = null;
+let clientChart = null;
 
 try { trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { trcmSession = null; }
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
@@ -156,32 +169,84 @@ function renderCharts() {
     visits.filter(v => v.destination === "inbound").length,
     visits.filter(v => v.destination === "outbound").length
   ];
-  if (statusChart) statusChart.destroy();
-  if (destinationChart) destinationChart.destroy();
+  const vendorCounts = {};
+  const clientCounts = {};
+  visits.forEach(function (visit) {
+    const vendor = String(visit.vendor || "Tanpa vendor").trim() || "Tanpa vendor";
+    const client = String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
+    vendorCounts[vendor] = (vendorCounts[vendor] || 0) + 1;
+    clientCounts[client] = (clientCounts[client] || 0) + 1;
+  });
+  const topEntries = function (counts) {
+    return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 6);
+  };
+  const vendorEntries = topEntries(vendorCounts);
+  const clientEntries = topEntries(clientCounts);
+  [statusChart, destinationChart, vendorChart, clientChart].forEach(function (chart) {
+    if (chart) chart.destroy();
+  });
+
+  const baseBar = {
+    chart:{type:"bar",height:220,toolbar:{show:false},zoom:{enabled:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
+    states:{hover:{filter:{type:"none"}}},
+    dataLabels:{enabled:false},
+    grid:{borderColor:"#E9EFEF",strokeDashArray:4,padding:{top:0,right:0,bottom:0,left:0}},
+    xaxis:{axisBorder:{show:false},axisTicks:{show:false},labels:{style:{colors:"#6C7E75",fontSize:"11px",fontWeight:500,fontFamily:"Plus Jakarta Sans, sans-serif"}}},
+    yaxis:{labels:{show:false}},
+    tooltip:{theme:"dark"}
+  };
+
   statusChart = new ApexCharts(document.querySelector("#status-chart"), {
-    chart:{type:"bar",height:250,toolbar:{show:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
+    ...baseBar,
     series:[{name:"Visit",data:statusData}],
-    xaxis:{categories:["Terdaftar","Sedang proses","Selesai"],labels:{style:{fontFamily:"Plus Jakarta Sans, sans-serif"}}},
-    yaxis:{min:0,forceNiceScale:true},
-    plotOptions:{bar:{borderRadius:6,columnWidth:"45%"}},
-    dataLabels:{enabled:true},
     colors:["#006ECD"],
-    grid:{borderColor:"#DFE5EF",strokeDashArray:4},
-    tooltip:{y:{formatter:value => value + " visit"}}
+    plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},
+    xaxis:{...baseBar.xaxis,categories:["Terdaftar","Sedang proses","Selesai"]}
   });
+
   destinationChart = new ApexCharts(document.querySelector("#destination-chart"), {
-    chart:{type:"bar",height:250,toolbar:{show:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
+    ...baseBar,
     series:[{name:"Visit",data:destinationData}],
-    xaxis:{categories:["Inbound","Outbound"],labels:{style:{fontFamily:"Plus Jakarta Sans, sans-serif"}}},
-    yaxis:{min:0,forceNiceScale:true},
-    plotOptions:{bar:{borderRadius:6,columnWidth:"35%"}},
-    dataLabels:{enabled:true},
-    colors:["#D97100"],
-    grid:{borderColor:"#DFE5EF",strokeDashArray:4},
-    tooltip:{y:{formatter:value => value + " visit"}}
+    colors:["#FF9700"],
+    plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},
+    xaxis:{...baseBar.xaxis,categories:["Inbound","Outbound"]}
   });
-  statusChart.render();
-  destinationChart.render();
+
+  vendorChart = new ApexCharts(document.querySelector("#vendor-chart"), {
+    ...baseBar,
+    chart:{...baseBar.chart,height:230},
+    series:[{name:"Armada",data:vendorEntries.map(entry => entry[1])}],
+    colors:["#006ECD"],
+    plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},
+    xaxis:{...baseBar.xaxis,categories:vendorEntries.map(entry => entry[0]),labels:{show:false}},
+    yaxis:{show:true,labels:{show:true,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"},maxWidth:120}}
+  });
+
+  clientChart = new ApexCharts(document.querySelector("#client-chart"), {
+    ...baseBar,
+    chart:{...baseBar.chart,height:230},
+    series:[{name:"Armada",data:clientEntries.map(entry => entry[1])}],
+    colors:["#EF151E"],
+    plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},
+    xaxis:{...baseBar.xaxis,categories:clientEntries.map(entry => entry[0]),labels:{show:false}},
+    yaxis:{show:true,labels:{show:true,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"},maxWidth:120}}
+  });
+
+
+  [statusChart,destinationChart,vendorChart,clientChart].forEach(chart => chart.render());
+
+  const renderLegend = function (targetId, entries) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    target.innerHTML = entries.length
+      ? entries.map(function (entry) {
+          return '<span class="chart-category-item"><span class="chart-category-dot"></span><span class="chart-category-name">' + escapeHtml(entry[0]) + '</span><strong>' + entry[1] + '</strong></span>';
+        }).join("")
+      : '<span class="chart-category-empty">Belum ada data</span>';
+  };
+  renderLegend("vendor-chart-legend", vendorEntries);
+  renderLegend("client-chart-legend", clientEntries);
+
 }
 function renderRecent() {
   const rows = visits.slice().sort((a,b) => new Date(b.created_at || b.wh_in_at || 0)-new Date(a.created_at || a.wh_in_at || 0)).slice(0,5);
@@ -192,13 +257,14 @@ function renderRecent() {
   }
   recentTable.innerHTML = rows.map(function(visit) {
     const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
-    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span></td><td><span class="destination">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
+    const secondary = visit.driver_name || (visit.clients && visit.clients.name) || "—";
+    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
   }).join("");
 }
 async function loadDashboard() {
   refreshButton.disabled = true;
   try {
-    const select = ["id","plate_number","destination","vendor","process_status","wh_in_at","registered_at","started_at","completed_at","created_at"].join(",");
+    const select = ["id","plate_number","driver_name","destination","vendor","client_id","process_status","wh_in_at","registered_at","started_at","completed_at","created_at","clients(name)"].join(",");
     const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
       headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
     });
