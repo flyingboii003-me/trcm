@@ -20,9 +20,8 @@
     <div id="topbar-container"></div>
 
     <main class="content-wrapper"><div class="container-fluid px-0">
-  <div class="page-header"><div><div class="page-header-kicker">DATA OPERASIONAL</div><h2>Riwayat pendaftaran truk</h2><p>Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div></div>
-  <section class="card content-card">
-    <div class="card-header content-card-header"><div><h3 class="card-title">Pendaftaran truk</h3><p id="result-count">Memuat data...</p></div><button class="btn btn-primary d-inline-flex align-items-center gap-2" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
+  <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
+  <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
     <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div></div>
   </section>
