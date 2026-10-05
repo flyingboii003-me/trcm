@@ -342,3 +342,25 @@ a{color:inherit}
   .login-brand-mark{width:min(210px,100%)}
   .page-header{margin-bottom:20px}
 }
+
+
+/* Spark responsive sidebar behavior */
+@media(min-width:1200px){
+  .sidebar-wrapper,.sidebar-wrapper:hover,.sidebar-wrapper:focus-within,.sidebar-wrapper.is-pinned-open{width:280px;transform:none}
+  .main-wrapper{margin-left:280px}
+}
+@media(max-width:1199.98px){
+  .sidebar-wrapper,.sidebar-wrapper:hover,.sidebar-wrapper:focus-within,.sidebar-wrapper.is-pinned-open{width:280px;transform:translateX(-100%)}
+  .sidebar-wrapper.is-open{transform:translateX(0)}
+  .main-wrapper{margin-left:0}
+  .sidebar-inner{padding:20px 16px}
+  .sidebar-brand{padding:0 10px}
+  .sidebar-brand-text,.sidebar-section-title,.sidebar-menu-link span,.sidebar-account-copy{display:block}
+  .sidebar-menu-link{justify-content:flex-start;padding:0 12px}
+  .sidebar-account{justify-content:flex-start;padding:8px 10px}
+  .sidebar-toggle-btn{display:inline-flex!important}
+}
+@media(max-width:767.98px){
+  .sidebar-wrapper{width:280px}
+  .navbar-actions{margin-left:auto}
+}
