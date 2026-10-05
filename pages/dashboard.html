@@ -173,7 +173,7 @@ function renderCharts() {
   const clientCounts = {};
   visits.forEach(function (visit) {
     const vendor = String(visit.vendor || "Tanpa vendor").trim() || "Tanpa vendor";
-    const client = String(visit.client || "Tanpa klien").trim() || "Tanpa klien";
+    const client = String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
     vendorCounts[vendor] = (vendorCounts[vendor] || 0) + 1;
     clientCounts[client] = (clientCounts[client] || 0) + 1;
   });
@@ -241,14 +241,14 @@ function renderRecent() {
   }
   recentTable.innerHTML = rows.map(function(visit) {
     const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
-    const secondary = visit.driver_name || visit.client || "—";
+    const secondary = visit.driver_name || (visit.clients && visit.clients.name) || "—";
     return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
   }).join("");
 }
 async function loadDashboard() {
   refreshButton.disabled = true;
   try {
-    const select = ["id","plate_number","driver_name","destination","vendor","client","process_status","wh_in_at","registered_at","started_at","completed_at","created_at"].join(",");
+    const select = ["id","plate_number","driver_name","destination","vendor","client_id","process_status","wh_in_at","registered_at","started_at","completed_at","created_at","clients(name)"].join(",");
     const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
       headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
     });
