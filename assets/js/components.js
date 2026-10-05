@@ -2,9 +2,13 @@
   "use strict";
 
   const container = document.getElementById("sidebar-container");
+  const topbarContainer = document.getElementById("topbar-container");
+  const detailContainer = document.getElementById("visit-detail-container");
+  const tableToolbarContainer = document.getElementById("table-toolbar-container");
 
   if (!container) {
     window.trcmSidebarReady = Promise.resolve(false);
+    window.trcmComponentsReady = window.trcmSidebarReady;
     return;
   }
 
@@ -106,32 +110,63 @@
     });
   }
 
-  window.trcmSidebarReady = fetch("../components/sidebar.html", {
-    method: "GET",
-    headers: {
-      Accept: "text/html"
-    }
-  })
-    .then(function (response) {
-      if (!response.ok) {
-        throw new Error("Sidebar gagal dimuat.");
+  function loadFragment(url, target, required) {
+    if (!target) return Promise.resolve(true);
+
+    return fetch(url, {
+      method: "GET",
+      headers: { Accept: "text/html" }
+    })
+      .then(function (response) {
+        if (!response.ok) throw new Error("Komponen gagal dimuat: " + url);
+        return response.text();
+      })
+      .then(function (html) {
+        target.innerHTML = html;
+        return true;
+      })
+      .catch(function (error) {
+        console.error("TRCM component:", error);
+        if (required) target.innerHTML = "";
+        return false;
+      });
+  }
+
+  window.trcmSidebarReady = loadFragment("../components/sidebar.html", container, true)
+    .then(function (loaded) {
+      if (loaded) {
+        setActiveMenu();
+        setAccountNames();
+        setupMobileSidebar();
+        setupLogout();
       }
-
-      return response.text();
-    })
-    .then(function (html) {
-      container.innerHTML = html;
-
-      setActiveMenu();
-      setAccountNames();
-      setupMobileSidebar();
-      setupLogout();
-
-      return true;
-    })
-    .catch(function (error) {
-      console.error("TRCM components:", error);
-      container.innerHTML = "";
-      return false;
+      return loaded;
     });
+
+  window.trcmComponentsReady = Promise.all([
+    window.trcmSidebarReady,
+    loadFragment("../components/topbar.html", topbarContainer, false),
+    loadFragment("../components/visit-detail.html", detailContainer, false),
+    loadFragment("../components/table-toolbar.html", tableToolbarContainer, false)
+  ]).then(function (results) {
+    return results.every(Boolean);
+  });
+
+  window.trcmStatusBadge = function (status) {
+    const labels = {
+      registered: "Terdaftar",
+      started: "Sedang proses",
+      completed: "Selesai"
+    };
+    const safeStatus = String(status || "");
+    const label = labels[safeStatus] || safeStatus || "—";
+    return '<span class="status-badge status-' + escapeHtml(safeStatus) + '">' +
+      '<span class="status-dot"></span>' + escapeHtml(label) + '</span>';
+  };
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
 })();
