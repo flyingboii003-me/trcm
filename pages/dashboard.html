@@ -138,13 +138,6 @@
 window.trcmSidebarReady.then(async function () {
 const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
-const sidebar = document.getElementById("sidebar");
-const menuButton = document.getElementById("menu-button");
-const backdrop = document.getElementById("sidebar-backdrop");
-const accountName = document.getElementById("account-name");
-const accountMenuName = document.getElementById("account-menu-name");
-const sidebarAccountName = document.getElementById("sidebar-account-name");
-const accountLogout = document.getElementById("account-logout");
 const refreshButton = document.getElementById("refresh-button");
 const recentTable = document.getElementById("recent-truck-table");
 const recentResultCount = document.getElementById("recent-result-count");
@@ -157,28 +150,8 @@ try { trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null")
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
   window.location.replace("../index.html");
 } else {
-  const username = trcmSession.user.username || trcmSession.user.auth_email || "Akun";
-  accountName.textContent = username;
-  accountMenuName.textContent = username;
-  sidebarAccountName.textContent = username;
+  // Account and sidebar state are handled by the shared component module.
 }
-
-function toggleMenu() {
-  sidebar.classList.toggle("is-open");
-  backdrop.classList.toggle("is-visible");
-  menuButton.setAttribute("aria-expanded", sidebar.classList.contains("is-open") ? "true" : "false");
-}
-function closeMenu() {
-  sidebar.classList.remove("is-open");
-  backdrop.classList.remove("is-visible");
-  menuButton.setAttribute("aria-expanded", "false");
-}
-menuButton.addEventListener("click", toggleMenu);
-backdrop.addEventListener("click", closeMenu);
-accountLogout.addEventListener("click", function () {
-  sessionStorage.removeItem("trcm_session");
-  window.location.replace("../index.html");
-});
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, function (character) {
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
