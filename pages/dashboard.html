@@ -89,7 +89,7 @@
           </div>
         </div>
 
-        <section class="card content-card">
+        <section class="card content-card dashboard-history-card">
           <div class="card-header content-card-header">
             <div><h3 class="card-title">Riwayat Pendaftaran</h3><p id="recent-result-count">Memuat data...</p></div>
             <a class="btn btn-primary dashboard-history-link" href="riwayat.html"><span>Lihat Semua</span></a>
@@ -204,9 +204,16 @@ function renderCharts() {
   };
   const vendorEntries = topEntries(vendorCounts);
   const clientEntries = topEntries(clientCounts);
-  [destinationChart, vendorChart, clientChart].forEach(function (chart) {
+  [destinationChart, vendorChart].forEach(function (chart) {
     if (chart) chart.destroy();
   });
+  clientChart = null;
+
+  const clientDefinitions = [
+    { key: "Kimberly Clark", label: "Kimberly Clark", color: "#006ECD" },
+    { key: "Henkel", label: "Henkel", color: "#EF151E" },
+    { key: "Modena", label: "Modena", color: "#111111" }
+  ];
 
   const baseBar = {
     chart:{type:"bar",height:220,toolbar:{show:false},zoom:{enabled:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
@@ -236,30 +243,72 @@ function renderCharts() {
     yaxis:{show:true,labels:{show:true,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"},maxWidth:120}}
   });
 
-  clientChart = new ApexCharts(document.querySelector("#client-chart"), {
-    ...baseBar,
-    chart:{...baseBar.chart,height:230},
-    series:[{name:"Armada",data:clientEntries.map(entry => entry[1])}],
-    colors:["#EF151E"],
-    plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},
-    xaxis:{...baseBar.xaxis,categories:clientEntries.map(entry => entry[0]),labels:{show:false}},
-    yaxis:{show:true,labels:{show:true,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"},maxWidth:120}}
-  });
+  const clientOverview = document.getElementById("client-chart");
+  if (clientOverview) {
+    const knownClientRows = clientDefinitions.map(function (definition) {
+      const entry = Object.entries(clientCounts).find(function (item) {
+        return item[0].toLowerCase() === definition.key.toLowerCase();
+      });
+      return {
+        label: definition.label,
+        color: definition.color,
+        value: entry ? entry[1] : 0
+      };
+    });
 
+    Object.entries(clientCounts).forEach(function (entry) {
+      const known = clientDefinitions.some(function (definition) {
+        return definition.key.toLowerCase() === entry[0].toLowerCase();
+      });
+      if (!known) {
+        knownClientRows.push({ label: entry[0], color: "#6B7280", value: entry[1] });
+      }
+    });
 
-  [destinationChart,vendorChart,clientChart].forEach(chart => chart.render());
+    const totalClientVisits = knownClientRows.reduce(function (sum, item) {
+      return sum + item.value;
+    }, 0);
 
-  const renderLegend = function (targetId, entries) {
+    clientOverview.classList.add("client-overview");
+    clientOverview.innerHTML = totalClientVisits
+      ? knownClientRows.map(function (item) {
+          const percent = Math.max(item.value ? 5 : 0, Math.round((item.value / totalClientVisits) * 100));
+          return '<div class="status-overview-item">' +
+            '<div class="status-overview-head">' +
+              '<span class="status-overview-label"><span class="status-overview-dot" style="background:' + item.color + '"></span>' + escapeHtml(item.label) + '</span>' +
+              '<span class="status-overview-value">' + item.value + ' Armada</span>' +
+            '</div>' +
+            '<div class="status-overview-track"><div class="status-overview-fill" style="width:' + percent + '%;background:' + item.color + '"></div></div>' +
+          '</div>';
+        }).join("")
+      : '<div class="status-overview-empty">Belum ada data klien.</div>';
+  }
+
+  [destinationChart,vendorChart].forEach(chart => chart.render());
+
+  const renderLegend = function (targetId, entries, colorResolver) {
     const target = document.getElementById(targetId);
     if (!target) return;
     target.innerHTML = entries.length
       ? entries.map(function (entry) {
-          return '<span class="chart-category-item"><span class="chart-category-dot"></span><span class="chart-category-name">' + escapeHtml(entry[0]) + '</span><strong>' + entry[1] + '</strong></span>';
+          const color = colorResolver ? colorResolver(entry[0]) : "#006ECD";
+          return '<span class="chart-category-item"><span class="chart-category-dot" style="background:' + color + '"></span><span class="chart-category-name">' + escapeHtml(entry[0]) + '</span><strong>' + entry[1] + '</strong></span>';
         }).join("")
       : '<span class="chart-category-empty">Belum ada data</span>';
   };
   renderLegend("vendor-chart-legend", vendorEntries);
-  renderLegend("client-chart-legend", clientEntries);
+  renderLegend("client-chart-legend", clientDefinitions.map(function (definition) {
+    const entry = Object.entries(clientCounts).find(function (item) {
+      return item[0].toLowerCase() === definition.key.toLowerCase();
+    });
+    return [definition.label, entry ? entry[1] : 0];
+  }), function (name) {
+    const definition = clientDefinitions.find(function (item) {
+      return item.label.toLowerCase() === String(name).toLowerCase();
+    });
+    return definition ? definition.color : "#6B7280";
+  });
+
 
 }
 function renderRecent() {
