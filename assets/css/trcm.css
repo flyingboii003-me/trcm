@@ -752,3 +752,12 @@ button,input,select{font:inherit}
     gap:.85rem;
   }
 }
+
+/* Kunjungan Armada submenu */
+.sidebar-menu-parent-label{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem .5rem;color:#bcd2e1;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+.sidebar-menu-parent-label i{font-size:1rem;color:#c9dce9;}
+.sidebar-submenu-list{list-style:none;margin:0;padding:0 0 .35rem .7rem;}
+.sidebar-submenu-link{margin-left:.55rem;min-height:38px;padding:.55rem .85rem;font-size:.78rem;}
+.sidebar-submenu-link i{font-size:.9rem;}
+.sidebar-submenu-link.active{background:#1677b7;color:#fff;}
+@media(max-width:1199.98px){.sidebar-submenu-list{padding-left:.4rem;}.sidebar-submenu-link{margin-left:.3rem;}}
