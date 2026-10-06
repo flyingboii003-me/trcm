@@ -447,7 +447,7 @@ window.trcmComponentsReady.then(async function () {
 
     document.getElementById("condition-check-all").addEventListener("click", function () {
       conditionRows.forEach(function (row) {
-        const inputs = row.querySelectorAll('input[type="checkbox"]');
+        const inputs = row.querySelectorAll('input[type="radio"]');
         if (inputs[0]) inputs[0].checked = true;
         if (inputs[1]) inputs[1].checked = false;
       });
@@ -561,7 +561,6 @@ window.trcmComponentsReady.then(async function () {
       truckTypeSearch.value = "";
       cardInput.dataset.cardId = "";
       syncKirState();
-      setupChecklist();
       try { await randomizeCard(); } catch (error) { setAlert(error.message, "error"); }
       updateSummary();
     } catch (error) {
