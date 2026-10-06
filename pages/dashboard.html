@@ -165,7 +165,7 @@ function renderCharts() {
     visits.filter(v => v.process_status === "started").length,
     visits.filter(v => v.process_status === "completed").length
   ];
-  const destinationData = [
+  const activityTypeData = [
     visits.filter(v => v.activity_type === "inbound").length,
     visits.filter(v => v.activity_type === "outbound").length
   ];
@@ -206,7 +206,7 @@ function renderCharts() {
 
   destinationChart = new ApexCharts(document.querySelector("#destination-chart"), {
     ...baseBar,
-    series:[{name:"Visit",data:destinationData}],
+    series:[{name:"Visit",data:activityTypeData}],
     colors:["#FF9700"],
     plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},
     xaxis:{...baseBar.xaxis,categories:["Inbound","Outbound"]}
