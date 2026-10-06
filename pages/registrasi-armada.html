@@ -331,7 +331,7 @@ window.trcmComponentsReady.then(async function () {
   truckTypeSearch.addEventListener("input", function () { truckTypeValue.value = truckTypeSearch.value.trim(); renderTruckTypeOptions(truckTypeSearch.value); updateSummary(); });
   truckTypeOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
-    if (option) selectVendor(option.dataset.id, option.dataset.custom || option.dataset.name);
+    if (option) selectTruckType(option.dataset.custom || option.dataset.name);
   });
   vendorOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
