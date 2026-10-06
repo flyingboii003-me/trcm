@@ -28,7 +28,7 @@
         <form id="registration-form" novalidate>
           <div class="row g-3">
             <div class="col-12 col-xl-8">
-              <section class="card content-card mb-3">
+              <section class="card content-card mb-3 vendor-master-card">
                 <div class="card-header content-card-header">
                   <div><h2 class="card-title">Data kunjungan</h2><p>Informasi utama untuk membuat visit baru.</p></div>
                   <span class="status-badge status-registered"><span class="status-dot"></span>WH In</span>
@@ -40,7 +40,7 @@
                       <label class="form-label" for="card-id">Nomor kartu <span class="text-danger">*</span></label>
                       <div class="input-group">
                         <input class="form-control" id="card-id" type="text" readonly required aria-describedby="card-randomize">
-                        <button class="btn btn-outline-secondary" type="button" id="card-randomize" title="Acak nomor kartu" aria-label="Acak nomor kartu"><i class="bi bi-shuffle"></i></button>
+                        <button class="btn card-randomize-button" type="button" id="card-randomize" title="Acak nomor kartu" aria-label="Acak nomor kartu"><i class="bi bi-shuffle"></i></button>
                       </div>
                       <div class="invalid-feedback">Nomor kartu belum tersedia.</div>
                     </div>
