@@ -223,9 +223,18 @@ window.trcmComponentsReady.then(async function () {
   function renderTruckTypeOptions(query) {
     const needle = String(query || "").trim().toLowerCase();
     const filtered = truckTypes.filter(function (item) { return item.name.toLowerCase().includes(needle); });
-    truckTypeOptions.innerHTML = filtered.length ? filtered.map(function (item) {
+    const exactMatch = truckTypes.some(function (item) { return item.name.toLowerCase() === needle; });
+    truckTypeOptions.innerHTML = filtered.map(function (item) {
       return '<button type="button" class="searchable-option" data-name="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</button>';
-    }).join("") : '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
+    }).join("");
+    if (needle && !exactMatch) {
+      truckTypeOptions.innerHTML += '<button type="button" class="searchable-option searchable-option-custom" data-custom="' + escapeHtml(query.trim()) + '">Gunakan "' + escapeHtml(query.trim()) + '"</button>';
+    }
+    if (!filtered.length && !needle) {
+      truckTypeOptions.innerHTML = '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
+    } else if (!filtered.length && !needle) {
+      truckTypeOptions.innerHTML = '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
+    }
     truckTypeOptions.classList.add("is-open");
     truckTypeSearch.setAttribute("aria-expanded", "true");
   }
@@ -313,10 +322,10 @@ window.trcmComponentsReady.then(async function () {
   vendorSearch.addEventListener("focus", function () { renderVendorOptions(vendorSearch.value); });
   vendorSearch.addEventListener("input", function () { vendorValue.value = ""; renderVendorOptions(vendorSearch.value); updateSummary(); });
   truckTypeSearch.addEventListener("focus", function () { renderTruckTypeOptions(truckTypeSearch.value); });
-  truckTypeSearch.addEventListener("input", function () { truckTypeValue.value = truckTypeSearch.value; renderTruckTypeOptions(truckTypeSearch.value); updateSummary(); });
+  truckTypeSearch.addEventListener("input", function () { truckTypeValue.value = truckTypeSearch.value.trim(); renderTruckTypeOptions(truckTypeSearch.value); updateSummary(); });
   truckTypeOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
-    if (option) selectTruckType(option.dataset.name);
+    if (option) selectTruckType(option.dataset.custom || option.dataset.name);
   });
   vendorOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
