@@ -614,3 +614,122 @@ button,input,select{font:inherit}
 }
 
 .status-overview{display:flex;flex-direction:column;gap:1rem}.status-overview-item{display:flex;flex-direction:column;gap:.45rem}.status-overview-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}.status-overview-label{display:flex;align-items:center;gap:.55rem;color:var(--text-main);font-size:.8rem;font-weight:600}.status-overview-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}.status-overview-value{color:var(--text-muted);font-size:.78rem;font-weight:700}.status-overview-track{width:100%;height:8px;background:#F1F5F4;border-radius:999px;overflow:hidden}.status-overview-fill{height:100%;min-width:0;border-radius:999px;transition:width .35s ease}.status-overview-empty{color:var(--text-muted);font-size:.85rem;padding:.75rem 0}@media(max-width:575.98px){.status-overview{gap:.85rem}.status-overview-label{font-size:.76rem}.status-overview-value{font-size:.74rem}}
+
+/* Visit modal mobile usability and Spark Admin-style footer actions */
+.modal-card-custom{
+  max-height:calc(100vh - 2rem);
+  overflow:hidden;
+}
+.modal-card-body{
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.modal-card-footer{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.5rem;
+  flex:0 0 auto;
+  padding:1rem 1.5rem;
+  border-top:1px solid var(--border);
+  background:#fff;
+}
+#visit-modal-close{
+  min-height:40px;
+  min-width:92px;
+}
+#visit-edit-modal .modal-dialog-scrollable .modal-content{
+  max-height:calc(100vh - 2rem);
+}
+#visit-edit-modal .modal-dialog-scrollable .modal-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#visit-edit-modal .modal-footer{
+  flex:0 0 auto;
+  position:sticky;
+  bottom:0;
+  z-index:2;
+  background:#fff;
+  border-top:1px solid var(--border);
+}
+.table-card-number{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:.25rem .5rem;
+  border:1px solid rgba(0,110,205,.18);
+  border-radius:var(--radius-md);
+  background:#EEF5FB;
+  color:var(--cj-blue);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  font-size:.72rem;
+  font-weight:800;
+  white-space:nowrap;
+}
+.client-overview{
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+  width:100%;
+  min-height:220px;
+  justify-content:center;
+}
+.client-overview .status-overview-item{
+  width:100%;
+}
+.client-overview .status-overview-track{
+  height:9px;
+}
+#client-chart-legend .chart-category-item{
+  min-height:28px;
+  padding:.25rem .5rem;
+  border:1px solid rgba(11,19,15,.07);
+  border-radius:999px;
+  background:#FAFBFA;
+}
+#client-chart-legend .chart-category-dot{
+  width:8px;
+  height:8px;
+  flex-basis:8px;
+}
+@media(max-width:575.98px){
+  .modal-card-custom{
+    width:calc(100% - 1rem);
+    max-height:calc(100vh - 1rem);
+    border-radius:var(--radius-lg);
+  }
+  .modal-card-header{
+    padding:1rem;
+  }
+  .modal-card-body{
+    padding:1rem;
+  }
+  .modal-card-footer{
+    padding:.75rem 1rem;
+  }
+  #visit-modal-close{
+    width:100%;
+  }
+  #visit-edit-modal .modal-dialog{
+    margin:.5rem;
+  }
+  #visit-edit-modal .modal-dialog-scrollable .modal-content{
+    max-height:calc(100vh - 1rem);
+  }
+  #visit-edit-modal .modal-footer{
+    padding:.75rem 1rem;
+  }
+  #visit-edit-modal .modal-footer .btn{
+    min-height:40px;
+  }
+  .table-card-number{
+    font-size:.68rem;
+    padding:.2rem .4rem;
+  }
+  .client-overview{
+    min-height:205px;
+    gap:.85rem;
+  }
+}
