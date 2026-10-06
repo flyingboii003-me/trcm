@@ -45,7 +45,7 @@
                       <div class="invalid-feedback">Nomor kartu belum tersedia.</div>
                     </div>
                     <div class="col-12 col-md-6">
-                      <label class="form-label" for="destination">Tipe Aktivitas <span class="text-danger">*</span></label>
+                      <label class="form-label" for="activity-type">Tipe Aktivitas <span class="text-danger">*</span></label>
                       <select class="form-select" id="activity-type" required>
                         <option value="">Pilih tipe aktivitas</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option>
                       </select>
@@ -85,11 +85,11 @@
                 <div class="card-body">
                   <div class="row g-3">
                     <div class="col-12 col-md-6"><label class="form-label" for="driver-name">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="driver-name" type="text" maxlength="120" required><div class="invalid-feedback">Nama driver wajib diisi.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="driver-phone">Nomor telepon driver</label><input class="form-control" id="driver-phone" type="tel" maxlength="30"><div class="invalid-feedback">Nomor telepon driver wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="driver-phone">Nomor telepon driver</label><input class="form-control" id="driver-phone" type="tel" maxlength="30"></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="truck-type">Tipe truck <span class="text-danger">*</span></label><input class="form-control" id="truck-type" type="text" maxlength="80" placeholder="Contoh: Wingbox" required><div class="invalid-feedback">Tipe truck wajib diisi.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="license-type">Tipe SIM</label><select class="form-select" id="license-type"><option value="">Pilih tipe SIM</option><option value="sim_a">SIM A</option><option value="sim_a_umum">SIM A Umum</option><option value="sim_b1">SIM B1</option><option value="sim_b1_umum">SIM B1 Umum</option><option value="sim_b2">SIM B2</option><option value="sim_b2_umum">SIM B2 Umum</option></select><div class="invalid-feedback">Tipe SIM wajib dipilih.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="license-num">Nomor SIM</label><input class="form-control" id="license-num" type="text" maxlength="40"><div class="invalid-feedback">Nomor SIM wajib diisi.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="license-exp">Masa berlaku SIM</label><input class="form-control" id="license-exp" type="date"><div class="invalid-feedback">Masa berlaku SIM wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-type">Tipe SIM</label><select class="form-select" id="license-type"><option value="">Pilih tipe SIM</option><option value="sim_a">SIM A</option><option value="sim_a_umum">SIM A Umum</option><option value="sim_b1">SIM B1</option><option value="sim_b1_umum">SIM B1 Umum</option><option value="sim_b2">SIM B2</option><option value="sim_b2_umum">SIM B2 Umum</option></select></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-num">Nomor SIM</label><input class="form-control" id="license-num" type="text" maxlength="40"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-exp">Masa berlaku SIM</label><input class="form-control" id="license-exp" type="date"></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="vehicle-exp">Masa berlaku STNK</label><input class="form-control" id="vehicle-exp" type="date"><div class="invalid-feedback">Masa berlaku STNK wajib diisi.</div></div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="vehicle-inspect-exp">Masa berlaku KIR</label>
@@ -164,7 +164,7 @@ window.trcmComponentsReady.then(async function () {
   const plateInput = document.getElementById("plate-number");
   const clientSelect = document.getElementById("client");
   const fields = {
-    cardId: cardInput, destination: document.getElementById("destination"), plateNumber: plateInput,
+    cardId: cardInput, activityType: document.getElementById("activity-type"), plateNumber: plateInput,
     containerNum: document.getElementById("container-num"), vendor: vendorValue, client: clientSelect,
     driverName: document.getElementById("driver-name"), driverPhone: document.getElementById("driver-phone"),
     truckType: document.getElementById("truck-type"), licenseType: document.getElementById("license-type"),
@@ -251,7 +251,7 @@ window.trcmComponentsReady.then(async function () {
 
   function updateSummary() {
     document.getElementById("summary-plate").textContent = fields.plateNumber.value.trim().toUpperCase() || "—";
-    const direction = fields.destination.value === "inbound" ? "Inbound" : fields.destination.value === "outbound" ? "Outbound" : "—";
+    const direction = fields.activityType.value === "inbound" ? "Inbound" : fields.activityType.value === "outbound" ? "Outbound" : "—";
     document.getElementById("summary-destination").textContent = direction;
     document.getElementById("summary-city").textContent = fields.destinationCity.value.trim() || "—";
     document.getElementById("summary-driver").textContent = fields.driverName.value.trim() || "—";
