@@ -192,7 +192,7 @@
                 <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2><p>Informasi pengiriman dan kota tujuan atau asal armada.</p></div></div>
                 <div class="card-body">
                   <div class="row g-3">
-                    <div class="col-12 col-md-6"><fieldset class="border-0 p-0 m-0"><legend class="form-label mb-2">Tipe shipment <span class="text-danger">*</span></legend><div class="d-flex flex-wrap gap-3"><div class="form-check"><input class="form-check-input" type="radio" id="shipment-type-unload" name="shipment-type" value="Bongkar" required><label class="form-check-label" for="shipment-type-unload">Bongkar</label></div><div class="form-check"><input class="form-check-input" type="radio" id="shipment-type-load" name="shipment-type" value="Muat" required><label class="form-check-label" for="shipment-type-load">Muat</label></div></div><div class="small text-danger mt-1 d-none" id="shipment-type-feedback">Tipe shipment wajib dipilih.</div></fieldset></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="shipment-type">Tipe shipment <span class="text-danger">*</span></label><select class="form-select" id="shipment-type" required><option value="">Pilih tipe shipment</option><option value="Bongkar">Bongkar</option><option value="Muat">Muat</option></select><div class="invalid-feedback">Tipe shipment wajib dipilih.</div></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="shipment-number">Nomor shipment</label><input class="form-control" id="shipment-number" maxlength="80"></div>
                     <div class="col-12"><label class="form-label" for="destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="destination-city" maxlength="100" placeholder="Contoh: Surabaya" required><div class="invalid-feedback">Tujuan (Gudang / Kota) wajib diisi.</div></div>
                     <div class="col-12"><label class="form-label" for="notes">Catatan</label><textarea class="form-control" id="notes" rows="4" maxlength="1000" placeholder="Catatan tambahan untuk visit"></textarea></div>
@@ -494,12 +494,6 @@ window.trcmComponentsReady.then(async function () {
     if (!document.getElementById("vendor-select").contains(event.target)) closeVendorOptions();
     if (!document.getElementById("truck-type-select").contains(event.target)) closeTruckTypeOptions();
   });
-  document.querySelectorAll('input[name="shipment-type"]').forEach(function (input) {
-    input.addEventListener("change", function () {
-      document.getElementById("shipment-type-feedback").classList.add("d-none");
-      updateSummary();
-    });
-  });
   clientSelect.addEventListener("change", updateSummary);
   kirExpired.addEventListener("change", function () { syncKirState(); updateSummary(); });
   cardRandomize.addEventListener("click", function () { randomizeCard().catch(function (error) { setAlert(error.message, "error"); }); });
@@ -507,9 +501,6 @@ window.trcmComponentsReady.then(async function () {
   form.addEventListener("submit", async function (event) {
     event.preventDefault(); clearAlert();
     if (!validateBusinessRules() || !form.checkValidity()) {
-      const shipmentTypeFeedback = document.getElementById("shipment-type-feedback");
-      const shipmentTypeSelected = document.querySelector('input[name="shipment-type"]:checked');
-      if (shipmentTypeFeedback) shipmentTypeFeedback.classList.toggle("d-none", Boolean(shipmentTypeSelected));
       form.classList.add("was-validated");
       setAlert("Periksa kembali seluruh field wajib sebelum Register.", "error");
       return;
@@ -543,7 +534,7 @@ window.trcmComponentsReady.then(async function () {
       vehicle_exp: fields.vehicleExp.value || null,
       vehicle_inspect_exp: kirExpired.checked ? null : (fields.vehicleInspectExp.value || null),
       shipment_number: fields.shipmentNumber.value.trim() || null,
-      shipment_type: document.querySelector('input[name="shipment-type"]:checked')?.value || null,
+      shipment_type: fields.shipmentType.value || null,
       destination_city: fields.destinationCity.value.trim() || null,
       notes: fields.notes.value.trim() || null,
       vendor: fields.vendor.value.trim() || null,
