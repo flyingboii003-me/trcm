@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - WH Out Gate Security">
+<title>WH Out — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">WH Out</h1>
+            <p class="page-subtitle">Pilih armada yang sudah selesai proses untuk menyelesaikan keberangkatan dari gudang.</p>
+          </div>
+          <button class="btn btn-date-picker" id="refresh-button" type="button">
+            <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
+          </button>
+        </div>
+
+        <section class="card content-card">
+          <div class="card-header content-card-header">
+            <div>
+              <h2 class="card-title">Armada siap keluar</h2>
+              <p id="result-count" class="page-subtitle">Memuat data...</p>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="p-3 p-lg-4 border-bottom">
+              <div class="row g-2">
+                <div class="col-12 col-md-8">
+                  <label class="visually-hidden" for="search-card">Cari nomor kartu</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu...">
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <button class="btn btn-light border w-100" id="reset-search" type="button">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle trcm-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Kartu</th>
+                    <th>Plat nomor</th>
+                    <th>Klien</th>
+                    <th>Tipe Aktivitas</th>
+                    <th>Selesai</th>
+                    <th>Status</th>
+                    <th class="action-column">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="wh-out-table">
+                  <tr><td colspan="7" class="table-state">Memuat data armada...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+window.trcmComponentsReady.then(async function () {
+  "use strict";
+
+  const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+
+  let session = null;
+  try { session = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { session = null; }
+
+  if (!session || !session.access_token || !session.user) {
+    window.location.replace("../index.html");
+    return;
+  }
+
+  const role = session.user.role || "";
+  const canWhOut = role === "gatesec" || role === "admin";
+  const table = document.getElementById("wh-out-table");
+  const resultCount = document.getElementById("result-count");
+  const searchCard = document.getElementById("search-card");
+  const resetSearch = document.getElementById("reset-search");
+  const refreshButton = document.getElementById("refresh-button");
+
+  let visits = [];
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
+
+  function formatTime(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit" }).format(date);
+  }
+
+  function formatDateTime(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(date);
+  }
+
+  async function request(path, options) {
+    const response = await fetch(SUPABASE_URL + path, Object.assign({
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token
+      }
+    }, options || {}));
+
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan ke database gagal.");
+    }
+
+    return data;
+  }
+
+  function renderTable() {
+    const needle = searchCard.value.trim().toLowerCase();
+    const filtered = visits.filter(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "";
+      return !needle || card.toLowerCase().includes(needle);
+    });
+
+    resultCount.textContent = filtered.length + " armada siap keluar";
+
+    if (!filtered.length) {
+      table.innerHTML = '<tr><td colspan="7" class="table-state">Belum ada armada yang siap WH Out.</td></tr>';
+      return;
+    }
+
+    table.innerHTML = filtered.map(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+      const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      const activity = visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : (visit.activity_type || "—");
+
+      return '<tr>' +
+        '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
+        '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
+        '<td>' + escapeHtml(client) + '</td>' +
+        '<td>' + escapeHtml(activity) + '</td>' +
+        '<td><span class="font-monospace">' + escapeHtml(formatDateTime(visit.completed_at)) + '</span></td>' +
+        '<td>' + window.trcmStatusBadge("completed") + '</td>' +
+        '<td class="action-cell">' +
+          '<button type="button" class="btn btn-primary btn-sm wh-out-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canWhOut ? "" : " disabled") + '>' +
+            '<i class="bi bi-box-arrow-up me-1"></i>WH Out' +
+          '</button>' +
+        '</td>' +
+      '</tr>';
+    }).join("");
+  }
+
+  async function loadVisits() {
+    table.innerHTML = '<tr><td colspan="7" class="table-state">Memuat data armada...</td></tr>';
+    resultCount.textContent = "Memuat data...";
+    refreshButton.disabled = true;
+
+    try {
+      const select = [
+        "id",
+        "plate_number",
+        "activity_type",
+        "completed_at",
+        "wh_in_at",
+        "registered_at",
+        "cards(card_number)",
+        "clients(name)"
+      ].join(",");
+
+      const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
+        "&process_status=eq.completed&completed_at=not.is.null&wh_out_at=is.null&order=completed_at.asc";
+
+      const data = await request(path);
+
+      if (!Array.isArray(data)) throw new Error("Respons data WH Out tidak valid.");
+
+      visits = data;
+      renderTable();
+    } catch (error) {
+      console.error("TRCM WH Out:", error);
+      table.innerHTML = '<tr><td colspan="7" class="table-state error-state">Data WH Out gagal dimuat. Silakan perbarui.</td></tr>';
+      resultCount.textContent = "Gagal memuat data";
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal memuat WH Out",
+        text: error.message || "Data armada tidak dapat dimuat.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      refreshButton.disabled = false;
+    }
+  }
+
+  async function completeWhOut(visit) {
+    if (!canWhOut) return;
+
+    const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+    const confirmation = await Swal.fire({
+      icon: "question",
+      title: "Konfirmasi WH Out",
+      html: 'Armada <strong>' + escapeHtml(card) + '</strong> · <strong>' + escapeHtml(visit.plate_number || "—") + '</strong> akan ditandai keluar gudang.',
+      showCancelButton: true,
+      confirmButtonText: "Ya, WH Out",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#0066CD"
+    });
+
+    if (!confirmation.isConfirmed) return;
+
+    const button = table.querySelector('[data-visit-id="' + CSS.escape(visit.id) + '"]');
+    if (button) button.disabled = true;
+
+    const whOutAt = new Date().toISOString();
+
+    try {
+      const updatedVisit = await request("/rest/v1/visits?id=eq." + encodeURIComponent(visit.id) + "&process_status=eq.completed&completed_at=not.is.null&wh_out_at=is.null", {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + session.access_token,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({ wh_out_at: whOutAt })
+      });
+
+      if (!Array.isArray(updatedVisit) || updatedVisit.length !== 1) {
+        throw new Error("Armada sudah berubah status atau sudah diproses WH Out oleh pengguna lain.");
+      }
+
+      try {
+        await request("/rest/v1/visit_events", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            visit_id: visit.id,
+            status: "wh_out",
+            user_id: session.user.id
+          })
+        });
+      } catch (eventError) {
+        try {
+          await request("/rest/v1/visits?id=eq." + encodeURIComponent(visit.id), {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              Authorization: "Bearer " + session.access_token,
+              "Content-Type": "application/json",
+              Prefer: "return=minimal"
+            },
+            body: JSON.stringify({ wh_out_at: null })
+          });
+        } catch (rollbackError) {
+          console.error("TRCM WH Out rollback:", rollbackError);
+        }
+        throw eventError;
+      }
+
+      await Swal.fire({
+        icon: "success",
+        title: "WH Out berhasil",
+        html: 'Armada <strong>' + escapeHtml(card) + '</strong> sudah dicatat keluar gudang.',
+        confirmButtonText: "Selesai",
+        confirmButtonColor: "#0066B3"
+      });
+
+      await loadVisits();
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "WH Out gagal",
+        text: error.message || "Data WH Out tidak berhasil disimpan.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+      renderTable();
+    }
+  }
+
+  searchCard.addEventListener("input", renderTable);
+  resetSearch.addEventListener("click", function () {
+    searchCard.value = "";
+    renderTable();
+  });
+  refreshButton.addEventListener("click", loadVisits);
+
+  table.addEventListener("click", function (event) {
+    const button = event.target.closest(".wh-out-button");
+    if (!button || !canWhOut) return;
+    const visit = visits.find(function (item) { return item.id === button.dataset.visitId; });
+    if (visit) completeWhOut(visit);
+  });
+
+  if (!canWhOut) {
+    await Swal.fire({
+      icon: "error",
+      title: "Akses terbatas",
+      text: "Menu WH Out hanya dapat digunakan oleh Gate Security atau Admin.",
+      confirmButtonText: "Tutup",
+      confirmButtonColor: "#0066B3"
+    });
+  }
+
+  await loadVisits();
+});
+</script>
+</body>
+</html>

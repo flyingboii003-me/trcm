@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - Selesai Loading Checker">
+<title>Selesai Loading — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Selesai Loading</h1>
+            <p class="page-subtitle">Pilih truck yang sedang dalam proses loading untuk menandai proses selesai.</p>
+          </div>
+          <button class="btn btn-date-picker" id="refresh-button" type="button">
+            <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
+          </button>
+        </div>
+
+        <section class="card content-card">
+          <div class="card-header content-card-header">
+            <div>
+              <h2 class="card-title">Daftar truck dalam proses</h2>
+              <p id="result-count" class="page-subtitle">Memuat data...</p>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="p-3 p-lg-4 border-bottom">
+              <div class="row g-2">
+                <div class="col-12 col-md-8">
+                  <label class="visually-hidden" for="search-card">Cari nomor kartu</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu...">
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <button class="btn btn-light border w-100" id="reset-search" type="button">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle trcm-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Kartu</th>
+                    <th>Plat nomor</th>
+                    <th>Tujuan</th>
+                    <th>Vendor</th>
+                    <th>Klien</th>
+                    <th>Shipment</th>
+                    <th>Status</th>
+                    <th class="action-column">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="finish-loading-table">
+                  <tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal fade" id="finish-loading-modal" tabindex="-1" aria-labelledby="finish-loading-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title h5 mb-1" id="finish-loading-title">Selesai Loading</h2>
+          <p class="text-muted small mb-0" id="selected-visit-summary">—</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <form id="finish-loading-form" novalidate>
+          <div class="card bg-body-tertiary border-0 mb-4">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Nomor kartu</span>
+                  <strong id="detail-card">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Plat nomor</span>
+                  <strong id="detail-plate">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Nama driver</span>
+                  <strong id="detail-driver">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Vendor</span>
+                  <strong id="detail-vendor">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Klien</span>
+                  <strong id="detail-client">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Tipe aktivitas</span>
+                  <strong id="detail-activity">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Tujuan (Gudang / Kota)</span>
+                  <strong id="detail-destination">—</strong>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="loading-photo">Foto Loading</label>
+                  <input class="form-control" id="loading-photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+                  <div class="form-text">Ambil satu foto dokumentasi loading. Foto akan dikompres sebelum disimpan.</div>
+                  <div class="mt-3 d-flex align-items-center gap-2" id="loading-photo-preview-wrap" hidden>
+                    <div class="position-relative">
+                      <img id="loading-photo-preview" src="" alt="Pratinjau foto loading" width="72" height="72" class="rounded-3 object-fit-cover border">
+                      <button type="button" class="btn btn-sm btn-light border position-absolute top-0 end-0 translate-middle rounded-circle p-0" id="remove-loading-photo" aria-label="Hapus foto">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </div>
+                    <div>
+                      <div class="small fw-semibold" id="loading-photo-name">—</div>
+                      <div class="small text-muted" id="loading-photo-status">Siap diunggah</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="finish-notes">Catatan</label>
+                  <textarea class="form-control" id="finish-notes" rows="4" maxlength="1000" placeholder="Catatan penyelesaian loading"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" form="finish-loading-form" class="btn btn-primary" id="save-finish-button">
+          <i class="bi bi-check-circle me-1"></i>Selesai
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+window.trcmComponentsReady.then(async function () {
+  "use strict";
+
+  const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+  let session = null;
+  try { session = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { session = null; }
+
+  if (!session || !session.access_token || !session.user) {
+    window.location.replace("../index.html");
+    return;
+  }
+
+  const role = session.user.role || "";
+  const canStart = role === "checker" || role === "admin";
+  const table = document.getElementById("finish-loading-table");
+  const resultCount = document.getElementById("result-count");
+  const searchCard = document.getElementById("search-card");
+  const resetSearch = document.getElementById("reset-search");
+  const refreshButton = document.getElementById("refresh-button");
+  const finishNotes = document.getElementById("finish-notes");
+  const loadingPhoto = document.getElementById("loading-photo");
+  const loadingPhotoPreviewWrap = document.getElementById("loading-photo-preview-wrap");
+  const loadingPhotoPreview = document.getElementById("loading-photo-preview");
+  const loadingPhotoName = document.getElementById("loading-photo-name");
+  const loadingPhotoStatus = document.getElementById("loading-photo-status");
+  const removeLoadingPhoto = document.getElementById("remove-loading-photo");
+  const form = document.getElementById("finish-loading-form");
+  const saveButton = document.getElementById("save-finish-button");
+  const modalElement = document.getElementById("finish-loading-modal");
+  const modal = new bootstrap.Modal(modalElement);
+
+  let visits = [];
+  let selectedVisit = null;
+  let selectedPhotoFile = null;
+  let selectedPhotoPreviewUrl = null;
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
+
+  async function request(path, options) {
+    const response = await fetch(SUPABASE_URL + path, Object.assign({
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token
+      }
+    }, options || {}));
+
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan ke database gagal.");
+    }
+
+    return data;
+  }
+
+  function resetLoadingPhoto() {
+    selectedPhotoFile = null;
+    if (selectedPhotoPreviewUrl) {
+      URL.revokeObjectURL(selectedPhotoPreviewUrl);
+      selectedPhotoPreviewUrl = null;
+    }
+    loadingPhoto.value = "";
+    loadingPhotoPreview.src = "";
+    loadingPhotoPreviewWrap.hidden = true;
+    loadingPhotoName.textContent = "—";
+    loadingPhotoStatus.textContent = "Siap diunggah";
+  }
+
+  function setLoadingPhoto(file) {
+    if (!file) {
+      resetLoadingPhoto();
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      resetLoadingPhoto();
+      throw new Error("Foto harus berformat JPG, PNG, atau WebP.");
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      resetLoadingPhoto();
+      throw new Error("Ukuran foto maksimal 10 MB.");
+    }
+    if (selectedPhotoPreviewUrl) URL.revokeObjectURL(selectedPhotoPreviewUrl);
+    selectedPhotoFile = file;
+    selectedPhotoPreviewUrl = URL.createObjectURL(file);
+    loadingPhotoPreview.src = selectedPhotoPreviewUrl;
+    loadingPhotoPreviewWrap.hidden = false;
+    loadingPhotoName.textContent = file.name;
+    loadingPhotoStatus.textContent = "Siap diunggah";
+  }
+
+  async function compressPhoto(file) {
+    const bitmap = await createImageBitmap(file);
+    const maxDimension = 1600;
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d", { alpha: false });
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise(function (resolve) {
+      canvas.toBlob(resolve, "image/webp", 0.78);
+    });
+    if (!blob) throw new Error("Foto gagal diproses.");
+    return blob;
+  }
+
+  async function uploadLoadingPhoto(visitId, file) {
+    loadingPhotoStatus.textContent = "Mengunggah...";
+    const blob = await compressPhoto(file);
+    const objectPath = visitId + "/" + crypto.randomUUID() + ".webp";
+    const response = await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token,
+        "Content-Type": "image/webp",
+        "x-upsert": "false"
+      },
+      body: blob
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      let detail = null;
+      try { detail = text ? JSON.parse(text) : null; } catch {}
+      throw new Error(detail && (detail.message || detail.error) ? (detail.message || detail.error) : "Foto gagal diunggah.");
+    }
+    loadingPhotoStatus.textContent = "Terunggah";
+    return objectPath;
+  }
+
+  async function deleteLoadingPhoto(objectPath) {
+    if (!objectPath) return;
+    await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath.split("/").map(encodeURIComponent).join("/"), {
+      method: "DELETE",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token
+      }
+    });
+  }
+
+  function formatActivity(activityType) {
+    if (activityType === "inbound") return "Inbound";
+    if (activityType === "outbound") return "Outbound";
+    return activityType || "—";
+  }
+
+  function renderTable() {
+    const needle = searchCard.value.trim().toLowerCase();
+    const filtered = visits.filter(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "";
+      return !needle || card.toLowerCase().includes(needle);
+    });
+
+    resultCount.textContent = filtered.length + " truck menunggu Selesai Loading";
+
+    if (!filtered.length) {
+      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck yang menunggu Selesai Loading.</td></tr>';
+      return;
+    }
+
+    table.innerHTML = filtered.map(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+      const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      return '<tr>' +
+        '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
+        '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
+        '<td>' + escapeHtml(formatActivity(visit.activity_type)) + '</td>' +
+        '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
+        '<td>' + escapeHtml(client) + '</td>' +
+        '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
+        '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
+        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
+      '</tr>';
+    }).join("");
+  }
+
+  async function loadVisits() {
+    table.innerHTML = '<tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>';
+    resultCount.textContent = "Memuat data...";
+    refreshButton.disabled = true;
+
+    try {
+      const select = [
+        "id","card_id","plate_number","activity_type","vendor","driver_name","shipment_type","shipment_number","destination_city",
+        "process_status","wh_in_at","registered_at","started_at","completed_at","seal_number","notes","clients(name)","cards(card_number)"
+      ].join(",");
+      const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
+        "&process_status=eq.started&wh_out_at=is.null&order=started_at.asc";
+      const data = await request(path);
+      if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
+      visits = data;
+      renderTable();
+    } catch (error) {
+      console.error("TRCM Selesai Loading:", error);
+      table.innerHTML = '<tr><td colspan="8" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
+      resultCount.textContent = "Gagal memuat data";
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: error.message || "Daftar truck tidak dapat dimuat.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      refreshButton.disabled = false;
+    }
+  }
+
+  function openFinishModal(visit) {
+    selectedVisit = visit;
+    const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+    const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+    document.getElementById("selected-visit-summary").textContent = card + " · " + (visit.plate_number || "—") + " · " + client;
+    document.getElementById("detail-card").textContent = card;
+    document.getElementById("detail-plate").textContent = visit.plate_number || "—";
+    document.getElementById("detail-driver").textContent = visit.driver_name || "—";
+    document.getElementById("detail-vendor").textContent = visit.vendor || "—";
+    document.getElementById("detail-client").textContent = client;
+    document.getElementById("detail-activity").textContent = formatActivity(visit.activity_type);
+    document.getElementById("detail-destination").textContent = visit.destination_city || "—";
+    finishNotes.value = visit.notes || "";
+    resetLoadingPhoto();
+    form.classList.remove("was-validated");
+    modal.show();
+  }
+
+  async function saveFinish(event) {
+    event.preventDefault();
+    if (!form.checkValidity() || !selectedVisit || !canStart) {
+      form.classList.add("was-validated");
+      return;
+    }
+
+    saveButton.disabled = true;
+    if (!selectedPhotoFile) {
+      saveButton.disabled = false;
+      await Swal.fire({ icon: "warning", title: "Foto belum dipilih", text: "Ambil atau pilih foto loading sebelum menyelesaikan proses.", confirmButtonText: "Tutup", confirmButtonColor: "#0066B3" });
+      return;
+    }
+    let uploadedPhotoPath = null;
+    let photoRecordId = null;
+    const completedAt = new Date().toISOString();
+
+    try {
+      uploadedPhotoPath = await uploadLoadingPhoto(selectedVisit.id, selectedPhotoFile);
+
+      await request("/rest/v1/photos", {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + session.access_token,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          visit_id: selectedVisit.id,
+          photo_type: "loading_completion",
+          file_location: uploadedPhotoPath
+        })
+      }).then(function (rows) {
+        if (Array.isArray(rows) && rows[0] && rows[0].id) photoRecordId = rows[0].id;
+      });
+
+      await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + session.access_token,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify({
+          notes: finishNotes.value.trim() || null,
+          process_status: "completed",
+          final_status: "completed",
+          completed_at: completedAt
+        })
+      });
+
+      try {
+        await request("/rest/v1/visit_events", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            visit_id: selectedVisit.id,
+            status: "completed",
+            user_id: session.user.id
+          })
+        });
+      } catch (eventError) {
+        await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+          method: "PATCH",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            process_status: "started",
+            final_status: "processing",
+            completed_at: null
+          })
+        });
+        throw eventError;
+      }
+
+      modal.hide();
+      await Swal.fire({
+        icon: "success",
+        title: "Loading selesai",
+        text: "Truck berhasil ditandai sebagai Selesai Loading.",
+        confirmButtonText: "Selesai",
+        confirmButtonColor: "#0066B3"
+      });
+      resetLoadingPhoto();
+      await loadVisits();
+    } catch (error) {
+      console.error("TRCM Selesai Loading save:", error);
+      if (photoRecordId) {
+        try {
+          await request("/rest/v1/photos?id=eq." + encodeURIComponent(photoRecordId), { method: "DELETE" });
+        } catch {}
+      }
+      if (uploadedPhotoPath) {
+        try { await deleteLoadingPhoto(uploadedPhotoPath); } catch {}
+      }
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal menyimpan",
+        text: error.message || "Perubahan Selesai Loading tidak berhasil disimpan.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      saveButton.disabled = false;
+    }
+  }
+
+  loadingPhoto.addEventListener("change", async function () {
+    try { setLoadingPhoto(loadingPhoto.files && loadingPhoto.files[0]); }
+    catch (error) { await Swal.fire({ icon: "error", title: "Foto tidak valid", text: error.message, confirmButtonText: "Tutup", confirmButtonColor: "#0066B3" }); }
+  });
+
+  removeLoadingPhoto.addEventListener("click", resetLoadingPhoto);
+  form.addEventListener("submit", saveFinish);
+
+  table.addEventListener("click", function (event) {
+    const button = event.target.closest(".finish-loading-button");
+    if (!button || !canStart) return;
+    const visit = visits.find(function (item) { return item.id === button.dataset.visitId; });
+    if (visit) openFinishModal(visit);
+  });
+
+  if (!canStart) {
+    await Swal.fire({
+      icon: "error",
+      title: "Akses terbatas",
+      text: "Menu Selesai Loading hanya dapat digunakan oleh Checker atau Admin.",
+      confirmButtonText: "Tutup",
+      confirmButtonColor: "#0066B3"
+    });
+  }
+
+  await loadVisits();
+});
+</script>
+</body>
+</html>

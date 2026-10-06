@@ -43,32 +43,32 @@
         <div class="row g-3 mb-4">
           <div class="col-12 col-sm-6 col-xl-3"><div class="card card-stat d-flex flex-column justify-content-between h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Menunggu</div><div class="stat-value stat-value-with-unit" id="stat-waiting">—</div><div class="stat-note">Terdaftar</div>
+            <div class="stat-label">Menunggu</div><div class="stat-value stat-value-with-unit" id="stat-waiting">—</div><div class="stat-note" id="stat-waiting-note">Hari ini: — · Kemarin: —</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note">Berada di gudang</div>
+            <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note" id="stat-process-note">Hari ini: — · Kemarin: —</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
-            <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note">Visit selesai</div>
+            <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note" id="stat-done-note">Hari ini: — · Kemarin: —</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
-            <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note">Kunjungan selesai</div>
+            <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note" id="stat-average-note">Hari ini: — · Kemarin: —</div>
           </div></div></div>
         </div>
 
         <div class="row g-3 mb-4 dashboard-chart-row">
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi status visit yang tercatat.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi armada hari ini dibandingkan dengan hari sebelumnya.</p></div></div>
               <div class="card-body"><div id="status-overview" class="status-overview" aria-label="Status armada"></div></div>
             </section>
           </div>
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Tipe aktivitas armada</h3><p>Perbandingan tipe aktivitas Inbound dan Outbound.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Tipe aktivitas armada</h3><p>Perbandingan hari ini dan hari sebelumnya.</p></div></div>
               <div class="card-body"><div id="destination-chart" class="operational-chart" aria-label="Grafik tipe aktivitas armada"></div></div>
             </section>
           </div>
@@ -77,13 +77,13 @@
         <div class="row g-3 mb-4 dashboard-chart-row">
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by vendor</h3><p>Jumlah visit berdasarkan vendor.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by vendor</h3><p>Perbandingan jumlah armada hari ini dan hari sebelumnya.</p></div></div>
               <div class="card-body"><div id="vendor-chart" class="operational-chart" aria-label="Grafik jumlah armada by vendor"></div><div id="vendor-chart-legend" class="chart-category-legend" aria-label="Legenda vendor"></div></div>
             </section>
           </div>
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by klien</h3><p>Jumlah visit berdasarkan klien.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by klien</h3><p>Perbandingan jumlah armada hari ini dan hari sebelumnya.</p></div></div>
               <div class="card-body"><div id="client-chart" class="operational-chart" aria-label="Grafik jumlah armada by klien"></div><div id="client-chart-legend" class="chart-category-legend" aria-label="Legenda klien"></div></div>
             </section>
           </div>
@@ -115,26 +115,45 @@
 window.trcmComponentsReady.then(async function () {
 const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
-const refreshButton = document.getElementById("refresh-button");
 const recentTable = document.getElementById("recent-truck-table");
 const recentResultCount = document.getElementById("recent-result-count");
 let trcmSession = null;
 let visits = [];
-let statusChart = null;
-let destinationChart = null;
+let activityChart = null;
 let vendorChart = null;
 let clientChart = null;
 
 try { trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { trcmSession = null; }
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
   window.location.replace("../index.html");
-} else {
-  // Account and sidebar state are handled by the shared component module.
+  return;
 }
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, function (character) {
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
   });
+}
+function localDateKey(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date).reduce(function (result, part) {
+    result[part.type] = part.value;
+    return result;
+  }, {});
+  return parts.year + "-" + parts.month + "-" + parts.day;
+}
+function shiftDateKey(key, days) {
+  const parts = key.split("-").map(Number);
+  const date = new Date(parts[0], parts[1] - 1, parts[2]);
+  date.setDate(date.getDate() + days);
+  return localDateKey(date);
 }
 function formatTime(value) {
   if (!value) return "—";
@@ -142,217 +161,170 @@ function formatTime(value) {
   if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(date);
 }
-function formatDuration(start,end) {
-  if (!start || !end) return "—";
-  const minutes = Math.max(0,Math.round((new Date(end)-new Date(start))/60000));
-  return Math.floor(minutes/60) + "j " + String(minutes%60).padStart(2,"0") + "m";
+function formatDuration(minutes) {
+  if (!Number.isFinite(minutes) || minutes <= 0) return "—";
+  const rounded = Math.round(minutes);
+  return Math.floor(rounded / 60) + "j " + String(rounded % 60).padStart(2,"0") + "m";
 }
-function renderStats() {
-  const waiting = visits.filter(v => v.process_status === "wh_in").length;
-  const processing = visits.filter(v => v.process_status === "queue" || v.process_status === "start_loading").length;
-  const done = visits.filter(v => v.process_status === "done_loading" || v.process_status === "wh_out").length;
-  const completed = visits.filter(v => (v.process_status === "done_loading" || v.process_status === "wh_out") && v.wh_in_at && v.completed_at);
-  const avg = completed.length ? Math.max(0,Math.round(completed.reduce((sum,v) => sum + (new Date(v.completed_at)-new Date(v.wh_in_at)),0)/completed.length/60000)) : 0;
-  document.getElementById("stat-waiting").textContent = waiting + " Armada";
-  document.getElementById("stat-process").textContent = processing + " Armada";
-  document.getElementById("stat-done").textContent = done + " Armada";
-  document.getElementById("stat-average").textContent = avg ? Math.floor(avg/60) + "j " + String(avg%60).padStart(2,"0") + "m" : "—";
+function countForDay(dayKey, predicate) {
+  return visits.filter(function (visit) {
+    return localDateKey(visit.wh_in_at || visit.registered_at || visit.created_at) === dayKey && predicate(visit);
+  }).length;
 }
-function renderCharts() {
+function completedOutForDay(dayKey) {
+  return visits.filter(function (visit) {
+    return localDateKey(visit.wh_out_at) === dayKey && visit.wh_in_at && visit.wh_out_at;
+  });
+}
+function averageWarehouseMinutes(dayKey) {
+  const rows = completedOutForDay(dayKey);
+  if (!rows.length) return 0;
+  const total = rows.reduce(function (sum, visit) {
+    return sum + Math.max(0, (new Date(visit.wh_out_at) - new Date(visit.wh_in_at)) / 60000);
+  }, 0);
+  return total / rows.length;
+}
+function setComparison(elementId, todayValue, yesterdayValue, formatter) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+  element.textContent = "Hari ini: " + formatter(todayValue) + " · Kemarin: " + formatter(yesterdayValue);
+}
+function renderStats(todayKey, yesterdayKey) {
+  const waiting = function (v) { return v.process_status === "wh_in" || v.process_status === "registered"; };
+  const processing = function (v) { return v.process_status === "queue" || v.process_status === "started"; };
+  const done = function (v) { return v.process_status === "completed"; };
+  const values = {
+    waiting:[countForDay(todayKey,waiting),countForDay(yesterdayKey,waiting)],
+    processing:[countForDay(todayKey,processing),countForDay(yesterdayKey,processing)],
+    done:[countForDay(todayKey,done),countForDay(yesterdayKey,done)],
+    average:[averageWarehouseMinutes(todayKey),averageWarehouseMinutes(yesterdayKey)]
+  };
+  document.getElementById("stat-waiting").textContent = values.waiting[0] + " Armada";
+  document.getElementById("stat-process").textContent = values.processing[0] + " Armada";
+  document.getElementById("stat-done").textContent = values.done[0] + " Armada";
+  document.getElementById("stat-average").textContent = formatDuration(values.average[0]);
+  setComparison("stat-waiting-note",values.waiting[0],values.waiting[1],v => v + " armada");
+  setComparison("stat-process-note",values.processing[0],values.processing[1],v => v + " armada");
+  setComparison("stat-done-note",values.done[0],values.done[1],v => v + " armada");
+  setComparison("stat-average-note",values.average[0],values.average[1],formatDuration);
+}
+function statusCount(visit, dayKey) {
+  if (localDateKey(visit.wh_in_at || visit.registered_at || visit.created_at) !== dayKey) return null;
+  if (visit.wh_out_at) return "wh_out";
+  if (visit.process_status === "completed") return "completed";
+  if (visit.process_status === "started") return "started";
+  if (visit.process_status === "queue") return "queue";
+  return "wh_in";
+}
+function renderStatusOverview(todayKey, yesterdayKey) {
+  const definitions = [
+    {key:"wh_in",label:"Terdaftar"},
+    {key:"queue",label:"Antri/Parkir"},
+    {key:"started",label:"Proses Loading"},
+    {key:"completed",label:"Selesai Loading"},
+    {key:"wh_out",label:"Selesai/Keluar Gudang"}
+  ];
+  const todayCounts = definitions.map(d => visits.filter(v => statusCount(v,todayKey) === d.key).length);
+  const yesterdayCounts = definitions.map(d => visits.filter(v => statusCount(v,yesterdayKey) === d.key).length);
+  const total = todayCounts.reduce((s,v) => s+v,0);
+  const target = document.getElementById("status-overview");
+  if (!target) return;
+  target.innerHTML = total
+    ? '<div class="small text-muted mb-3">Hari ini dibandingkan dengan kemarin</div>' +
+      definitions.map(function(d,i){
+        const pct = total ? Math.max(todayCounts[i] ? 5 : 0,Math.round(todayCounts[i]/total*100)) : 0;
+        return '<div class="status-overview-item"><div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(d.label)+'</span><span class="status-overview-value">'+todayCounts[i]+' Armada <small class="text-muted">/ '+yesterdayCounts[i]+' kemarin</small></span></div><div class="status-overview-track"><div class="status-overview-fill" style="width:'+pct+'%"></div></div></div>';
+      }).join("")
+    : '<div class="status-overview-empty">Belum ada data armada hari ini.</div>';
+}
+function destroyCharts() {
+  [activityChart,vendorChart,clientChart].forEach(function(c){if(c)c.destroy();});
+  activityChart = vendorChart = clientChart = null;
+}
+function renderCharts(todayKey,yesterdayKey) {
   if (typeof ApexCharts === "undefined") return;
-  const statusDefinitions = [
-    { key: "wh_in", label: "Terdaftar", color: "#006ECD" },
-    { key: "queue", label: "Antri/Parkir", color: "#6B7280" },
-    { key: "start_loading", label: "Proses Loading", color: "#FF9700" },
-    { key: "done_loading", label: "Selesai Loading", color: "#22C55E" },
-    { key: "wh_out", label: "Selesai/Keluar Gudang", color: "#18794E" }
-  ];
-  const statusData = statusDefinitions.map(function (definition) {
-    return visits.filter(v => v.process_status === definition.key).length;
+  destroyCharts();
+  const base = {
+    chart:{type:"bar",height:230,toolbar:{show:false},zoom:{enabled:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
+    states:{hover:{filter:{type:"none"}}},dataLabels:{enabled:false},
+    grid:{borderColor:"#E9EFEF",strokeDashArray:4},
+    tooltip:{theme:"dark"},legend:{position:"top",horizontalAlign:"right",fontFamily:"Plus Jakarta Sans, sans-serif",fontSize:"11px"}
+  };
+  const byDay = function(dayKey,predicate){return visits.filter(function(v){return localDateKey(v.wh_in_at||v.registered_at||v.created_at)===dayKey&&predicate(v);}).length;};
+  const activityValues = function(day){return ["inbound","outbound"].map(k=>byDay(day,v=>v.activity_type===k));};
+  activityChart = new ApexCharts(document.querySelector("#destination-chart"),{
+    ...base,series:[{name:"Hari ini",data:activityValues(todayKey)},{name:"Kemarin",data:activityValues(yesterdayKey)}],
+    plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},xaxis:{categories:["Inbound","Outbound"],axisBorder:{show:false},axisTicks:{show:false}},colors:["#006ECD","#A7B0AC"]
   });
-  const statusTotal = statusData.reduce((sum, value) => sum + value, 0);
-  const statusOverview = document.getElementById("status-overview");
-  if (statusOverview) {
-    statusOverview.innerHTML = statusTotal
-      ? statusDefinitions.map(function (definition, index) {
-          const value = statusData[index];
-          const percent = statusTotal ? Math.max(value ? 5 : 0, Math.round((value / statusTotal) * 100)) : 0;
+  const buildCounts=function(field){
+    const t={},y={};
+    visits.forEach(function(v){
+      const day=localDateKey(v.wh_in_at||v.registered_at||v.created_at);
+      const name=field==="vendor"?String(v.vendor||"Tanpa vendor").trim()||"Tanpa vendor":String((v.clients&&v.clients.name)||"Tanpa klien").trim()||"Tanpa klien";
+      if(day===todayKey)t[name]=(t[name]||0)+1;
+      if(day===yesterdayKey)y[name]=(y[name]||0)+1;
+    });
+    const names=Array.from(new Set(Object.keys(t).concat(Object.keys(y)))).sort((a,b)=>(t[b]||0)+(y[b]||0)-(t[a]||0)-(y[a]||0)).slice(0,6);
+    return {names:names,today:names.map(n=>t[n]||0),yesterday:names.map(n=>y[n]||0)};
+  };
+  const vendor=buildCounts("vendor");
+  vendorChart=new ApexCharts(document.querySelector("#vendor-chart"),{
+    ...base,series:[{name:"Hari ini",data:vendor.today},{name:"Kemarin",data:vendor.yesterday}],
+    plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},xaxis:{categories:vendor.names,labels:{show:false}},yaxis:{show:true,labels:{show:true,maxWidth:120,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"}}},colors:["#006ECD","#A7B0AC"]
+  });
+  const client=buildCounts("client");
+  const clientColor={"kimberly clark":"#006ECD",henkel:"#EF151E",modena:"#111111"};
+  const clientTarget=document.querySelector("#client-chart");
+  if(clientTarget){
+    const maxValue=Math.max(1,...client.today,...client.yesterday);
+    clientTarget.classList.add("client-overview");
+    clientTarget.innerHTML=client.names.length
+      ? '<div class="small text-muted mb-3">Hari ini dan kemarin · warna mengikuti klien</div>' +
+        client.names.map(function(name,index){
+          const color=clientColor[name.toLowerCase()]||"#6B7280";
+          const todayWidth=Math.max(client.today[index]?5:0,Math.round(client.today[index]/maxValue*100));
+          const yesterdayWidth=Math.max(client.yesterday[index]?5:0,Math.round(client.yesterday[index]/maxValue*100));
           return '<div class="status-overview-item">' +
-            '<div class="status-overview-head">' +
-              '<span class="status-overview-label"><span class="status-overview-dot" style="background:' + definition.color + '"></span>' + escapeHtml(definition.label) + '</span>' +
-              '<span class="status-overview-value">' + value + ' Armada</span>' +
-            '</div>' +
-            '<div class="status-overview-track"><div class="status-overview-fill" style="width:' + percent + '%;background:' + definition.color + '"></div></div>' +
+            '<div class="status-overview-head"><span class="status-overview-label"><span class="status-overview-dot" style="background:'+color+'"></span>'+escapeHtml(name)+'</span><span class="status-overview-value">'+client.today[index]+' hari ini <small class="text-muted">/ '+client.yesterday[index]+' kemarin</small></span></div>' +
+            '<div class="status-overview-track"><div class="status-overview-fill" style="width:'+todayWidth+'%;background:'+color+'"></div></div>' +
+            '<div class="status-overview-track mt-1"><div class="status-overview-fill" style="width:'+yesterdayWidth+'%;background:#D1D8D5"></div></div>' +
           '</div>';
         }).join("")
-      : '<div class="status-overview-empty">Belum ada data armada.</div>';
+      : '<div class="status-overview-empty">Belum ada data klien hari ini maupun kemarin.</div>';
   }
-  const activityTypeData = [
-    visits.filter(v => v.activity_type === "inbound").length,
-    visits.filter(v => v.activity_type === "outbound").length
-  ];
-  const vendorCounts = {};
-  const clientCounts = {};
-  visits.forEach(function (visit) {
-    const vendor = String(visit.vendor || "Tanpa vendor").trim() || "Tanpa vendor";
-    const client = String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
-    vendorCounts[vendor] = (vendorCounts[vendor] || 0) + 1;
-    clientCounts[client] = (clientCounts[client] || 0) + 1;
-  });
-  const topEntries = function (counts) {
-    return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 6);
-  };
-  const vendorEntries = topEntries(vendorCounts);
-  const clientEntries = topEntries(clientCounts);
-  [destinationChart, vendorChart].forEach(function (chart) {
-    if (chart) chart.destroy();
-  });
-  clientChart = null;
-
-  const clientDefinitions = [
-    { key: "Kimberly Clark", label: "Kimberly Clark", color: "#006ECD" },
-    { key: "Henkel", label: "Henkel", color: "#EF151E" },
-    { key: "Modena", label: "Modena", color: "#111111" }
-  ];
-
-  const baseBar = {
-    chart:{type:"bar",height:220,toolbar:{show:false},zoom:{enabled:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
-    states:{hover:{filter:{type:"none"}}},
-    dataLabels:{enabled:false},
-    grid:{borderColor:"#E9EFEF",strokeDashArray:4,padding:{top:0,right:0,bottom:0,left:0}},
-    xaxis:{axisBorder:{show:false},axisTicks:{show:false},labels:{style:{colors:"#6C7E75",fontSize:"11px",fontWeight:500,fontFamily:"Plus Jakarta Sans, sans-serif"}}},
-    yaxis:{labels:{show:false}},
-    tooltip:{theme:"dark"}
-  };
-
-  destinationChart = new ApexCharts(document.querySelector("#destination-chart"), {
-    ...baseBar,
-    series:[{name:"Visit",data:activityTypeData}],
-    colors:["#FF9700"],
-    plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},
-    xaxis:{...baseBar.xaxis,categories:["Inbound","Outbound"]}
-  });
-
-  vendorChart = new ApexCharts(document.querySelector("#vendor-chart"), {
-    ...baseBar,
-    chart:{...baseBar.chart,height:230},
-    series:[{name:"Armada",data:vendorEntries.map(entry => entry[1])}],
-    colors:["#006ECD"],
-    plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},
-    xaxis:{...baseBar.xaxis,categories:vendorEntries.map(entry => entry[0]),labels:{show:false}},
-    yaxis:{show:true,labels:{show:true,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"},maxWidth:120}}
-  });
-
-  const clientOverview = document.getElementById("client-chart");
-  if (clientOverview) {
-    const knownClientRows = clientDefinitions.map(function (definition) {
-      const entry = Object.entries(clientCounts).find(function (item) {
-        return item[0].toLowerCase() === definition.key.toLowerCase();
-      });
-      return {
-        label: definition.label,
-        color: definition.color,
-        value: entry ? entry[1] : 0
-      };
-    });
-
-    Object.entries(clientCounts).forEach(function (entry) {
-      const known = clientDefinitions.some(function (definition) {
-        return definition.key.toLowerCase() === entry[0].toLowerCase();
-      });
-      if (!known) {
-        knownClientRows.push({ label: entry[0], color: "#6B7280", value: entry[1] });
-      }
-    });
-
-    const totalClientVisits = knownClientRows.reduce(function (sum, item) {
-      return sum + item.value;
-    }, 0);
-
-    clientOverview.classList.add("client-overview");
-    clientOverview.innerHTML = totalClientVisits
-      ? knownClientRows.map(function (item) {
-          const percent = Math.max(item.value ? 5 : 0, Math.round((item.value / totalClientVisits) * 100));
-          return '<div class="status-overview-item">' +
-            '<div class="status-overview-head">' +
-              '<span class="status-overview-label"><span class="status-overview-dot" style="background:' + item.color + '"></span>' + escapeHtml(item.label) + '</span>' +
-              '<span class="status-overview-value">' + item.value + ' Armada</span>' +
-            '</div>' +
-            '<div class="status-overview-track"><div class="status-overview-fill" style="width:' + percent + '%;background:' + item.color + '"></div></div>' +
-          '</div>';
-        }).join("")
-      : '<div class="status-overview-empty">Belum ada data klien.</div>';
-  }
-
-  [destinationChart,vendorChart].forEach(chart => chart.render());
-
-  const renderLegend = function (targetId, entries, colorResolver) {
-    const target = document.getElementById(targetId);
-    if (!target) return;
-    target.innerHTML = entries.length
-      ? entries.map(function (entry) {
-          const color = colorResolver ? colorResolver(entry[0]) : "#006ECD";
-          return '<span class="chart-category-item"><span class="chart-category-dot" style="background:' + color + '"></span><span class="chart-category-name">' + escapeHtml(entry[0]) + '</span><strong>' + entry[1] + '</strong></span>';
-        }).join("")
-      : '<span class="chart-category-empty">Belum ada data</span>';
-  };
-  renderLegend("vendor-chart-legend", vendorEntries);
-  renderLegend("client-chart-legend", clientDefinitions.map(function (definition) {
-    const entry = Object.entries(clientCounts).find(function (item) {
-      return item[0].toLowerCase() === definition.key.toLowerCase();
-    });
-    return [definition.label, entry ? entry[1] : 0];
-  }), function (name) {
-    const definition = clientDefinitions.find(function (item) {
-      return item.label.toLowerCase() === String(name).toLowerCase();
-    });
-    return definition ? definition.color : "#6B7280";
-  });
-
-
+  [activityChart,vendorChart].forEach(c=>c.render());
 }
-function renderRecent() {
-  const rows = visits.slice().sort((a,b) => new Date(b.created_at || b.wh_in_at || 0)-new Date(a.created_at || a.wh_in_at || 0)).slice(0,5);
-  recentResultCount.textContent = rows.length + " pendaftaran terbaru";
-  if (!rows.length) {
-    recentTable.innerHTML = '<tr><td colspan="4" class="table-state">Belum ada pendaftaran.</td></tr>';
-    return;
-  }
-  recentTable.innerHTML = rows.map(function(visit) {
-    const destination = visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : "—";
-    const driverName = String(visit.driver_name || "—").trim();
-    const clientName = String((visit.clients && visit.clients.name) || "—").trim();
-    const secondary = driverName + " / " + clientName;
-    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : "destination-outbound") + '">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at || visit.created_at)) + '</span></td></tr>';
+function renderRecent(todayKey) {
+  const rows=visits.filter(v=>localDateKey(v.wh_in_at||v.registered_at||v.created_at)===todayKey).sort((a,b)=>new Date(b.wh_in_at||b.registered_at||b.created_at)-new Date(a.wh_in_at||a.registered_at||a.created_at)).slice(0,5);
+  recentResultCount.textContent=rows.length+" pendaftaran hari ini";
+  if(!rows.length){recentTable.innerHTML='<tr><td colspan="4" class="table-state">Belum ada pendaftaran hari ini.</td></tr>';return;}
+  recentTable.innerHTML=rows.map(function(v){
+    const activity=v.activity_type==="inbound"?"Inbound":v.activity_type==="outbound"?"Outbound":"—";
+    const driver=String(v.driver_name||"—").trim();
+    const client=String((v.clients&&v.clients.name)||"—").trim();
+    return '<tr><td><span class="plate">'+escapeHtml(v.plate_number)+'</span><span class="table-subline">'+escapeHtml(driver+" / "+client)+'</span></td><td><span class="destination '+(v.activity_type==="inbound"?"destination-inbound":"destination-outbound")+'">'+escapeHtml(activity)+'</span></td><td>'+escapeHtml(v.vendor||"—")+'</td><td><span class="duration">'+escapeHtml(formatTime(v.wh_in_at||v.registered_at||v.created_at))+'</span></td></tr>';
   }).join("");
 }
 async function loadDashboard() {
-  refreshButton.disabled = true;
   try {
-    const select = ["id","plate_number","driver_name","activity_type","vendor","client_id","process_status","wh_in_at","registered_at","started_at","completed_at","created_at","clients(name)"].join(",");
-    const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
-      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
-    });
-    const data = await response.json().catch(() => ({}));
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      return;
-    }
-    if (!response.ok || !Array.isArray(data)) throw new Error(data.message || "Gagal mengambil data dashboard.");
-    visits = data;
-    renderStats();
-    renderCharts();
-    renderRecent();
-  } catch (error) {
-    recentTable.innerHTML = '<tr><td colspan="4" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
-    recentResultCount.textContent = "Gagal memuat data";
-    console.error("TRCM dashboard:", error);
-  } finally {
-    refreshButton.disabled = false;
+    const select=["id","plate_number","driver_name","activity_type","vendor","client_id","process_status","wh_in_at","registered_at","started_at","completed_at","wh_out_at","created_at","clients(name)"].join(",");
+    const response=await fetch(SUPABASE_URL+"/rest/v1/visits?select="+encodeURIComponent(select)+"&order=created_at.desc",{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+trcmSession.access_token}});
+    const data=await response.json().catch(()=>({}));
+    if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return;}
+    if(!response.ok||!Array.isArray(data))throw new Error(data.message||"Gagal mengambil data dashboard.");
+    visits=data;
+    const todayKey=localDateKey(new Date());
+    const yesterdayKey=shiftDateKey(todayKey,-1);
+    renderStats(todayKey,yesterdayKey);
+    renderStatusOverview(todayKey,yesterdayKey);
+    renderCharts(todayKey,yesterdayKey);
+    renderRecent(todayKey);
+  }catch(error){
+    recentTable.innerHTML='<tr><td colspan="4" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
+    recentResultCount.textContent="Gagal memuat data";
+    console.error("TRCM dashboard:",error);
   }
 }
-refreshButton.addEventListener("click", loadDashboard);
 loadDashboard();
 });
 </script>
