@@ -215,7 +215,7 @@ window.trcmComponentsReady.then(async function () {
 
   function closeVendorOptions() { vendorOptions.classList.remove("is-open"); vendorSearch.setAttribute("aria-expanded", "false"); }
   function selectVendor(id, name) {
-    vendorValue.value = id || "";
+    vendorValue.value = name;
     vendorSearch.value = name;
     closeVendorOptions();
     updateSummary();
