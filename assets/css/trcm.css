@@ -506,3 +506,21 @@ button,input,select{font:inherit}
 .sidebar-menu-link.active .menu-icon::after{
   color:#fff !important;
 }
+
+/* Gate Security — Registrasi Armada */
+.registration-summary-card{position:sticky;top:1rem;}
+.registration-summary{display:grid;gap:0;}
+.registration-summary>div{display:flex;justify-content:space-between;gap:1rem;padding:.8rem 0;border-bottom:1px solid #edf1f3;}
+.registration-summary>div:last-child{border-bottom:0;}
+.registration-summary span{color:#6c7e75;font-size:.78rem;}
+.registration-summary strong{font-size:.85rem;text-align:right;word-break:break-word;}
+.registration-actions{display:grid;gap:.65rem;margin-top:1rem;padding-top:1rem;border-top:1px solid #edf1f3;}
+.registration-alert{border-radius:.75rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;}
+.registration-alert.alert-error{background:#fff1f2;border:1px solid #f5cbd0;color:#b4232d;}
+.registration-alert.alert-success{background:#eef8f2;border:1px solid #cdebd8;color:#18794e;}
+.registration-alert.d-none{display:none;}
+@media(max-width:1199.98px){.registration-summary-card{position:static;}}
+@media(max-width:575.98px){
+  .registration-summary>div{align-items:flex-start;flex-direction:column;gap:.25rem;}
+  .registration-summary strong{text-align:left;}
+}
