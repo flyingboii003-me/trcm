@@ -489,3 +489,20 @@ button,input,select{font:inherit}
 
 .status-badge.status-registered .status-dot,
 .status-badge.status-registered::before{color:#006ecd;background-color:#006ecd;}
+
+/* Force active/open sidebar icons to white over Spark icon defaults */
+.sidebar-menu-link.active,
+.sidebar-menu-link.active .menu-icon,
+.sidebar-menu-link.active i,
+.sidebar-menu-link.active svg,
+.sidebar-menu-link.active svg *,
+.sidebar-menu-link.active [class^="bi-"],
+.sidebar-menu-link.active [class*=" bi-"]{
+  color:#fff !important;
+  fill:#fff !important;
+  stroke:#fff !important;
+}
+.sidebar-menu-link.active .menu-icon::before,
+.sidebar-menu-link.active .menu-icon::after{
+  color:#fff !important;
+}
