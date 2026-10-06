@@ -548,3 +548,12 @@ button,input,select{font:inherit}
 #card-randomize{border-color:#dfe7e3;background:#fff;color:#5f6f67;}
 #card-randomize:hover,#card-randomize:focus{border-color:#006ECD;background:#eef5fb;color:#006ECD;box-shadow:0 0 0 .2rem rgba(0,110,205,.12);}
 #card-randomize:active{background:#006ECD;border-color:#006ECD;color:#fff;}
+
+
+/* Gate Security refinements */
+.vendor-master-card{overflow:visible;z-index:5;}
+.card-randomize-button{width:42px;min-width:42px;min-height:42px;padding:.5rem;border:1px solid var(--border);border-radius:var(--radius-lg);background:#fff;color:var(--cj-blue);box-shadow:var(--shadow-sm);display:inline-flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s ease;}
+.card-randomize-button:hover,.card-randomize-button:focus-visible{background:#eef5fb;color:var(--cj-blue-hover);border-color:rgba(0,110,205,.24);box-shadow:0 4px 12px rgba(11,19,15,.06);}
+.card-randomize-button:active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff;transform:translateY(1px);}
+.searchable-select{z-index:20;}
+.searchable-options{z-index:2000;}
