@@ -610,3 +610,79 @@ button,input,select{font:inherit}
     flex-basis:4px;
   }
 }
+
+
+/* Spark Admin-aligned visit table actions */
+.table-action-group{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.35rem;
+  white-space:nowrap;
+}
+.icon-action-button{
+  width:34px;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  background:#fff;
+  color:var(--text-muted);
+  box-shadow:var(--shadow-sm);
+  font-size:.9rem;
+  line-height:1;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.icon-action-button:hover,
+.icon-action-button:focus-visible{
+  outline:0;
+  box-shadow:0 4px 12px rgba(11,19,15,.06);
+}
+.icon-action-edit{
+  color:var(--cj-blue);
+  border-color:rgba(0,110,205,.18);
+}
+.icon-action-edit:hover,
+.icon-action-edit:focus-visible{
+  color:#fff;
+  background:var(--cj-blue);
+  border-color:var(--cj-blue);
+}
+.icon-action-delete{
+  color:#D92D20;
+  border-color:rgba(217,45,32,.18);
+}
+.icon-action-delete:hover,
+.icon-action-delete:focus-visible{
+  color:#fff;
+  background:#D92D20;
+  border-color:#D92D20;
+}
+.icon-action-detail{
+  color:#5F6F67;
+}
+.icon-action-detail:hover,
+.icon-action-detail:focus-visible{
+  color:#fff;
+  background:#5F6F67;
+  border-color:#5F6F67;
+}
+.modal-card-footer{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.5rem;
+  padding:1rem 1.5rem;
+  border-top:1px solid var(--border);
+}
+@media(max-width:575.98px){
+  .table-action-group{gap:.25rem;}
+  .icon-action-button{width:32px;height:32px;font-size:.84rem;}
+  .modal-card-footer{
+    padding:.85rem 1rem;
+  }
+}
