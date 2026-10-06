@@ -137,12 +137,17 @@ window.trcmComponentsReady.then(async function () {
   function renderTable(){
     const needle=searchCard.value.trim().toLowerCase();
     const filtered=visits.filter(function(v){const card=v.cards&&v.cards.card_number?v.cards.card_number:"";return!needle||card.toLowerCase().includes(needle);});
-    resultCount.textContent=filtered.length+" armada menunggu antrean / parkir";
-    if(!filtered.length){table.innerHTML='<tr><td colspan="7" class="table-state">Belum ada armada yang menunggu antrean / parkir.</td></tr>';return;}
+    resultCount.textContent=filtered.length+" armada terdaftar / antri / parkir";
+    if(!filtered.length){table.innerHTML='<tr><td colspan="7" class="table-state">Belum ada armada terdaftar atau yang menunggu antrean / parkir.</td></tr>';return;}
     table.innerHTML=filtered.map(function(v){
       const card=v.cards&&v.cards.card_number?v.cards.card_number:"—",client=v.clients&&v.clients.name?v.clients.name:"—";
-      return '<tr><td><span class="table-card-number">'+escapeHtml(card)+'</span></td><td class="font-monospace fw-semibold">'+escapeHtml(v.plate_number||"—")+'</td><td>'+escapeHtml(client)+'</td><td>'+escapeHtml(activityLabel(v.activity_type))+'</td><td><span class="font-monospace">'+escapeHtml(formatDateTime(v.wh_in_at))+'</span></td><td>'+window.trcmStatusBadge("queue")+'</td><td class="action-cell"><button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"'+(canQueue?"":" disabled")+'><i class="bi bi-play-circle me-1"></i>Mulai Loading</button></td></tr>';
-    }).join("");
+      const isQueued=v.process_status==="queue";
+      const queueButton=isQueued
+        ? '<button type="button" class="btn btn-light border btn-sm" disabled><i class="bi bi-p-square me-1"></i>Sudah Antri</button>'
+        : '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"'+(canQueue?"":" disabled")+'><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>';
+      const startButton='<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"'+(canQueue?"":" disabled")+'><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>';
+      return '<tr><td><span class="table-card-number">'+escapeHtml(card)+'</span></td><td class="font-monospace fw-semibold">'+escapeHtml(v.plate_number||"—")+'</td><td>'+escapeHtml(client)+'</td><td>'+escapeHtml(activityLabel(v.activity_type))+'</td><td><span class="font-monospace">'+escapeHtml(formatDateTime(v.wh_in_at))+'</span></td><td>'+window.trcmStatusBadge(v.process_status)+'</td><td class="action-cell d-flex flex-wrap gap-2">'+queueButton+startButton+'</td></tr>';
+    }).join("");;
   }
   function populateGates(){gateSelect.innerHTML='<option value="">Pilih gerbang</option>'+gates.map(g=>'<option value="'+escapeHtml(g.id)+'">Gate '+escapeHtml(g.gate_number)+'</option>').join("");}
   function populateLines(gateId){const matching=lines.filter(l=>l.gate_id===gateId);lineSelect.disabled=!gateId;lineSelect.innerHTML=gateId?'<option value="">Pilih line</option>'+matching.map(l=>'<option value="'+escapeHtml(l.id)+'">Line '+escapeHtml(l.line_number)+'</option>').join(""):'<option value="">Pilih gerbang terlebih dahulu</option>';}
@@ -154,7 +159,7 @@ window.trcmComponentsReady.then(async function () {
     table.innerHTML='<tr><td colspan="7" class="table-state">Memuat data armada...</td></tr>';resultCount.textContent="Memuat data...";refreshButton.disabled=true;
     try{
       const select=["id","plate_number","activity_type","wh_in_at","registered_at","process_status","seal_number","notes","cards(card_number)","clients(name)"].join(",");
-      const path="/rest/v1/visits?select="+encodeURIComponent(select)+"&process_status=eq.queue&wh_out_at=is.null&order=wh_in_at.asc";
+      const path="/rest/v1/visits?select="+encodeURIComponent(select)+"&process_status=in.(wh_in,queue)&wh_out_at=is.null&order=wh_in_at.asc";
       const data=await request(path);if(!Array.isArray(data))throw new Error("Respons data Antri / Parkir tidak valid.");visits=data;renderTable();
     }catch(error){console.error("TRCM Antri / Parkir:",error);table.innerHTML='<tr><td colspan="7" class="table-state error-state">Data antrean gagal dimuat. Silakan perbarui.</td></tr>';resultCount.textContent="Gagal memuat data";await Swal.fire({icon:"error",title:"Gagal memuat antrean",text:error.message||"Data armada tidak dapat dimuat.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});}
     finally{refreshButton.disabled=false;}
@@ -168,6 +173,39 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("detail-destination").textContent=activityLabel(v.activity_type);
     gateSelect.value="";populateLines("");sealNumber.value=v.seal_number||"";loadingNotes.value=v.notes||"";form.classList.remove("was-validated");modal.show();
   }
+  async function parkVisit(visit){
+    if(!visit||!canQueue)return;
+    const card=visit.cards&&visit.cards.card_number?visit.cards.card_number:"—";
+    try{
+      const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(visit.id)+"&process_status=eq.wh_in&wh_out_at=is.null",{
+        method:"PATCH",
+        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},
+        body:JSON.stringify({process_status:"queue",final_status:"parked"})
+      });
+      if(!Array.isArray(updated)||updated.length!==1)throw new Error("Armada sudah berubah status atau sudah diproses pengguna lain.");
+      try{
+        await request("/rest/v1/visit_events",{
+          method:"POST",
+          headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},
+          body:JSON.stringify({visit_id:visit.id,status:"parked",user_id:session.user.id})
+        });
+      }catch(eventError){
+        try{
+          await request("/rest/v1/visits?id=eq."+encodeURIComponent(visit.id),{
+            method:"PATCH",
+            headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},
+            body:JSON.stringify({process_status:"wh_in",final_status:null})
+          });
+        }catch(rollbackError){console.error("TRCM park rollback:",rollbackError);}
+        throw eventError;
+      }
+      await Swal.fire({icon:"success",title:"Antri / Parkir berhasil",html:'Armada <strong>'+escapeHtml(card)+'</strong> sudah masuk status Antri/Parkir.',confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
+      await loadVisits();
+    }catch(error){
+      console.error("TRCM Antri / Parkir:",error);
+      await Swal.fire({icon:"error",title:"Gagal mengubah status",text:error.message||"Armada tidak berhasil dipindahkan ke Antri/Parkir.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});
+    }
+  }
   async function saveStart(event){
     event.preventDefault();
     if(!form.checkValidity()||!selectedVisit||!canQueue){form.classList.add("was-validated");return;}
@@ -175,16 +213,17 @@ window.trcmComponentsReady.then(async function () {
     const startedAt=new Date().toISOString();
     const selectedCard=selectedVisit.cards&&selectedVisit.cards.card_number?selectedVisit.cards.card_number:"—";
     try{
-      const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(selectedVisit.id)+"&process_status=eq.queue&wh_out_at=is.null",{method:"PATCH",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({gate_id:gateSelect.value,line_number_id:lineSelect.value,seal_number:sealNumber.value.trim()||null,notes:loadingNotes.value.trim()||null,process_status:"started",final_status:"processing",started_at:startedAt})});
+      const originalStatus=selectedVisit.process_status;
+      const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(selectedVisit.id)+"&process_status=in.(wh_in,queue)&wh_out_at=is.null",{method:"PATCH",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({gate_id:gateSelect.value,line_number_id:lineSelect.value,seal_number:sealNumber.value.trim()||null,notes:loadingNotes.value.trim()||null,process_status:"started",final_status:"processing",started_at:startedAt})});
       if(!Array.isArray(updated)||updated.length!==1)throw new Error("Armada sudah berubah status atau sudah diproses pengguna lain.");
       try{
         await request("/rest/v1/visit_events",{method:"POST",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({visit_id:selectedVisit.id,status:"started",user_id:session.user.id})});
       }catch(eventError){
-        try{await request("/rest/v1/visits?id=eq."+encodeURIComponent(selectedVisit.id),{method:"PATCH",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({process_status:"queue",final_status:null,started_at:null})});}catch(rollbackError){console.error("TRCM start loading rollback:",rollbackError);}
+        try{await request("/rest/v1/visits?id=eq."+encodeURIComponent(selectedVisit.id),{method:"PATCH",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({process_status:originalStatus,final_status:originalStatus==="queue"?"parked":null,started_at:null})});}catch(rollbackError){console.error("TRCM start loading rollback:",rollbackError);}
         throw eventError;
       }
       modal.hide();
-      await Swal.fire({icon:"success",title:"Mulai Loading berhasil",html:'Armada <strong>'+escapeHtml(card)+'</strong> sudah masuk proses loading.',confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
+      await Swal.fire({icon:"success",title:"Mulai Loading berhasil",html:'Armada <strong>'+escapeHtml(selectedCard)+'</strong> sudah masuk proses loading.',confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
       await loadVisits();
     }catch(error){console.error("TRCM Antri / Parkir start loading:",error);await Swal.fire({icon:"error",title:"Gagal memulai loading",text:error.message||"Status armada tidak berhasil diperbarui.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});}
     finally{saveButton.disabled=false;}
@@ -194,7 +233,18 @@ window.trcmComponentsReady.then(async function () {
   resetSearch.addEventListener("click",function(){searchCard.value="";renderTable();});
   refreshButton.addEventListener("click",loadVisits);
   form.addEventListener("submit",saveStart);
-  table.addEventListener("click",function(event){const button=event.target.closest(".start-loading-button");if(!button||!canQueue)return;const v=visits.find(item=>item.id===button.dataset.visitId);if(v)openStartModal(v);});
+  table.addEventListener("click",function(event){
+    const parkButton=event.target.closest(".park-button");
+    if(parkButton&&canQueue){
+      const visit=visits.find(function(item){return item.id===parkButton.dataset.visitId;});
+      if(visit)parkVisit(visit);
+      return;
+    }
+    const startButton=event.target.closest(".start-loading-button");
+    if(!startButton||!canQueue)return;
+    const visit=visits.find(function(item){return item.id===startButton.dataset.visitId;});
+    if(visit)openStartModal(visit);
+  });
   if(!canQueue){await Swal.fire({icon:"error",title:"Akses terbatas",text:"Menu Antri / Parkir hanya dapat digunakan oleh Gate Security atau Admin.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});}
   await Promise.all([loadReferenceData(),loadVisits()]);
 });
