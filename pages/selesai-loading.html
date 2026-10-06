@@ -300,7 +300,7 @@ window.trcmComponentsReady.then(async function () {
           },
           body: JSON.stringify({
             visit_id: selectedVisit.id,
-            status: "started",
+            status: "completed",
             user_id: session.user.id
           })
         });
@@ -314,9 +314,9 @@ window.trcmComponentsReady.then(async function () {
             Prefer: "return=minimal"
           },
           body: JSON.stringify({
-            process_status: "queue",
-            final_status: null,
-            started_at: null
+            process_status: "started",
+            final_status: "processing",
+            completed_at: null
           })
         });
         throw eventError;
@@ -325,8 +325,8 @@ window.trcmComponentsReady.then(async function () {
       modal.hide();
       await Swal.fire({
         icon: "success",
-        title: "Mulai tersimpan",
-        text: "Truck berhasil ditandai sebagai Proses Loading.",
+        title: "Loading selesai",
+        text: "Truck berhasil ditandai sebagai Selesai Loading.",
         confirmButtonText: "Selesai",
         confirmButtonColor: "#0066B3"
       });
