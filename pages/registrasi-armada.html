@@ -253,7 +253,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("summary-plate").textContent = fields.plateNumber.value.trim().toUpperCase() || "—";
     const direction = fields.activityType.value === "inbound" ? "Inbound" : fields.activityType.value === "outbound" ? "Outbound" : "—";
     document.getElementById("summary-destination").textContent = direction;
-    document.getElementById("summary-city").textContent = fields.destinationCity.value.trim() || "—";
+    document.getElementById("summary-city").textContent = fields.activityTypeCity.value.trim() || "—";
     document.getElementById("summary-driver").textContent = fields.driverName.value.trim() || "—";
     document.getElementById("summary-vendor").textContent = vendorSearch.value.trim() || "—";
     document.getElementById("summary-client").textContent = clientSelect.value ? clientSelect.selectedOptions[0].textContent : "—";
