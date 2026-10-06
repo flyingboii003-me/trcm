@@ -265,12 +265,25 @@ function renderCharts(todayKey,yesterdayKey) {
   });
   const client=buildCounts("client");
   const clientColor={"kimberly clark":"#006ECD",henkel:"#EF151E",modena:"#111111"};
-  clientChart=new ApexCharts(document.querySelector("#client-chart"),{
-    ...base,series:[{name:"Hari ini",data:client.today},{name:"Kemarin",data:client.yesterday}],
-    plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},xaxis:{categories:client.names,labels:{show:false}},yaxis:{show:true,labels:{show:true,maxWidth:130,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"}}},
-    colors:client.names.map(n=>clientColor[n.toLowerCase()]||"#6B7280")
-  });
-  [activityChart,vendorChart,clientChart].forEach(c=>c.render());
+  const clientTarget=document.querySelector("#client-chart");
+  if(clientTarget){
+    const maxValue=Math.max(1,...client.today,...client.yesterday);
+    clientTarget.classList.add("client-overview");
+    clientTarget.innerHTML=client.names.length
+      ? '<div class="small text-muted mb-3">Hari ini dan kemarin · warna mengikuti klien</div>' +
+        client.names.map(function(name,index){
+          const color=clientColor[name.toLowerCase()]||"#6B7280";
+          const todayWidth=Math.max(client.today[index]?5:0,Math.round(client.today[index]/maxValue*100));
+          const yesterdayWidth=Math.max(client.yesterday[index]?5:0,Math.round(client.yesterday[index]/maxValue*100));
+          return '<div class="status-overview-item">' +
+            '<div class="status-overview-head"><span class="status-overview-label"><span class="status-overview-dot" style="background:'+color+'"></span>'+escapeHtml(name)+'</span><span class="status-overview-value">'+client.today[index]+' hari ini <small class="text-muted">/ '+client.yesterday[index]+' kemarin</small></span></div>' +
+            '<div class="status-overview-track"><div class="status-overview-fill" style="width:'+todayWidth+'%;background:'+color+'"></div></div>' +
+            '<div class="status-overview-track mt-1"><div class="status-overview-fill" style="width:'+yesterdayWidth+'%;background:#D1D8D5"></div></div>' +
+          '</div>';
+        }).join("")
+      : '<div class="status-overview-empty">Belum ada data klien hari ini maupun kemarin.</div>';
+  }
+  [activityChart,vendorChart].forEach(c=>c.render());
 }
 function renderRecent(todayKey) {
   const rows=visits.filter(v=>localDateKey(v.wh_in_at||v.registered_at||v.created_at)===todayKey).sort((a,b)=>new Date(b.wh_in_at||b.registered_at||b.created_at)-new Date(a.wh_in_at||a.registered_at||a.created_at)).slice(0,5);
