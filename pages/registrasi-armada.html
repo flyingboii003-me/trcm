@@ -62,7 +62,7 @@
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="vendor-search">Vendor <span class="text-danger">*</span></label>
                       <div class="searchable-select" id="vendor-select">
-                        <input class="form-control" id="vendor-search" type="search" autocomplete="off" placeholder="Cari vendor..." role="combobox" aria-expanded="false" aria-controls="vendor-options">
+                        <input class="form-control" id="vendor-search" type="search" autocomplete="off" placeholder="Cari vendor..." role="combobox" aria-expanded="false" aria-controls="vendor-options" required><div class="invalid-feedback">Vendor wajib dipilih atau diisi.</div>
                         <input id="vendor" type="hidden">
                         <div class="searchable-options" id="vendor-options" role="listbox"></div>
                       </div>
@@ -328,8 +328,10 @@ window.trcmComponentsReady.then(async function () {
 
   function closeVendorOptions() { vendorOptions.classList.remove("is-open"); vendorSearch.setAttribute("aria-expanded", "false"); }
   function selectVendor(id, name) {
-    vendorValue.value = name;
-    vendorSearch.value = name;
+    const selectedName = String(name || "").trim();
+    vendorValue.value = selectedName;
+    vendorSearch.value = selectedName;
+    vendorSearch.setCustomValidity(selectedName ? "" : "Vendor wajib dipilih atau diisi.");
     closeVendorOptions();
     updateSummary();
   }
@@ -478,7 +480,12 @@ window.trcmComponentsReady.then(async function () {
     field.addEventListener("input", updateSummary); field.addEventListener("change", updateSummary);
   });
   vendorSearch.addEventListener("focus", function () { renderVendorOptions(vendorSearch.value); });
-  vendorSearch.addEventListener("input", function () { vendorValue.value = ""; renderVendorOptions(vendorSearch.value); updateSummary(); });
+  vendorSearch.addEventListener("input", function () {
+    vendorValue.value = "";
+    vendorSearch.setCustomValidity(vendorSearch.value.trim() ? "" : "Vendor wajib dipilih atau diisi.");
+    renderVendorOptions(vendorSearch.value);
+    updateSummary();
+  });
   truckTypeSearch.addEventListener("focus", function () { renderTruckTypeOptions(truckTypeSearch.value); });
   truckTypeSearch.addEventListener("input", function () { truckTypeValue.value = truckTypeSearch.value.trim(); renderTruckTypeOptions(truckTypeSearch.value); updateSummary(); });
   truckTypeOptions.addEventListener("click", function (event) {
