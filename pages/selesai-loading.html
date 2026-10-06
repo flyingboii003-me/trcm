@@ -253,11 +253,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("detail-card").textContent = card;
     document.getElementById("detail-plate").textContent = visit.plate_number || "—";
     document.getElementById("detail-destination").textContent = formatDestination(visit.activity_type);
-    gateSelect.value = "";
-    lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
-    lineSelect.disabled = true;
-    sealNumber.value = visit.seal_number || "";
-    loadingNotes.value = visit.notes || "";
+    finishNotes.value = visit.notes || "";
     form.classList.remove("was-validated");
     modal.show();
   }
