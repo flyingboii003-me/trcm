@@ -101,6 +101,41 @@
                 </div>
               </section>
 
+              <section class="card content-card mb-3 checklist-card">
+                <div class="card-header content-card-header">
+                  <div><h2 class="card-title">Peralatan dan Kelengkapan Kendaraan</h2><p>Pastikan seluruh perlengkapan wajib tersedia sebelum armada melanjutkan proses registrasi.</p></div>
+                  <button type="button" class="btn btn-sm checklist-fill-button" id="equipment-check-all">Check semua</button>
+                </div>
+                <div class="card-body">
+                  <div class="vehicle-checklist" id="equipment-checklist">
+                    <label class="checklist-row"><span>Pengaman kargo</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.cargo_security"><span>Ada</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.cargo_security_absent"><span>Tidak ada</span></span></label>
+                    <label class="checklist-row"><span>Dokumen pengiriman barang</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.shipping_documents"><span>Ada</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.shipping_documents_absent"><span>Tidak ada</span></span></label>
+                    <label class="checklist-row"><span>Ganjal ban 2 buah</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.wheel_chocks"><span>Ada</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.wheel_chocks_absent"><span>Tidak ada</span></span></label>
+                    <label class="checklist-row"><span>APD driver dan kernet (Sepatu, Rompi, dan Helm safety)</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.ppe"><span>Ada</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="equipment.ppe_absent"><span>Tidak ada</span></span></label>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card content-card mb-3 checklist-card">
+                <div class="card-header content-card-header">
+                  <div><h2 class="card-title">Kondisi Kendaraan</h2><p>Periksa kondisi kendaraan sebelum armada melanjutkan proses registrasi.</p></div>
+                  <button type="button" class="btn btn-sm checklist-fill-button" id="condition-check-all">Isi semua</button>
+                </div>
+                <div class="card-body">
+                  <div class="vehicle-checklist" id="condition-checklist">
+                    <label class="checklist-row"><span>Suhu bagian dalam kabin untuk produk yang dipersyaratkan</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.cabin_temperature_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.cabin_temperature_no"><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Kondisi kabin dan kendaraan baik secara umum</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.general_condition_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.general_condition_no"><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Kebocoran oli/bahan bakar</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.oil_fuel_leakage_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.oil_fuel_leakage_no" checked><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Safety belt tersedia dan berfungsi</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.safety_belt_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.safety_belt_no"><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Rem tangan berfungsi dengan baik</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.handbrake_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.handbrake_no"><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Kabin kendaraan bersih dan tidak keropos</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.cabin_clean_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.cabin_clean_no"><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Kaca spion berfungsi dengan baik dan tidak pecah</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.mirror_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.mirror_no"><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Pintu kendaraan berfungsi dengan baik dan tidak ada kerusakan</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.door_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.door_no"><span>Tidak</span></span></label>
+                    <label class="checklist-row"><span>Kondisi kontainer bersih dan kering, tidak berbau kuat/pekat, tidak berlubang/bocor, dan tidak ada pest issue</span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.container_yes"><span>Ya</span></span><span class="checklist-choice"><input type="checkbox" class="form-check-input" data-checklist="condition.container_no"><span>Tidak</span></span></label>
+                  </div>
+                </div>
+              </section>
+
               <section class="card content-card">
                 <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2><p>Informasi pengiriman dan kota tujuan atau asal armada.</p></div></div>
                 <div class="card-body">
@@ -305,6 +340,64 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("summary-client").textContent = clientSelect.value ? clientSelect.selectedOptions[0].textContent : "—";
   }
 
+  function setChecklistPairState(container, key, value) {
+    const inputs = Array.from(container.querySelectorAll('input[data-checklist^="' + key + '"]'));
+    inputs.forEach(function (input) {
+      input.checked = input.dataset.checklist === key + "_" + value;
+    });
+  }
+
+  function getChecklistSnapshot() {
+    const snapshot = { equipment: {}, condition: {} };
+    document.querySelectorAll('input[data-checklist]').forEach(function (input) {
+      if (!input.checked) return;
+      const parts = input.dataset.checklist.split(".");
+      const group = parts[0];
+      const key = parts[1];
+      const base = key.replace(/_(yes|no|absent)$/, "");
+      let value = key.endsWith("_yes") ? true : key.endsWith("_no") || key.endsWith("_absent") ? false : true;
+      if (key.endsWith("_absent")) value = false;
+      snapshot[group][base] = value;
+    });
+    return snapshot;
+  }
+
+  function setupChecklist() {
+    const equipmentRows = Array.from(document.querySelectorAll("#equipment-checklist .checklist-row"));
+    const conditionRows = Array.from(document.querySelectorAll("#condition-checklist .checklist-row"));
+
+    function makeExclusive(row) {
+      const inputs = Array.from(row.querySelectorAll('input[type="checkbox"]'));
+      inputs.forEach(function (input) {
+        input.addEventListener("change", function () {
+          if (input.checked) inputs.forEach(function (other) { if (other !== input) other.checked = false; });
+        });
+      });
+    }
+
+    equipmentRows.concat(conditionRows).forEach(makeExclusive);
+
+    document.getElementById("equipment-check-all").addEventListener("click", function () {
+      equipmentRows.forEach(function (row) {
+        const inputs = row.querySelectorAll('input[type="checkbox"]');
+        if (inputs[0]) inputs[0].checked = true;
+        if (inputs[1]) inputs[1].checked = false;
+      });
+    });
+
+    document.getElementById("condition-check-all").addEventListener("click", function () {
+      conditionRows.forEach(function (row) {
+        const inputs = row.querySelectorAll('input[type="checkbox"]');
+        if (inputs[0]) inputs[0].checked = true;
+        if (inputs[1]) inputs[1].checked = false;
+      });
+      const oilNo = document.querySelector('input[data-checklist="condition.oil_fuel_leakage_no"]');
+      const oilYes = document.querySelector('input[data-checklist="condition.oil_fuel_leakage_yes"]');
+      if (oilNo) oilNo.checked = true;
+      if (oilYes) oilYes.checked = false;
+    });
+  }
+
   function syncKirState() {
     kirDate.disabled = kirExpired.checked;
     kirDate.required = false;
@@ -352,7 +445,12 @@ window.trcmComponentsReady.then(async function () {
       setAlert("Periksa kembali seluruh field wajib sebelum Register.", "error");
       return;
     }
-    setAlert("Validasi berhasil. Data siap diteruskan ke workflow Register Supabase.", "success");
+    const checklistSnapshot = getChecklistSnapshot();
+    if (!Object.keys(checklistSnapshot.equipment).length || !Object.keys(checklistSnapshot.condition).length) {
+      setAlert("Lengkapi checklist peralatan dan kondisi kendaraan sebelum Register.", "error");
+      return;
+    }
+    setAlert("Validasi berhasil. Checklist kendaraan siap diteruskan bersama data visit.", "success");
   });
 
   resetButton.addEventListener("click", async function () {
@@ -361,6 +459,7 @@ window.trcmComponentsReady.then(async function () {
     updateSummary();
   });
 
+  setupChecklist();
   syncKirState();
   try { await loadMasterData(); updateSummary(); } catch (error) { setAlert(error.message || "Master data gagal dimuat.", "error"); }
 });
