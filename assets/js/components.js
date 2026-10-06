@@ -19,6 +19,7 @@
     if (page === "riwayat.html") return "riwayat";
     if (page === "registrasi-armada.html") { return new URLSearchParams(window.location.search).get("view") === "wh-in" ? "wh-in" : "wh-in"; }
     if (page === "wh-out.html") return "wh-out";
+    if (page === "antri-parkir.html") return "antri-parkir";
     if (page === "mulai-loading.html") return "mulai-loading";
     if (page === "selesai-loading.html") return "selesai-loading";
     if (page === "checker.html") return "checker";
@@ -46,7 +47,7 @@
   function syncCollapsibleMenuState() {
     const key = currentPageKey();
     const menus = [
-      { key: "kunjungan-armada", children: ["wh-in", "wh-out"] },
+      { key: "kunjungan-armada", children: ["wh-in", "antri-parkir", "wh-out"] },
       { key: "checker", children: ["mulai-loading", "selesai-loading"] }
     ];
 
@@ -220,6 +221,7 @@
 
   const statusConfig = {
     wh_in: { label: "Terdaftar", className: "status-wh-in" },
+    queue: { label: "Antri/Parkir", className: "status-queue" },
     queue: { label: "Antri/Parkir", className: "status-queue" },
     start_loading: { label: "Proses Loading", className: "status-start-loading" },
     done_loading: { label: "Selesai Loading", className: "status-done-loading" },
