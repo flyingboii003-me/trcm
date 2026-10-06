@@ -173,6 +173,7 @@ window.trcmComponentsReady.then(async function () {
     if(!form.checkValidity()||!selectedVisit||!canQueue){form.classList.add("was-validated");return;}
     saveButton.disabled=true;
     const startedAt=new Date().toISOString();
+    const selectedCard=selectedVisit.cards&&selectedVisit.cards.card_number?selectedVisit.cards.card_number:"—";
     try{
       const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(selectedVisit.id)+"&process_status=eq.queue&wh_out_at=is.null",{method:"PATCH",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({gate_id:gateSelect.value,line_number_id:lineSelect.value,seal_number:sealNumber.value.trim()||null,notes:loadingNotes.value.trim()||null,process_status:"started",final_status:"processing",started_at:startedAt})});
       if(!Array.isArray(updated)||updated.length!==1)throw new Error("Armada sudah berubah status atau sudah diproses pengguna lain.");
