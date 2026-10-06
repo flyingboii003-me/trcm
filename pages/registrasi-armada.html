@@ -224,7 +224,11 @@ window.trcmComponentsReady.then(async function () {
 
   async function randomizeCard() {
     const usedIds = await getTodayUsedCardIds();
-    const available = cards.filter(function (card) { return card.is_active && !usedIds.has(card.id); });
+    const available = cards.filter(function (card) {
+      const cardNumber = String(card.card_number || "");
+      const numericPart = Number(cardNumber.replace(/^SID/i, ""));
+      return card.is_active && numericPart >= 1 && numericPart <= 90 && !usedIds.has(card.id);
+    });
     if (!available.length) {
       cardInput.value = "";
       cardInput.setCustomValidity("Tidak ada kartu aktif yang tersedia untuk hari ini.");
@@ -245,7 +249,7 @@ window.trcmComponentsReady.then(async function () {
     ]);
     cards = cardRows || []; vendors = vendorRows || [];
     populateClients(clientRows || []);
-    renderVendorOptions("");
+    closeVendorOptions();
     await randomizeCard();
   }
 
@@ -253,7 +257,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("summary-plate").textContent = fields.plateNumber.value.trim().toUpperCase() || "—";
     const direction = fields.activityType.value === "inbound" ? "Inbound" : fields.activityType.value === "outbound" ? "Outbound" : "—";
     document.getElementById("summary-destination").textContent = direction;
-    document.getElementById("summary-city").textContent = fields.activityTypeCity.value.trim() || "—";
+    document.getElementById("summary-city").textContent = fields.destinationCity.value.trim() || "—";
     document.getElementById("summary-driver").textContent = fields.driverName.value.trim() || "—";
     document.getElementById("summary-vendor").textContent = vendorSearch.value.trim() || "—";
     document.getElementById("summary-client").textContent = clientSelect.value ? clientSelect.selectedOptions[0].textContent : "—";
