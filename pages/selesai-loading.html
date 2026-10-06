@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - Selesai Loading Checker">
+<title>Selesai Loading — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Selesai Loading</h1>
+            <p class="page-subtitle">Pilih truck yang sudah Proses Loading untuk memulai proses loading.</p>
+          </div>
+          <button class="btn btn-date-picker" id="refresh-button" type="button">
+            <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
+          </button>
+        </div>
+
+        <section class="card content-card">
+          <div class="card-header content-card-header">
+            <div>
+              <h2 class="card-title">Daftar truck</h2>
+              <p id="result-count" class="page-subtitle">Memuat data...</p>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="p-3 p-lg-4 border-bottom">
+              <div class="row g-2">
+                <div class="col-12 col-md-8">
+                  <label class="visually-hidden" for="search-card">Cari nomor kartu</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu...">
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <button class="btn btn-light border w-100" id="reset-search" type="button">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle trcm-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Kartu</th>
+                    <th>Plat nomor</th>
+                    <th>Tujuan</th>
+                    <th>Vendor</th>
+                    <th>Klien</th>
+                    <th>Shipment</th>
+                    <th>Status</th>
+                    <th class="action-column">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="finish-loading-table">
+                  <tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal fade" id="finish-loading-modal" tabindex="-1" aria-labelledby="finish-loading-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title h5 mb-1" id="finish-loading-title">Selesai Loading</h2>
+          <p class="text-muted small mb-0" id="selected-visit-summary">—</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <form id="finish-loading-form" novalidate>
+          <div class="card bg-body-tertiary border-0 mb-4">
+            <div class="card-body">
+              <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="finish-notes">Catatan</label>
+              <textarea class="form-control" id="finish-notes" rows="4" maxlength="1000" placeholder="Catatan penyelesaian loading"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" form="finish-loading-form" class="btn btn-primary" id="save-finish-button">
+          <i class="bi bi-check-circle me-1"></i>Mulai
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+window.trcmComponentsReady.then(async function () {
+  "use strict";
+
+  const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+  let session = null;
+  try { session = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { session = null; }
+
+  if (!session || !session.access_token || !session.user) {
+    window.location.replace("../index.html");
+    return;
+  }
+
+  const role = session.user.role || "";
+  const canStart = role === "checker" || role === "admin";
+  const table = document.getElementById("loading-table");
+  const resultCount = document.getElementById("result-count");
+  const searchCard = document.getElementById("search-card");
+  const resetSearch = document.getElementById("reset-search");
+  const refreshButton = document.getElementById("refresh-button");
+  const finishNotes = document.getElementById("finish-notes");
+  const form = document.getElementById("finish-loading-form");
+  const saveButton = document.getElementById("save-finish-button");
+  const modalElement = document.getElementById("finish-loading-modal");
+  const modal = new bootstrap.Modal(modalElement);
+
+  let visits = [];
+  let gates = [];
+  let lines = [];
+  let selectedVisit = null;
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
+
+  async function request(path, options) {
+    const response = await fetch(SUPABASE_URL + path, Object.assign({
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token
+      }
+    }, options || {}));
+
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan ke database gagal.");
+    }
+
+    return data;
+  }
+
+  function formatDestination(activityType) {
+    if (activityType === "inbound") return "Inbound";
+    if (activityType === "outbound") return "Outbound";
+    return activityType || "—";
+  }
+
+  function renderTable() {
+    const needle = searchCard.value.trim().toLowerCase();
+    const filtered = visits.filter(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "";
+      return !needle || card.toLowerCase().includes(needle);
+    });
+
+    resultCount.textContent = filtered.length + " truck menunggu Selesai Loading";
+
+    if (!filtered.length) {
+      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck yang menunggu Selesai Loading.</td></tr>';
+      return;
+    }
+
+    table.innerHTML = filtered.map(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+      const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      return '<tr>' +
+        '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
+        '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
+        '<td>' + escapeHtml(formatDestination(visit.activity_type)) + '</td>' +
+        '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
+        '<td>' + escapeHtml(client) + '</td>' +
+        '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
+        '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
+        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
+      '</tr>';
+    }).join("");
+  }
+
+  async function loadVisits() {
+    table.innerHTML = '<tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>';
+    resultCount.textContent = "Memuat data...";
+    refreshButton.disabled = true;
+
+    try {
+      const select = [
+        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number",
+        "process_status","wh_in_at","registered_at","started_at","completed_at","seal_number","notes","clients(name)","cards(card_number)"
+      ].join(",");
+      const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
+        "&process_status=eq.started&wh_out_at=is.null&order=started_at.asc";
+      const data = await request(path);
+      if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
+      visits = data;
+      renderTable();
+    } catch (error) {
+      console.error("TRCM Selesai Loading:", error);
+      table.innerHTML = '<tr><td colspan="8" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
+      resultCount.textContent = "Gagal memuat data";
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: error.message || "Daftar truck tidak dapat dimuat.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      refreshButton.disabled = false;
+    }
+  }
+
+  function openFinishModal(visit) {
+    selectedVisit = visit;
+    const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+    const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+    document.getElementById("selected-visit-summary").textContent = card + " · " + (visit.plate_number || "—") + " · " + client;
+    document.getElementById("detail-card").textContent = card;
+    document.getElementById("detail-plate").textContent = visit.plate_number || "—";
+    document.getElementById("detail-destination").textContent = formatDestination(visit.activity_type);
+    gateSelect.value = "";
+    lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
+    lineSelect.disabled = true;
+    sealNumber.value = visit.seal_number || "";
+    loadingNotes.value = visit.notes || "";
+    form.classList.remove("was-validated");
+    modal.show();
+  }
+
+  async function saveFinish(event) {
+    event.preventDefault();
+    if (!form.checkValidity() || !selectedVisit || !canStart) {
+      form.classList.add("was-validated");
+      return;
+    }
+
+    saveButton.disabled = true;
+    const completedAt = new Date().toISOString();
+
+    try {
+      await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + session.access_token,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify({
+          notes: finishNotes.value.trim() || null,
+          process_status: "completed",
+          final_status: "completed",
+          completed_at: completedAt
+        })
+      });
+
+      try {
+        await request("/rest/v1/visit_events", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            visit_id: selectedVisit.id,
+            status: "started",
+            user_id: session.user.id
+          })
+        });
+      } catch (eventError) {
+        await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+          method: "PATCH",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            process_status: "queue",
+            final_status: null,
+            started_at: null
+          })
+        });
+        throw eventError;
+      }
+
+      modal.hide();
+      await Swal.fire({
+        icon: "success",
+        title: "Mulai tersimpan",
+        text: "Truck berhasil ditandai sebagai Proses Loading.",
+        confirmButtonText: "Selesai",
+        confirmButtonColor: "#0066B3"
+      });
+      await loadVisits();
+    } catch (error) {
+      console.error("TRCM Selesai Loading save:", error);
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal menyimpan",
+        text: error.message || "Perubahan Selesai Loading tidak berhasil disimpan.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      saveButton.disabled = false;
+    }
+  }
+
+  form.addEventListener("submit", saveFinish);
+
+  table.addEventListener("click", function (event) {
+    const button = event.target.closest(".finish-loading-button");
+    if (!button || !canStart) return;
+    const visit = visits.find(function (item) { return item.id === button.dataset.visitId; });
+    if (visit) openFinishModal(visit);
+  });
+
+  if (!canStart) {
+    await Swal.fire({
+      icon: "error",
+      title: "Akses terbatas",
+      text: "Menu Selesai Loading hanya dapat digunakan oleh Checker atau Admin.",
+      confirmButtonText: "Tutup",
+      confirmButtonColor: "#0066B3"
+    });
+  }
+
+  await loadVisits();
+});
+</script>
+</body>
+</html>
