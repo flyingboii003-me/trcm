@@ -232,8 +232,6 @@ window.trcmComponentsReady.then(async function () {
     }
     if (!filtered.length && !needle) {
       truckTypeOptions.innerHTML = '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
-    } else if (!filtered.length && !needle) {
-      truckTypeOptions.innerHTML = '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
     }
     truckTypeOptions.classList.add("is-open");
     truckTypeSearch.setAttribute("aria-expanded", "true");
