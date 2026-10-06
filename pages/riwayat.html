@@ -408,7 +408,7 @@ function renderTable() {
       '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td>' + (window.trcmStatusBadge ? window.trcmStatusBadge(visit.process_status) : '<span class="status-badge status-unknown"><span class="status-dot"></span>' + escapeHtml(status) + '</span>') + '</td>' +
-      '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
+      '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at || visit.created_at)) + '</span></td>' +
       '<td class="action-cell"><button class="detail-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-arrow-up-right-square"></i><span>Detail</span></button></td>' +
     '</tr>';
   }).join("");
