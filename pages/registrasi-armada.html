@@ -31,7 +31,7 @@
               <section class="card content-card mb-3 vendor-master-card">
                 <div class="card-header content-card-header">
                   <div><h2 class="card-title">Data kunjungan</h2><p>Informasi utama untuk membuat visit baru.</p></div>
-                  <span class="status-badge status-registered"><span class="status-dot"></span>WH In</span>
+                  <span class="status-badge status-wh-in"><span class="status-dot"></span>Terdaftar</span>
                 </div>
                 <div class="card-body">
                   <div id="registration-alert" class="registration-alert d-none" role="alert"></div>
@@ -192,7 +192,7 @@
                 <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2><p>Informasi pengiriman dan kota tujuan atau asal armada.</p></div></div>
                 <div class="card-body">
                   <div class="row g-3">
-                    <div class="col-12 col-md-6"><label class="form-label" for="shipment-type">Tipe shipment</label><input class="form-control" id="shipment-type" maxlength="80"></div>
+                    <div class="col-12 col-md-6"><fieldset class="border-0 p-0 m-0"><legend class="form-label mb-2">Tipe shipment <span class="text-danger">*</span></legend><div class="d-flex flex-wrap gap-3"><div class="form-check"><input class="form-check-input" type="radio" id="shipment-type-unload" name="shipment-type" value="Bongkar" required><label class="form-check-label" for="shipment-type-unload">Bongkar</label></div><div class="form-check"><input class="form-check-input" type="radio" id="shipment-type-load" name="shipment-type" value="Muat" required><label class="form-check-label" for="shipment-type-load">Muat</label></div></div><div class="invalid-feedback d-block">Tipe shipment wajib dipilih.</div></fieldset></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="shipment-number">Nomor shipment</label><input class="form-control" id="shipment-number" maxlength="80"></div>
                     <div class="col-12"><label class="form-label" for="destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="destination-city" maxlength="100" placeholder="Contoh: Surabaya" required><div class="invalid-feedback">Tujuan (Gudang / Kota) wajib diisi.</div></div>
                     <div class="col-12"><label class="form-label" for="notes">Catatan</label><textarea class="form-control" id="notes" rows="4" maxlength="1000" placeholder="Catatan tambahan untuk visit"></textarea></div>
@@ -261,7 +261,7 @@ window.trcmComponentsReady.then(async function () {
     truckType: document.getElementById("truck-type"), licenseType: document.getElementById("license-type"),
     licenseNum: document.getElementById("license-num"), licenseExp: document.getElementById("license-exp"),
     vehicleExp: document.getElementById("vehicle-exp"), vehicleInspectExp: kirDate,
-    shipmentType: document.getElementById("shipment-type"), shipmentNumber: document.getElementById("shipment-number"),
+    shipmentNumber: document.getElementById("shipment-number"), document.getElementById("shipment-number"),
     destinationCity: document.getElementById("destination-city"), notes: document.getElementById("notes")
   };
   let vendors = [];
@@ -533,12 +533,13 @@ window.trcmComponentsReady.then(async function () {
       license_exp: fields.licenseExp.value || null,
       vehicle_exp: fields.vehicleExp.value || null,
       vehicle_inspect_exp: kirExpired.checked ? null : (fields.vehicleInspectExp.value || null),
-      shipment_type: fields.shipmentType.value.trim() || null,
-      shipment_number: fields.shipmentNumber.value.trim() || null,
+       fields.shipmentNumber.value.trim() || null,
+      shipment_type: document.querySelector('input[name="shipment-type"]:checked')?.value || null,
       destination_city: fields.destinationCity.value.trim() || null,
       notes: fields.notes.value.trim() || null,
       vendor: fields.vendor.value.trim() || null,
       vehicle_checklist: checklistSnapshot,
+      wh_in_at: new Date().toISOString(),
       registered_at: new Date().toISOString()
     };
 
@@ -553,6 +554,10 @@ window.trcmComponentsReady.then(async function () {
         confirmButtonText: "Selesai",
         confirmButtonColor: "#0066B3"
       });
+      if (window.matchMedia("(max-width: 767.98px)").matches) {
+        window.location.reload();
+        return;
+      }
       form.reset();
       form.classList.remove("was-validated");
       vendorValue.value = "";
