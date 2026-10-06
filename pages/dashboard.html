@@ -148,10 +148,10 @@ function formatDuration(start,end) {
   return Math.floor(minutes/60) + "j " + String(minutes%60).padStart(2,"0") + "m";
 }
 function renderStats() {
-  const waiting = visits.filter(v => v.process_status === "registered").length;
-  const processing = visits.filter(v => v.process_status === "started").length;
-  const done = visits.filter(v => v.process_status === "completed").length;
-  const completed = visits.filter(v => v.process_status === "completed" && v.wh_in_at && v.completed_at);
+  const waiting = visits.filter(v => v.process_status === "wh_in").length;
+  const processing = visits.filter(v => v.process_status === "queue" || v.process_status === "start_loading").length;
+  const done = visits.filter(v => v.process_status === "done_loading" || v.process_status === "wh_out").length;
+  const completed = visits.filter(v => (v.process_status === "done_loading" || v.process_status === "wh_out") && v.wh_in_at && v.completed_at);
   const avg = completed.length ? Math.max(0,Math.round(completed.reduce((sum,v) => sum + (new Date(v.completed_at)-new Date(v.wh_in_at)),0)/completed.length/60000)) : 0;
   document.getElementById("stat-waiting").textContent = waiting + " Armada";
   document.getElementById("stat-process").textContent = processing + " Armada";
@@ -161,9 +161,11 @@ function renderStats() {
 function renderCharts() {
   if (typeof ApexCharts === "undefined") return;
   const statusData = [
-    visits.filter(v => v.process_status === "registered").length,
-    visits.filter(v => v.process_status === "started").length,
-    visits.filter(v => v.process_status === "completed").length
+    visits.filter(v => v.process_status === "wh_in").length,
+    visits.filter(v => v.process_status === "queue").length,
+    visits.filter(v => v.process_status === "start_loading").length,
+    visits.filter(v => v.process_status === "done_loading").length,
+    visits.filter(v => v.process_status === "wh_out").length
   ];
   const activityTypeData = [
     visits.filter(v => v.activity_type === "inbound").length,
@@ -201,7 +203,7 @@ function renderCharts() {
     series:[{name:"Visit",data:statusData}],
     colors:["#006ECD"],
     plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},
-    xaxis:{...baseBar.xaxis,categories:["Terdaftar","Sedang proses","Selesai"]}
+    xaxis:{...baseBar.xaxis,categories:["Terdaftar","Antri/Parkir","Proses Loading","Selesai Loading","Selesai/Keluar Gudang"]}
   });
 
   destinationChart = new ApexCharts(document.querySelector("#destination-chart"), {
