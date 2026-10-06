@@ -761,3 +761,11 @@ button,input,select{font:inherit}
 .sidebar-submenu-link i{font-size:.9rem;}
 .sidebar-submenu-link.active{background:#1677b7;color:#fff;}
 @media(max-width:1199.98px){.sidebar-submenu-list{padding-left:.4rem;}.sidebar-submenu-link{margin-left:.3rem;}}
+
+/* Collapsible Kunjungan Armada */
+.sidebar-menu-parent-toggle{border:0;width:100%;text-align:left;background:transparent;cursor:pointer;position:relative;}
+.sidebar-menu-parent-toggle .sidebar-menu-chevron{margin-left:auto;font-size:.72rem;transition:transform .2s ease;}
+.sidebar-menu-parent-toggle.is-expanded .sidebar-menu-chevron{transform:rotate(180deg);}
+.sidebar-submenu-list[hidden]{display:none!important;}
+.sidebar-submenu-list{animation:trcm-submenu-open .18s ease-out;}
+@keyframes trcm-submenu-open{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
