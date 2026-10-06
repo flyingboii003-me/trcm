@@ -22,7 +22,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Mulai Loading</h1>
-            <p class="page-subtitle">Pilih truck yang sudah terdaftar untuk memulai proses loading.</p>
+            <p class="page-subtitle">Pilih truck yang sudah Antri / Parkir untuk memulai proses loading.</p>
           </div>
           <button class="btn btn-date-picker" id="refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
@@ -287,7 +287,7 @@ window.trcmComponentsReady.then(async function () {
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
-        "&process_status=in.(registered)&wh_out_at=is.null&order=registered_at.asc";
+        "&process_status=eq.queue&wh_out_at=is.null&order=wh_in_at.asc";
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
@@ -380,7 +380,7 @@ window.trcmComponentsReady.then(async function () {
             Prefer: "return=minimal"
           },
           body: JSON.stringify({
-            process_status: "registered",
+            process_status: "queue",
             final_status: null,
             started_at: null
           })
