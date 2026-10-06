@@ -64,10 +64,10 @@
                       <label class="form-label" for="vendor-search">Vendor <span class="text-danger">*</span></label>
                       <div class="searchable-select" id="vendor-select">
                         <input class="form-control" id="vendor-search" type="search" autocomplete="off" placeholder="Cari vendor..." role="combobox" aria-expanded="false" aria-controls="vendor-options">
-                        <input id="vendor" type="hidden" required>
+                        <input id="vendor" type="hidden">
                         <div class="searchable-options" id="vendor-options" role="listbox"></div>
                       </div>
-                      <div class="invalid-feedback d-block" id="vendor-feedback" hidden>Vendor wajib dipilih.</div>
+                      
                     </div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="client">Klien <span class="text-danger">*</span></label>
@@ -86,16 +86,16 @@
                   <div class="row g-3">
                     <div class="col-12 col-md-6"><label class="form-label" for="driver-name">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="driver-name" type="text" maxlength="120" required><div class="invalid-feedback">Nama driver wajib diisi.</div></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="driver-phone">Nomor telepon driver</label><input class="form-control" id="driver-phone" type="tel" maxlength="30"></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="truck-type">Tipe truck <span class="text-danger">*</span></label><input class="form-control" id="truck-type" type="text" maxlength="80" placeholder="Contoh: Wingbox" required><div class="invalid-feedback">Tipe truck wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="truck-type">Tipe truck <span class="text-danger">*</span></label><div class="searchable-select" id="truck-type-select"><input class="form-control" id="truck-type-search" type="search" autocomplete="off" placeholder="Cari tipe truck..." role="combobox" aria-expanded="false" aria-controls="truck-type-options"><input id="truck-type" type="hidden" required><div class="searchable-options" id="truck-type-options" role="listbox"></div></div><div class="invalid-feedback">Tipe truck wajib diisi.</div></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="license-type">Tipe SIM</label><select class="form-select" id="license-type"><option value="">Pilih tipe SIM</option><option value="sim_a">SIM A</option><option value="sim_a_umum">SIM A Umum</option><option value="sim_b1">SIM B1</option><option value="sim_b1_umum">SIM B1 Umum</option><option value="sim_b2">SIM B2</option><option value="sim_b2_umum">SIM B2 Umum</option></select></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="license-num">Nomor SIM</label><input class="form-control" id="license-num" type="text" maxlength="40"></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="license-exp">Masa berlaku SIM</label><input class="form-control" id="license-exp" type="date"></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="vehicle-exp">Masa berlaku STNK</label><input class="form-control" id="vehicle-exp" type="date"><div class="invalid-feedback">Masa berlaku STNK wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="vehicle-exp">Masa berlaku STNK</label><input class="form-control" id="vehicle-exp" type="date"></div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="vehicle-inspect-exp">Masa berlaku KIR</label>
-                      <input class="form-control" id="vehicle-inspect-exp" type="date" required>
+                      <input class="form-control" id="vehicle-inspect-exp" type="date">
                       <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="kir-expired"><label class="form-check-label" for="kir-expired">KIR Kadaluarsa</label></div>
-                      <div class="invalid-feedback">Masa berlaku KIR wajib diisi atau tandai KIR Kadaluarsa.</div>
+                      
                     </div>
                   </div>
                 </div>
@@ -158,7 +158,10 @@ window.trcmComponentsReady.then(async function () {
   const vendorSearch = document.getElementById("vendor-search");
   const vendorValue = document.getElementById("vendor");
   const vendorOptions = document.getElementById("vendor-options");
-  const vendorFeedback = document.getElementById("vendor-feedback");
+  const truckTypeSearch = document.getElementById("truck-type-search");
+  const truckTypeValue = document.getElementById("truck-type");
+  const truckTypeOptions = document.getElementById("truck-type-options");
+  const vendorFeedback = null;
   const kirExpired = document.getElementById("kir-expired");
   const kirDate = document.getElementById("vehicle-inspect-exp");
   const plateInput = document.getElementById("plate-number");
@@ -174,6 +177,7 @@ window.trcmComponentsReady.then(async function () {
     destinationCity: document.getElementById("destination-city"), notes: document.getElementById("notes")
   };
   let vendors = [];
+  let truckTypes = [];
   let cards = [];
 
   function escapeHtml(value) {
@@ -211,7 +215,29 @@ window.trcmComponentsReady.then(async function () {
 
   function closeVendorOptions() { vendorOptions.classList.remove("is-open"); vendorSearch.setAttribute("aria-expanded", "false"); }
   function selectVendor(id, name) {
-    vendorValue.value = id; vendorSearch.value = name; vendorFeedback.hidden = true; closeVendorOptions(); updateSummary();
+    vendorValue.value = id || "";
+    vendorSearch.value = name;
+    closeVendorOptions();
+    updateSummary();
+  }
+  function renderTruckTypeOptions(query) {
+    const needle = String(query || "").trim().toLowerCase();
+    const filtered = truckTypes.filter(function (item) { return item.name.toLowerCase().includes(needle); });
+    truckTypeOptions.innerHTML = filtered.length ? filtered.map(function (item) {
+      return '<button type="button" class="searchable-option" data-name="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</button>';
+    }).join("") : '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
+    truckTypeOptions.classList.add("is-open");
+    truckTypeSearch.setAttribute("aria-expanded", "true");
+  }
+  function closeTruckTypeOptions() {
+    truckTypeOptions.classList.remove("is-open");
+    truckTypeSearch.setAttribute("aria-expanded", "false");
+  }
+  function selectTruckType(name) {
+    truckTypeValue.value = name;
+    truckTypeSearch.value = name;
+    closeTruckTypeOptions();
+    updateSummary();
   }
 
   async function getTodayUsedCardIds() {
@@ -242,12 +268,13 @@ window.trcmComponentsReady.then(async function () {
   }
 
   async function loadMasterData() {
-    const [cardRows, vendorRows, clientRows] = await Promise.all([
+    const [cardRows, vendorRows, clientRows, truckTypeRows] = await Promise.all([
       getJson("/rest/v1/cards?select=id,card_number,is_active&is_active=eq.true&order=card_number.asc"),
       getJson("/rest/v1/vendors?select=id,name&order=name.asc"),
-      getJson("/rest/v1/clients?select=id,name&order=name.asc")
+      getJson("/rest/v1/clients?select=id,name&order=name.asc"),
+      getJson("/rest/v1/truck_types?select=id,name,is_active&is_active=eq.true&order=name.asc")
     ]);
-    cards = cardRows || []; vendors = vendorRows || [];
+    cards = cardRows || []; vendors = vendorRows || []; truckTypes = truckTypeRows || [];
     populateClients(clientRows || []);
     closeVendorOptions();
     await randomizeCard();
@@ -265,7 +292,7 @@ window.trcmComponentsReady.then(async function () {
 
   function syncKirState() {
     kirDate.disabled = kirExpired.checked;
-    kirDate.required = !kirExpired.checked;
+    kirDate.required = false;
     if (kirExpired.checked) { kirDate.value = ""; kirDate.setCustomValidity(""); }
   }
 
@@ -274,9 +301,6 @@ window.trcmComponentsReady.then(async function () {
     fields.plateNumber.value = plate;
     if (plate.length < 3) { fields.plateNumber.setCustomValidity("Plat nomor minimal 3 karakter."); return false; }
     fields.plateNumber.setCustomValidity("");
-    if (!vendorValue.value) { vendorFeedback.hidden = false; return false; }
-    vendorFeedback.hidden = true;
-    if (!kirExpired.checked && !kirDate.value) { kirDate.setCustomValidity("Masa berlaku KIR wajib diisi."); return false; }
     kirDate.setCustomValidity("");
     return true;
   }
@@ -287,13 +311,20 @@ window.trcmComponentsReady.then(async function () {
     field.addEventListener("input", updateSummary); field.addEventListener("change", updateSummary);
   });
   vendorSearch.addEventListener("focus", function () { renderVendorOptions(vendorSearch.value); });
-  vendorSearch.addEventListener("input", function () { vendorValue.value = ""; vendorFeedback.hidden = true; renderVendorOptions(vendorSearch.value); updateSummary(); });
+  vendorSearch.addEventListener("input", function () { vendorValue.value = ""; renderVendorOptions(vendorSearch.value); updateSummary(); });
+  truckTypeSearch.addEventListener("focus", function () { renderTruckTypeOptions(truckTypeSearch.value); });
+  truckTypeSearch.addEventListener("input", function () { truckTypeValue.value = truckTypeSearch.value; renderTruckTypeOptions(truckTypeSearch.value); updateSummary(); });
+  truckTypeOptions.addEventListener("click", function (event) {
+    const option = event.target.closest(".searchable-option");
+    if (option) selectTruckType(option.dataset.name);
+  });
   vendorOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
     if (option) selectVendor(option.dataset.id, option.dataset.name);
   });
   document.addEventListener("click", function (event) {
     if (!document.getElementById("vendor-select").contains(event.target)) closeVendorOptions();
+    if (!document.getElementById("truck-type-select").contains(event.target)) closeTruckTypeOptions();
   });
   clientSelect.addEventListener("change", updateSummary);
   kirExpired.addEventListener("change", function () { syncKirState(); updateSummary(); });
@@ -310,7 +341,7 @@ window.trcmComponentsReady.then(async function () {
   });
 
   resetButton.addEventListener("click", async function () {
-    form.reset(); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; vendorFeedback.hidden = true; syncKirState();
+    form.reset(); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; truckTypeValue.value = ""; truckTypeSearch.value = ""; syncKirState();
     try { await randomizeCard(); } catch (error) { setAlert(error.message, "error"); }
     updateSummary();
   });
