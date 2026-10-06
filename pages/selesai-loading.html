@@ -22,7 +22,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Selesai Loading</h1>
-            <p class="page-subtitle">Pilih truck yang sudah Proses Loading untuk memulai proses loading.</p>
+            <p class="page-subtitle">Pilih truck yang sedang dalam proses loading untuk menandai proses selesai.</p>
           </div>
           <button class="btn btn-date-picker" id="refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
@@ -32,7 +32,7 @@
         <section class="card content-card">
           <div class="card-header content-card-header">
             <div>
-              <h2 class="card-title">Daftar truck</h2>
+              <h2 class="card-title">Daftar truck dalam proses</h2>
               <p id="result-count" class="page-subtitle">Memuat data...</p>
             </div>
           </div>
@@ -94,9 +94,23 @@
           <div class="card bg-body-tertiary border-0 mb-4">
             <div class="card-body">
               <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label" for="finish-notes">Catatan</label>
-              <textarea class="form-control" id="finish-notes" rows="4" maxlength="1000" placeholder="Catatan penyelesaian loading"></textarea>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Nomor kartu</span>
+                  <strong id="detail-card">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Plat nomor</span>
+                  <strong id="detail-plate">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Tujuan</span>
+                  <strong id="detail-destination">—</strong>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="finish-notes">Catatan</label>
+                  <textarea class="form-control" id="finish-notes" rows="4" maxlength="1000" placeholder="Catatan penyelesaian loading"></textarea>
+                </div>
+              </div>
             </div>
           </div>
         </form>
@@ -104,7 +118,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
         <button type="submit" form="finish-loading-form" class="btn btn-primary" id="save-finish-button">
-          <i class="bi bi-check-circle me-1"></i>Mulai
+          <i class="bi bi-check-circle me-1"></i>Selesai
         </button>
       </div>
     </div>
@@ -130,7 +144,7 @@ window.trcmComponentsReady.then(async function () {
 
   const role = session.user.role || "";
   const canStart = role === "checker" || role === "admin";
-  const table = document.getElementById("loading-table");
+  const table = document.getElementById("finish-loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
   const resetSearch = document.getElementById("reset-search");
@@ -142,8 +156,6 @@ window.trcmComponentsReady.then(async function () {
   const modal = new bootstrap.Modal(modalElement);
 
   let visits = [];
-  let gates = [];
-  let lines = [];
   let selectedVisit = null;
 
   function escapeHtml(value) {
