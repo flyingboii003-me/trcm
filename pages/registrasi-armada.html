@@ -488,7 +488,15 @@ window.trcmComponentsReady.then(async function () {
   });
   vendorOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
-    if (option) selectVendor(option.dataset.id, option.dataset.name);
+    if (!option) return;
+
+    if (option.dataset.custom !== undefined) {
+      const customName = String(option.dataset.custom || "").trim();
+      selectVendor("", customName);
+      return;
+    }
+
+    selectVendor(option.dataset.id || "", option.dataset.name || "");
   });
   document.addEventListener("click", function (event) {
     if (!document.getElementById("vendor-select").contains(event.target)) closeVendorOptions();
