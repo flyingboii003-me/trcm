@@ -63,7 +63,7 @@
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
               <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi status visit yang tercatat.</p></div></div>
-              <div class="card-body"><div id="status-chart" class="operational-chart" aria-label="Grafik status armada"></div></div>
+              <div class="card-body"><div id="status-overview" class="status-overview" aria-label="Status armada"></div></div>
             </section>
           </div>
           <div class="col-12 col-xl-6">
@@ -160,13 +160,33 @@ function renderStats() {
 }
 function renderCharts() {
   if (typeof ApexCharts === "undefined") return;
-  const statusData = [
-    visits.filter(v => v.process_status === "wh_in").length,
-    visits.filter(v => v.process_status === "queue").length,
-    visits.filter(v => v.process_status === "start_loading").length,
-    visits.filter(v => v.process_status === "done_loading").length,
-    visits.filter(v => v.process_status === "wh_out").length
+  const statusDefinitions = [
+    { key: "wh_in", label: "Terdaftar", color: "#006ECD" },
+    { key: "queue", label: "Antri/Parkir", color: "#6B7280" },
+    { key: "start_loading", label: "Proses Loading", color: "#FF9700" },
+    { key: "done_loading", label: "Selesai Loading", color: "#22C55E" },
+    { key: "wh_out", label: "Selesai/Keluar Gudang", color: "#18794E" }
   ];
+  const statusData = statusDefinitions.map(function (definition) {
+    return visits.filter(v => v.process_status === definition.key).length;
+  });
+  const statusTotal = statusData.reduce((sum, value) => sum + value, 0);
+  const statusOverview = document.getElementById("status-overview");
+  if (statusOverview) {
+    statusOverview.innerHTML = statusTotal
+      ? statusDefinitions.map(function (definition, index) {
+          const value = statusData[index];
+          const percent = statusTotal ? Math.max(value ? 5 : 0, Math.round((value / statusTotal) * 100)) : 0;
+          return '<div class="status-overview-item">' +
+            '<div class="status-overview-head">' +
+              '<span class="status-overview-label"><span class="status-overview-dot" style="background:' + definition.color + '"></span>' + escapeHtml(definition.label) + '</span>' +
+              '<span class="status-overview-value">' + value + ' Armada</span>' +
+            '</div>' +
+            '<div class="status-overview-track"><div class="status-overview-fill" style="width:' + percent + '%;background:' + definition.color + '"></div></div>' +
+          '</div>';
+        }).join("")
+      : '<div class="status-overview-empty">Belum ada data armada.</div>';
+  }
   const activityTypeData = [
     visits.filter(v => v.activity_type === "inbound").length,
     visits.filter(v => v.activity_type === "outbound").length
@@ -184,7 +204,7 @@ function renderCharts() {
   };
   const vendorEntries = topEntries(vendorCounts);
   const clientEntries = topEntries(clientCounts);
-  [statusChart, destinationChart, vendorChart, clientChart].forEach(function (chart) {
+  [destinationChart, vendorChart, clientChart].forEach(function (chart) {
     if (chart) chart.destroy();
   });
 
@@ -197,14 +217,6 @@ function renderCharts() {
     yaxis:{labels:{show:false}},
     tooltip:{theme:"dark"}
   };
-
-  statusChart = new ApexCharts(document.querySelector("#status-chart"), {
-    ...baseBar,
-    series:[{name:"Visit",data:statusData}],
-    colors:["#006ECD"],
-    plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},
-    xaxis:{...baseBar.xaxis,categories:["Terdaftar","Antri/Parkir","Proses Loading","Selesai Loading","Selesai/Keluar Gudang"]}
-  });
 
   destinationChart = new ApexCharts(document.querySelector("#destination-chart"), {
     ...baseBar,
@@ -235,7 +247,7 @@ function renderCharts() {
   });
 
 
-  [statusChart,destinationChart,vendorChart,clientChart].forEach(chart => chart.render());
+  [destinationChart,vendorChart,clientChart].forEach(chart => chart.render());
 
   const renderLegend = function (targetId, entries) {
     const target = document.getElementById(targetId);
@@ -262,7 +274,7 @@ function renderRecent() {
     const driverName = String(visit.driver_name || "—").trim();
     const clientName = String((visit.clients && visit.clients.name) || "—").trim();
     const secondary = driverName + " / " + clientName;
-    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : "destination-outbound") + '">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
+    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : "destination-outbound") + '">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at || visit.created_at)) + '</span></td></tr>';
   }).join("");
 }
 async function loadDashboard() {
