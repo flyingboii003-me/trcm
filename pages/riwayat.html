@@ -253,7 +253,7 @@ async function openVisitModal(visitId) {
       "card_id",
       "plate_number",
       "container_num",
-      "destination",
+      "activity_type",
       "vendor",
       "client_id",
       "driver_name",
@@ -334,7 +334,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Nomor kartu", card, true),
       renderDetailItem("Plat nomor", visit.plate_number, true),
       renderDetailItem("Nomor kontainer", visit.container_num, true),
-      renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
+      renderDetailItem("Tipe Aktivitas", visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : visit.activity_type),
       renderDetailItem("Klien", client),
       renderDetailItem("Nama sopir", visit.driver_name),
       renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
@@ -349,7 +349,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
       renderDetailItem("Tipe shipment", visit.shipment_type),
       renderDetailItem("Nomor shipment", visit.shipment_number, true),
-      renderDetailItem("Tujuan (Kota)", visit.destination_city, true),
+      renderDetailItem("Tujuan (Kota)", visit.activity_type_city, true),
       renderDetailItem("Nomor gerbang", gate),
       renderDetailItem("Nomor line", lineNumber),
       renderDetailItem("Nomor segel", visit.seal_number, true),
@@ -412,13 +412,13 @@ function renderTable() {
   }
 
   truckTable.innerHTML = pageRows.map(function (visit) {
-    const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
+    const destination = visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : "—";
     const status = statusLabels[visit.process_status] || visit.process_status || "—";
     const client = visit.client || (visit.clients && visit.clients.name) || "—";
     const secondary = visit.driver_name || visit.driver || client;
     return '<tr>' +
       '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
-      '<td><span class="destination ' + (visit.destination === "inbound" ? "destination-inbound" : visit.destination === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
+      '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td><span class="status-badge status-' + escapeHtml(visit.process_status || "") + '"><span class="status-dot"></span>' + escapeHtml(status) + '</span></td>' +
       '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
@@ -482,7 +482,7 @@ async function loadVisits() {
       "id",
       "plate_number",
       "container_num",
-      "destination",
+      "activity_type",
       "vendor",
       "client_id",
       "driver_name",
@@ -610,7 +610,7 @@ exportButton.addEventListener("click", function () {
 
   const csvRows = rows.map(function (visit) {
     const destination =
-      visit.destination === "inbound" ? "Inbound" : "Outbound";
+      visit.activity_type === "inbound" ? "Inbound" : "Outbound";
     const status = statusLabels[visit.process_status] || visit.process_status || "";
     const duration =
       visit.process_status === "completed"
