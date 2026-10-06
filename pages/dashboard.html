@@ -166,8 +166,8 @@ function renderCharts() {
     visits.filter(v => v.process_status === "completed").length
   ];
   const destinationData = [
-    visits.filter(v => v.destination === "inbound").length,
-    visits.filter(v => v.destination === "outbound").length
+    visits.filter(v => v.activity_type === "inbound").length,
+    visits.filter(v => v.activity_type === "outbound").length
   ];
   const vendorCounts = {};
   const clientCounts = {};
@@ -256,17 +256,17 @@ function renderRecent() {
     return;
   }
   recentTable.innerHTML = rows.map(function(visit) {
-    const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
+    const destination = visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : "—";
     const driverName = String(visit.driver_name || "—").trim();
     const clientName = String((visit.clients && visit.clients.name) || "—").trim();
     const secondary = driverName + " / " + clientName;
-    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination ' + (visit.destination === "inbound" ? "destination-inbound" : "destination-outbound") + '">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
+    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : "destination-outbound") + '">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
   }).join("");
 }
 async function loadDashboard() {
   refreshButton.disabled = true;
   try {
-    const select = ["id","plate_number","driver_name","destination","vendor","client_id","process_status","wh_in_at","registered_at","started_at","completed_at","created_at","clients(name)"].join(",");
+    const select = ["id","plate_number","driver_name","activity_type","vendor","client_id","process_status","wh_in_at","registered_at","started_at","completed_at","created_at","clients(name)"].join(",");
     const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
       headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
     });
