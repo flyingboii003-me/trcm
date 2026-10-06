@@ -260,7 +260,7 @@ function renderRecent() {
     const driverName = String(visit.driver_name || "—").trim();
     const clientName = String((visit.clients && visit.clients.name) || "—").trim();
     const secondary = driverName + " / " + clientName;
-    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
+    return '<tr><td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td><td><span class="destination ' + (visit.destination === "inbound" ? "destination-inbound" : "destination-outbound") + '">' + escapeHtml(destination) + '</span></td><td>' + escapeHtml(visit.vendor || "—") + '</td><td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td></tr>';
   }).join("");
 }
 async function loadDashboard() {
