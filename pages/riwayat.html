@@ -349,7 +349,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
       renderDetailItem("Tipe shipment", visit.shipment_type),
       renderDetailItem("Nomor shipment", visit.shipment_number, true),
-      renderDetailItem("Tujuan (Kota)", visit.activity_type_city, true),
+      renderDetailItem("Tujuan (Kota)", visit.destination_city, true),
       renderDetailItem("Nomor gerbang", gate),
       renderDetailItem("Nomor line", lineNumber),
       renderDetailItem("Nomor segel", visit.seal_number, true),
@@ -599,7 +599,7 @@ exportButton.addEventListener("click", function () {
   const rows = filteredVisits();
   const header = [
     "Plat nomor",
-    "Tujuan",
+    "Tipe Aktivitas",
     "Klien",
     "Vendor",
     "Nomor shipment",
