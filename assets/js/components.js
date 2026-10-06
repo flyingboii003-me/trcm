@@ -25,8 +25,38 @@
     return "";
   }
 
+  function setupCollapsibleMenus() {
+    const toggles = document.querySelectorAll("[data-menu-toggle]");
+    toggles.forEach(function (toggle) {
+      const menuKey = toggle.getAttribute("data-menu-toggle");
+      const submenu = document.querySelector('[data-menu-submenu="' + menuKey + '"]');
+      if (!submenu) return;
+
+      toggle.addEventListener("click", function () {
+        const expanded = toggle.getAttribute("aria-expanded") === "true";
+        toggle.setAttribute("aria-expanded", String(!expanded));
+        submenu.hidden = expanded;
+        toggle.classList.toggle("is-expanded", !expanded);
+      });
+    });
+  }
+
+  function syncCollapsibleMenuState() {
+    const key = currentPageKey();
+    const toggle = document.querySelector('[data-menu-toggle="kunjungan-armada"]');
+    const submenu = document.querySelector('[data-menu-submenu="kunjungan-armada"]');
+    if (!toggle || !submenu) return;
+
+    const isChildActive = key === "wh-in" || key === "wh-out";
+    toggle.setAttribute("aria-expanded", String(isChildActive));
+    toggle.classList.toggle("is-expanded", isChildActive);
+    submenu.hidden = !isChildActive;
+  }
+
   function setActiveMenu() {
     const key = currentPageKey();
+
+    syncCollapsibleMenuState();
 
     document.querySelectorAll("[data-nav-key]").forEach(function (link) {
       const active = link.getAttribute("data-nav-key") === key;
@@ -154,7 +184,8 @@
   window.trcmSidebarReady = loadFragment("../components/sidebar.html", container, true)
     .then(function (loaded) {
       if (loaded) {
-        setActiveMenu();
+        setupCollapsibleMenus();
+  setActiveMenu();
       }
       return loaded;
     });
