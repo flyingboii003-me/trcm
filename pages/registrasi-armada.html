@@ -571,6 +571,7 @@ window.trcmComponentsReady.then(async function () {
       form.classList.remove("was-validated");
       vendorValue.value = "";
       vendorSearch.value = "";
+      vendorSearch.setCustomValidity("");
       truckTypeValue.value = "";
       truckTypeSearch.value = "";
       cardInput.dataset.cardId = "";
@@ -593,7 +594,7 @@ window.trcmComponentsReady.then(async function () {
   });
 
   resetButton.addEventListener("click", async function () {
-    form.reset(); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; truckTypeValue.value = ""; truckTypeSearch.value = ""; syncKirState();
+    form.reset(); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; vendorSearch.setCustomValidity(""); truckTypeValue.value = ""; truckTypeSearch.value = ""; syncKirState();
     try { await randomizeCard(); } catch (error) { setAlert(error.message, "error"); }
     updateSummary();
   });
