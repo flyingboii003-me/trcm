@@ -524,3 +524,17 @@ button,input,select{font:inherit}
   .registration-summary>div{align-items:flex-start;flex-direction:column;gap:.25rem;}
   .registration-summary strong{text-align:left;}
 }
+
+/* Gate Security — searchable master-data controls */
+.searchable-select{position:relative;}
+.searchable-select .form-control{padding-right:2.5rem;}
+.searchable-options{position:absolute;z-index:1050;left:0;right:0;top:calc(100% + .35rem);display:none;max-height:240px;overflow:auto;padding:.35rem;background:#fff;border:1px solid #dfe7e3;border-radius:.75rem;box-shadow:0 10px 28px rgba(24,42,34,.12);}
+.searchable-options.is-open{display:grid;}
+.searchable-option{display:block;width:100%;border:0;background:transparent;border-radius:.55rem;padding:.65rem .75rem;text-align:left;color:#33443c;font:inherit;font-size:.84rem;cursor:pointer;}
+.searchable-option:hover,.searchable-option:focus{background:#eef5f1;color:#087f5b;outline:0;}
+.searchable-empty{padding:.7rem .75rem;color:#7a8881;font-size:.82rem;}
+.registration-actions .btn-success{background:#198754;border-color:#198754;color:#fff;}
+.registration-actions .btn-success:hover,.registration-actions .btn-success:focus{background:#157347;border-color:#146c43;color:#fff;}
+.registration-actions .btn-warning{background:#f59f00;border-color:#f59f00;color:#fff;}
+.registration-actions .btn-warning:hover,.registration-actions .btn-warning:focus{background:#e08f00;border-color:#d78900;color:#fff;}
+#vehicle-inspect-exp:disabled{background-color:#f3f5f4;color:#8b9690;cursor:not-allowed;}
