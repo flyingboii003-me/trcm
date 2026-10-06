@@ -465,8 +465,13 @@ button,input,select{font:inherit}
   --trcm-welcome-soft:#eaf4fb;
 }
 .sidebar-wrapper{background:linear-gradient(180deg,#0f4f7a 0%,#0d496f 100%);}
-.sidebar-menu-link:hover{background:rgba(255,255,255,.10);}
-.sidebar-menu-link.active{background:#1677b7;box-shadow:0 4px 12px rgba(5,48,77,.20);}
+.sidebar-menu-link{color:#d7e7f2;}
+.sidebar-menu-link .menu-icon{color:#c9dce9;}
+.sidebar-menu-link:hover{background:rgba(255,255,255,.10);color:#f4f9fc;}
+.sidebar-menu-link:hover .menu-icon{color:#f4f9fc;}
+.sidebar-menu-link.active{background:#1677b7;color:#fff;box-shadow:0 4px 12px rgba(5,48,77,.20);}
+.sidebar-menu-link.active .menu-icon{color:#fff;}
+.sidebar-menu-title,.sidebar-section-title,.sidebar-menu-separator{color:#bcd2e1;}
 .sidebar-footer{border-top-color:rgba(255,255,255,.14);}
 .welcome-card{border-color:#0a5b92;background:linear-gradient(135deg,#0b64a0 0%,#1677b7 100%);box-shadow:0 8px 24px rgba(11,100,160,.16);}
 .welcome-card-copy,.welcome-card h2{color:#fff;}
@@ -479,5 +484,8 @@ button,input,select{font:inherit}
 .destination.destination-inbound{background:#eaf3fc;border-color:#cfe3f5;color:#006ecd;}
 .destination.destination-outbound{background:#fdebed;border-color:#f5cbd0;color:#c5121a;}
 .status-badge.status-registered{background:#eaf3fc;border:1px solid #cfe3f5;color:#006ecd;}
-.status-badge.status-started,.status-badge.status-processing{background:#eaf3fc;border:1px solid #cfe3f5;color:#006ecd;}
+.status-badge.status-started,.status-badge.status-processing{background:#fff3e5;border:1px solid #ffd9ad;color:#d96f00;}
 .status-badge.status-completed{border:1px solid #cdebd8;}
+
+.status-badge.status-registered .status-dot,
+.status-badge.status-registered::before{color:#006ecd;background-color:#006ecd;}
