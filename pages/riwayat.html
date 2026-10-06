@@ -79,11 +79,7 @@ let visits = [];
 const PAGE_SIZE = 10;
 let currentPage = 1;
 
-const statusLabels = {
-  registered: "Terdaftar",
-  started: "Sedang proses",
-  completed: "Selesai"
-};
+const statusLabels = window.trcmStatusLabels || {};
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, function (character) {
@@ -349,7 +345,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
       renderDetailItem("Tipe shipment", visit.shipment_type),
       renderDetailItem("Nomor shipment", visit.shipment_number, true),
-      renderDetailItem("Tujuan (Gudang / Kota)", visit.activity_type_city, true),
+      renderDetailItem("Tujuan (Gudang / Kota)", visit.destination_city, true),
       renderDetailItem("Nomor gerbang", gate),
       renderDetailItem("Nomor line", lineNumber),
       renderDetailItem("Nomor segel", visit.seal_number, true),
@@ -420,7 +416,7 @@ function renderTable() {
       '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
       '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
-      '<td><span class="status-badge status-' + escapeHtml(visit.process_status || "") + '"><span class="status-dot"></span>' + escapeHtml(status) + '</span></td>' +
+      '<td>' + (window.trcmStatusBadge ? window.trcmStatusBadge(visit.process_status) : '<span class="status-badge status-unknown"><span class="status-dot"></span>' + escapeHtml(status) + '</span>') + '</td>' +
       '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
       '<td class="action-cell"><button class="detail-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-arrow-up-right-square"></i><span>Detail</span></button></td>' +
     '</tr>';
