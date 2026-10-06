@@ -619,9 +619,16 @@ button,input,select{font:inherit}
 .modal-card-custom{
   max-height:calc(100vh - 2rem);
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
 }
-.modal-card-body{
+.modal-card-custom .modal-card-header,
+.modal-card-custom .modal-card-footer{
+  flex:0 0 auto;
+}
+.modal-card-custom .modal-card-body{
   min-height:0;
+  flex:1 1 auto;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 }
@@ -703,7 +710,7 @@ button,input,select{font:inherit}
   .modal-card-header{
     padding:1rem;
   }
-  .modal-card-body{
+  .modal-card-custom .modal-card-body{
     padding:1rem;
   }
   .modal-card-footer{
