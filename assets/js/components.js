@@ -19,6 +19,8 @@
     if (page === "riwayat.html") return "riwayat";
     if (page === "registrasi-armada.html") { return new URLSearchParams(window.location.search).get("view") === "wh-in" ? "wh-in" : "wh-in"; }
     if (page === "wh-out.html") return "wh-out";
+    if (page === "mulai-loading.html") return "mulai-loading";
+    if (page === "selesai-loading.html") return "selesai-loading";
     if (page === "checker.html") return "checker";
     if (page === "master-data.html") return "master-data";
 
@@ -43,14 +45,21 @@
 
   function syncCollapsibleMenuState() {
     const key = currentPageKey();
-    const toggle = document.querySelector('[data-menu-toggle="kunjungan-armada"]');
-    const submenu = document.querySelector('[data-menu-submenu="kunjungan-armada"]');
-    if (!toggle || !submenu) return;
+    const menus = [
+      { key: "kunjungan-armada", children: ["wh-in", "wh-out"] },
+      { key: "checker", children: ["mulai-loading", "selesai-loading"] }
+    ];
 
-    const isChildActive = key === "wh-in" || key === "wh-out";
-    toggle.setAttribute("aria-expanded", String(isChildActive));
-    toggle.classList.toggle("is-expanded", isChildActive);
-    submenu.hidden = !isChildActive;
+    menus.forEach(function (menu) {
+      const toggle = document.querySelector('[data-menu-toggle="' + menu.key + '"]');
+      const submenu = document.querySelector('[data-menu-submenu="' + menu.key + '"]');
+      if (!toggle || !submenu) return;
+
+      const isChildActive = menu.children.includes(key);
+      toggle.setAttribute("aria-expanded", String(isChildActive));
+      toggle.classList.toggle("is-expanded", isChildActive);
+      submenu.hidden = !isChildActive;
+    });
   }
 
   function setActiveMenu() {
