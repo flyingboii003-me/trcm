@@ -17,7 +17,8 @@
 
     if (page === "dashboard.html" || page === "") return "dashboard";
     if (page === "riwayat.html") return "riwayat";
-    if (page === "registrasi-armada.html") return "registrasi-armada";
+    if (page === "registrasi-armada.html") { return new URLSearchParams(window.location.search).get("view") === "wh-in" ? "wh-in" : "wh-in"; }
+    if (page === "wh-out.html") return "wh-out";
     if (page === "checker.html") return "checker";
     if (page === "master-data.html") return "master-data";
 
@@ -44,7 +45,9 @@
     const titles = {
       dashboard: "Dashboard TRCM",
       riwayat: "Riwayat",
-      "registrasi-armada": "Registrasi Armada"
+      "registrasi-armada": "WH In",
+      "wh-in": "WH In",
+      "wh-out": "WH Out"
     };
 
     const key = currentPageKey();
@@ -191,6 +194,11 @@
     labels[key] = statusConfig[key].label;
     return labels;
   }, {});
+
+  window.trcmVisitStatus = function (visit) {
+    if (visit && visit.wh_out_at) return "wh_out";
+    return visit && visit.process_status ? visit.process_status : "";
+  };
 
   window.trcmStatusClass = function (status) {
     const safeStatus = String(status || "");
