@@ -37,7 +37,94 @@
 </div>
 
 <div id="visit-detail-container"></div>
+
+<div class="modal fade" id="visit-edit-modal" tabindex="-1" aria-labelledby="visit-edit-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content modal-card-custom">
+      <div class="modal-header modal-card-header">
+        <div>
+          <span class="modal-kicker">EDIT VISIT</span>
+          <h2 id="visit-edit-modal-title">Edit data kunjungan</h2>
+          <p>Perbarui data registrasi armada sesuai kebutuhan operasional.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <form id="visit-edit-form" novalidate>
+        <div class="modal-body modal-card-body">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-plate-number">Plat nomor <span class="text-danger">*</span></label>
+              <input class="form-control text-uppercase" id="edit-plate-number" type="text" maxlength="20" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-activity-type">Tipe Aktivitas <span class="text-danger">*</span></label>
+              <select class="form-select" id="edit-activity-type" required>
+                <option value="">Pilih tipe aktivitas</option>
+                <option value="inbound">Inbound</option>
+                <option value="outbound">Outbound</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-container-num">Nomor container</label>
+              <input class="form-control" id="edit-container-num" type="text" maxlength="30">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-vendor">Vendor <span class="text-danger">*</span></label>
+              <input class="form-control" id="edit-vendor" type="text" maxlength="150" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-client-id">Klien</label>
+              <select class="form-select" id="edit-client-id">
+                <option value="">Pilih klien</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-driver-name">Nama driver <span class="text-danger">*</span></label>
+              <input class="form-control" id="edit-driver-name" type="text" maxlength="120" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-driver-phone">Nomor telepon driver</label>
+              <input class="form-control" id="edit-driver-phone" type="tel" maxlength="30">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-truck-type">Tipe truck</label>
+              <input class="form-control" id="edit-truck-type" type="text" maxlength="120">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-shipment-type">Tipe shipment</label>
+              <select class="form-select" id="edit-shipment-type">
+                <option value="">Pilih tipe shipment</option>
+                <option value="Bongkar">Bongkar</option>
+                <option value="Muat">Muat</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-shipment-number">Nomor shipment</label>
+              <input class="form-control" id="edit-shipment-number" type="text" maxlength="100">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="edit-destination-city">Tujuan (Gudang / Kota)</label>
+              <input class="form-control" id="edit-destination-city" type="text" maxlength="100">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="edit-notes">Catatan</label>
+              <textarea class="form-control" id="edit-notes" rows="4" maxlength="1000"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer modal-card-footer">
+          <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="save-visit-edit">
+            <i class="bi bi-check2-circle me-1"></i>Simpan perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../assets/js/components.js"></script>
 <script>
 window.trcmComponentsReady.then(async function () {
@@ -47,6 +134,10 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp
 const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
 const visitModal = document.getElementById("visit-modal");
 const visitModalClose = document.getElementById("visit-modal-close");
+const visitEditModalElement = document.getElementById("visit-edit-modal");
+const visitEditModal = new bootstrap.Modal(visitEditModalElement);
+const visitEditForm = document.getElementById("visit-edit-form");
+const saveVisitEditButton = document.getElementById("save-visit-edit");
 const visitModalTitle = document.getElementById("visit-modal-title");
 const visitModalSubtitle = document.getElementById("visit-modal-subtitle");
 const visitModalBody = document.getElementById("visit-modal-body");
@@ -78,6 +169,7 @@ const exportButton = document.getElementById("export-button");
 let visits = [];
 const PAGE_SIZE = 10;
 let currentPage = 1;
+let editingVisitId = null;
 
 const statusLabels = {
   registered: "Terdaftar",
@@ -213,6 +305,193 @@ function photoTypeLabel(type) {
   return labels[type] || displayValue(type);
 }
 
+function canManageVisits() {
+  return trcmSession && trcmSession.user &&
+    (trcmSession.user.role === "gatesec" || trcmSession.user.role === "admin");
+}
+
+function populateEditClients() {
+  const options = new Map();
+  visits.forEach(function (visit) {
+    const clientId = visit.client_id || (visit.clients && visit.clients.id);
+    const clientName = visit.client || (visit.clients && visit.clients.name);
+    if (clientId && clientName) options.set(clientId, clientName);
+  });
+  const select = document.getElementById("edit-client-id");
+  select.innerHTML = '<option value="">Pilih klien</option>' +
+    Array.from(options.entries()).sort(function (a, b) {
+      return a[1].localeCompare(b[1], "id");
+    }).map(function (entry) {
+      return '<option value="' + escapeHtml(entry[0]) + '">' + escapeHtml(entry[1]) + '</option>';
+    }).join("");
+}
+
+function openEditModal(visitId) {
+  const visit = visits.find(function (item) { return item.id === visitId; });
+  if (!visit) return;
+
+  editingVisitId = visitId;
+  populateEditClients();
+  document.getElementById("edit-plate-number").value = visit.plate_number || "";
+  document.getElementById("edit-activity-type").value = visit.activity_type || "";
+  document.getElementById("edit-container-num").value = visit.container_num || "";
+  document.getElementById("edit-vendor").value = visit.vendor || "";
+  document.getElementById("edit-client-id").value = visit.client_id || (visit.clients && visit.clients.id) || "";
+  document.getElementById("edit-driver-name").value = visit.driver_name || "";
+  document.getElementById("edit-driver-phone").value = visit.driver_phone || "";
+  document.getElementById("edit-truck-type").value = visit.truck_type || "";
+  document.getElementById("edit-shipment-type").value = visit.shipment_type || "";
+  document.getElementById("edit-shipment-number").value = visit.shipment_number || "";
+  document.getElementById("edit-destination-city").value = visit.destination_city || "";
+  document.getElementById("edit-notes").value = visit.notes || "";
+  visitEditForm.classList.remove("was-validated");
+  visitEditModal.show();
+}
+
+async function updateVisit() {
+  if (!editingVisitId) return;
+
+  if (!visitEditForm.checkValidity()) {
+    visitEditForm.classList.add("was-validated");
+    return;
+  }
+
+  saveVisitEditButton.disabled = true;
+  const originalButtonHtml = saveVisitEditButton.innerHTML;
+  saveVisitEditButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Menyimpan...';
+
+  const payload = {
+    plate_number: document.getElementById("edit-plate-number").value.trim().toUpperCase(),
+    activity_type: document.getElementById("edit-activity-type").value,
+    container_num: document.getElementById("edit-container-num").value.trim() || null,
+    vendor: document.getElementById("edit-vendor").value.trim() || null,
+    client_id: document.getElementById("edit-client-id").value || null,
+    driver_name: document.getElementById("edit-driver-name").value.trim(),
+    driver_phone: document.getElementById("edit-driver-phone").value.trim() || null,
+    truck_type: document.getElementById("edit-truck-type").value.trim() || null,
+    shipment_type: document.getElementById("edit-shipment-type").value || null,
+    shipment_number: document.getElementById("edit-shipment-number").value.trim() || null,
+    destination_city: document.getElementById("edit-destination-city").value.trim() || null,
+    notes: document.getElementById("edit-notes").value.trim() || null
+  };
+
+  try {
+    const response = await fetch(
+      SUPABASE_URL + "/rest/v1/visits?id=eq." + encodeURIComponent(editingVisitId),
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + trcmSession.access_token,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    const responseText = await response.text();
+    let data = null;
+    try { data = responseText ? JSON.parse(responseText) : null; } catch { data = null; }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return;
+    }
+    if (!response.ok) {
+      throw new Error(data && (data.message || data.details || data.hint)
+        ? (data.message || data.details || data.hint)
+        : "Data kunjungan gagal diperbarui.");
+    }
+
+    visitEditModal.hide();
+    await Swal.fire({
+      icon: "success",
+      title: "Data Diperbarui",
+      text: "Data kunjungan berhasil diperbarui.",
+      confirmButtonText: "Selesai",
+      confirmButtonColor: "#0066B3"
+    });
+    await loadVisits();
+  } catch (error) {
+    await Swal.fire({
+      icon: "error",
+      title: "Pembaruan Gagal",
+      text: error.message || "Data kunjungan gagal diperbarui.",
+      confirmButtonText: "Tutup",
+      confirmButtonColor: "#0066B3"
+    });
+  } finally {
+    saveVisitEditButton.disabled = false;
+    saveVisitEditButton.innerHTML = originalButtonHtml;
+  }
+}
+
+async function deleteVisit(visitId) {
+  const visit = visits.find(function (item) { return item.id === visitId; });
+  if (!visit) return;
+
+  const result = await Swal.fire({
+    icon: "warning",
+    title: "Hapus kunjungan?",
+    html: "Data untuk plat nomor <strong>" + escapeHtml(visit.plate_number || "—") + "</strong> akan dihapus.",
+    showCancelButton: true,
+    confirmButtonText: "Ya, hapus",
+    cancelButtonText: "Batal",
+    confirmButtonColor: "#D92D20",
+    cancelButtonColor: "#6C757D"
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const response = await fetch(
+      SUPABASE_URL + "/rest/v1/visits?id=eq." + encodeURIComponent(visitId),
+      {
+        method: "DELETE",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + trcmSession.access_token,
+          Prefer: "return=minimal"
+        }
+      }
+    );
+
+    const responseText = await response.text();
+    let data = null;
+    try { data = responseText ? JSON.parse(responseText) : null; } catch { data = null; }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return;
+    }
+    if (!response.ok) {
+      throw new Error(data && (data.message || data.details || data.hint)
+        ? (data.message || data.details || data.hint)
+        : "Data kunjungan gagal dihapus.");
+    }
+
+    await Swal.fire({
+      icon: "success",
+      title: "Data Dihapus",
+      text: "Data kunjungan berhasil dihapus.",
+      confirmButtonText: "Selesai",
+      confirmButtonColor: "#0066B3"
+    });
+    await loadVisits();
+  } catch (error) {
+    await Swal.fire({
+      icon: "error",
+      title: "Penghapusan Gagal",
+      text: error.message || "Data kunjungan gagal dihapus.",
+      confirmButtonText: "Tutup",
+      confirmButtonColor: "#0066B3"
+    });
+  }
+}
+
 function statusLabel(value) {
   const labels = {
     registered: "Terdaftar",
@@ -282,7 +561,7 @@ async function openVisitModal(visitId) {
       "updated_at",
       "cards(card_number)",
       
-      "clients(name)",
+      "clients(id,name)",
       "gates(gate_number)",
       "line_numbers(line_number)",
       "photos(id,photo_type,file_location,created_at)"
@@ -416,19 +695,27 @@ function renderTable() {
     const status = statusLabels[visit.process_status] || visit.process_status || "—";
     const client = visit.client || (visit.clients && visit.clients.name) || "—";
     const secondary = visit.driver_name || visit.driver || client;
+    const actionButtons = canManageVisits()
+      ? '<div class="table-action-group">' +
+          '<button class="icon-action-button icon-action-edit" type="button" data-edit-visit-id="' + escapeHtml(visit.id) + '" title="Edit kunjungan" aria-label="Edit kunjungan"><i class="bi bi-pencil-square"></i></button>' +
+          '<button class="icon-action-button icon-action-delete" type="button" data-delete-visit-id="' + escapeHtml(visit.id) + '" title="Hapus kunjungan" aria-label="Hapus kunjungan"><i class="bi bi-trash3"></i></button>' +
+          '<button class="icon-action-button icon-action-detail" type="button" data-visit-id="' + escapeHtml(visit.id) + '" title="Lihat detail" aria-label="Lihat detail"><i class="bi bi-arrow-up-right-square"></i></button>' +
+        '</div>'
+      : '<div class="table-action-group"><button class="icon-action-button icon-action-detail" type="button" data-visit-id="' + escapeHtml(visit.id) + '" title="Lihat detail" aria-label="Lihat detail"><i class="bi bi-arrow-up-right-square"></i></button></div>';
+
     return '<tr>' +
       '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
       '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td><span class="status-badge status-' + escapeHtml(visit.process_status || "") + '"><span class="status-dot"></span>' + escapeHtml(status) + '</span></td>' +
       '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
-      '<td class="action-cell"><button class="detail-button" type="button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-arrow-up-right-square"></i><span>Detail</span></button></td>' +
+      '<td class="action-cell">' + actionButtons + '</td>' +
     '</tr>';
   }).join("");
 
   truckTable.querySelectorAll("[data-visit-id]").forEach(function (button) {
     button.addEventListener("click", function () {
-      openVisitDetail(button.getAttribute("data-visit-id"));
+      openVisitModal(button.getAttribute("data-visit-id"));
     });
   });
 }
@@ -558,13 +845,22 @@ async function loadVisits() {
 );
 
 truckTable.addEventListener("click", function (event) {
-  const button = event.target.closest(".detail-button");
-
-  if (!button) {
+  const editButton = event.target.closest("[data-edit-visit-id]");
+  if (editButton) {
+    openEditModal(editButton.dataset.editVisitId);
     return;
   }
 
-  openVisitModal(button.dataset.visitId);
+  const deleteButton = event.target.closest("[data-delete-visit-id]");
+  if (deleteButton) {
+    deleteVisit(deleteButton.dataset.deleteVisitId);
+    return;
+  }
+
+  const detailButton = event.target.closest("[data-visit-id]");
+  if (detailButton) {
+    openVisitModal(detailButton.dataset.visitId);
+  }
 });
 
 visitModalClose.addEventListener("click", closeVisitModal);
@@ -590,6 +886,10 @@ resetFilter.addEventListener("click", function () {
 });
 
 refreshButton.addEventListener("click", loadVisits);
+visitEditForm.addEventListener("submit", function (event) {
+  event.preventDefault();
+  updateVisit();
+});
 
 
 
