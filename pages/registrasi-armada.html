@@ -42,13 +42,12 @@
                         <input class="form-control" id="card-id" type="text" readonly required aria-describedby="card-randomize">
                         <button class="btn btn-outline-secondary" type="button" id="card-randomize" title="Acak nomor kartu" aria-label="Acak nomor kartu"><i class="bi bi-shuffle"></i></button>
                       </div>
-                      <div class="form-text">Nomor kartu dibuat acak dengan format SID000.</div>
                       <div class="invalid-feedback">Nomor kartu belum tersedia.</div>
                     </div>
                     <div class="col-12 col-md-6">
-                      <label class="form-label" for="destination">Tujuan <span class="text-danger">*</span></label>
+                      <label class="form-label" for="destination">Tipe Aktivitas <span class="text-danger">*</span></label>
                       <select class="form-select" id="activity-type" required>
-                        <option value="">Pilih tujuan</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option>
+                        <option value="">Pilih tipe aktivitas</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option>
                       </select>
                       <div class="invalid-feedback">Tipe aktivitas wajib dipilih.</div>
                     </div>
@@ -81,19 +80,19 @@
 
               <section class="card content-card mb-3">
                 <div class="card-header content-card-header">
-                  <div><h2 class="card-title">Data driver dan kendaraan</h2><p>Seluruh informasi pemeriksaan awal wajib dilengkapi.</p></div>
+                  <div><h2 class="card-title">Data driver dan kendaraan</h2><p>Informasi driver dan kendaraan yang tersedia saat registrasi.</p></div>
                 </div>
                 <div class="card-body">
                   <div class="row g-3">
                     <div class="col-12 col-md-6"><label class="form-label" for="driver-name">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="driver-name" type="text" maxlength="120" required><div class="invalid-feedback">Nama driver wajib diisi.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="driver-phone">Nomor telepon driver <span class="text-danger">*</span></label><input class="form-control" id="driver-phone" type="tel" maxlength="30" required><div class="invalid-feedback">Nomor telepon driver wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="driver-phone">Nomor telepon driver</label><input class="form-control" id="driver-phone" type="tel" maxlength="30"><div class="invalid-feedback">Nomor telepon driver wajib diisi.</div></div>
                     <div class="col-12 col-md-6"><label class="form-label" for="truck-type">Tipe truck <span class="text-danger">*</span></label><input class="form-control" id="truck-type" type="text" maxlength="80" placeholder="Contoh: Wingbox" required><div class="invalid-feedback">Tipe truck wajib diisi.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="license-type">Tipe SIM <span class="text-danger">*</span></label><select class="form-select" id="license-type" required><option value="">Pilih tipe SIM</option><option value="sim_a">SIM A</option><option value="sim_a_umum">SIM A Umum</option><option value="sim_b1">SIM B1</option><option value="sim_b1_umum">SIM B1 Umum</option><option value="sim_b2">SIM B2</option><option value="sim_b2_umum">SIM B2 Umum</option></select><div class="invalid-feedback">Tipe SIM wajib dipilih.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="license-num">Nomor SIM <span class="text-danger">*</span></label><input class="form-control" id="license-num" type="text" maxlength="40" required><div class="invalid-feedback">Nomor SIM wajib diisi.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="license-exp">Masa berlaku SIM <span class="text-danger">*</span></label><input class="form-control" id="license-exp" type="date" required><div class="invalid-feedback">Masa berlaku SIM wajib diisi.</div></div>
-                    <div class="col-12 col-md-6"><label class="form-label" for="vehicle-exp">Masa berlaku STNK <span class="text-danger">*</span></label><input class="form-control" id="vehicle-exp" type="date" required><div class="invalid-feedback">Masa berlaku STNK wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-type">Tipe SIM</label><select class="form-select" id="license-type"><option value="">Pilih tipe SIM</option><option value="sim_a">SIM A</option><option value="sim_a_umum">SIM A Umum</option><option value="sim_b1">SIM B1</option><option value="sim_b1_umum">SIM B1 Umum</option><option value="sim_b2">SIM B2</option><option value="sim_b2_umum">SIM B2 Umum</option></select><div class="invalid-feedback">Tipe SIM wajib dipilih.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-num">Nomor SIM</label><input class="form-control" id="license-num" type="text" maxlength="40"><div class="invalid-feedback">Nomor SIM wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-exp">Masa berlaku SIM</label><input class="form-control" id="license-exp" type="date"><div class="invalid-feedback">Masa berlaku SIM wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="vehicle-exp">Masa berlaku STNK</label><input class="form-control" id="vehicle-exp" type="date"><div class="invalid-feedback">Masa berlaku STNK wajib diisi.</div></div>
                     <div class="col-12 col-md-6">
-                      <label class="form-label" for="vehicle-inspect-exp">Masa berlaku KIR <span class="text-danger">*</span></label>
+                      <label class="form-label" for="vehicle-inspect-exp">Masa berlaku KIR</label>
                       <input class="form-control" id="vehicle-inspect-exp" type="date" required>
                       <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="kir-expired"><label class="form-check-label" for="kir-expired">KIR Kadaluarsa</label></div>
                       <div class="invalid-feedback">Masa berlaku KIR wajib diisi atau tandai KIR Kadaluarsa.</div>
@@ -121,7 +120,7 @@
                 <div class="card-body">
                   <div class="registration-summary">
                     <div><span>Plat nomor</span><strong id="summary-plate">—</strong></div>
-                    <div><span>Tujuan / Asal</span><strong id="summary-destination">—</strong></div>
+                    <div><span>Tipe Aktivitas</span><strong id="summary-destination">—</strong></div>
                     <div><span>Tujuan (Kota)</span><strong id="summary-city">—</strong></div>
                     <div><span>Driver</span><strong id="summary-driver">—</strong></div>
                     <div><span>Vendor</span><strong id="summary-vendor">—</strong></div>
