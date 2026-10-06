@@ -261,7 +261,7 @@ window.trcmComponentsReady.then(async function () {
     truckType: document.getElementById("truck-type"), licenseType: document.getElementById("license-type"),
     licenseNum: document.getElementById("license-num"), licenseExp: document.getElementById("license-exp"),
     vehicleExp: document.getElementById("vehicle-exp"), vehicleInspectExp: kirDate,
-    shipmentNumber: document.getElementById("shipment-number"), document.getElementById("shipment-number"),
+    shipmentNumber: document.getElementById("shipment-number"),
     destinationCity: document.getElementById("destination-city"), notes: document.getElementById("notes")
   };
   let vendors = [];
@@ -533,7 +533,7 @@ window.trcmComponentsReady.then(async function () {
       license_exp: fields.licenseExp.value || null,
       vehicle_exp: fields.vehicleExp.value || null,
       vehicle_inspect_exp: kirExpired.checked ? null : (fields.vehicleInspectExp.value || null),
-       fields.shipmentNumber.value.trim() || null,
+      shipment_number: fields.shipmentNumber.value.trim() || null,
       shipment_type: document.querySelector('input[name="shipment-type"]:checked')?.value || null,
       destination_city: fields.destinationCity.value.trim() || null,
       notes: fields.notes.value.trim() || null,
