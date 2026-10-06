@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - Mulai Loading Checker">
+<title>Mulai Loading — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Mulai Loading</h1>
+            <p class="page-subtitle">Pilih truck yang sudah terdaftar untuk memulai proses loading.</p>
+          </div>
+          <button class="btn btn-date-picker" id="refresh-button" type="button">
+            <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
+          </button>
+        </div>
+
+        <section class="card content-card">
+          <div class="card-header content-card-header">
+            <div>
+              <h2 class="card-title">Daftar truck</h2>
+              <p id="result-count" class="page-subtitle">Memuat data...</p>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="p-3 p-lg-4 border-bottom">
+              <div class="row g-2">
+                <div class="col-12 col-md-8">
+                  <label class="visually-hidden" for="search-card">Cari nomor kartu</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu...">
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <button class="btn btn-light border w-100" id="reset-search" type="button">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle trcm-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Kartu</th>
+                    <th>Plat nomor</th>
+                    <th>Tujuan</th>
+                    <th>Vendor</th>
+                    <th>Klien</th>
+                    <th>Shipment</th>
+                    <th>Status</th>
+                    <th class="action-column">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="loading-table">
+                  <tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal fade" id="start-loading-modal" tabindex="-1" aria-labelledby="start-loading-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title h5 mb-1" id="start-loading-title">Mulai Loading</h2>
+          <p class="text-muted small mb-0" id="selected-visit-summary">—</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <form id="start-loading-form" novalidate>
+          <div class="card bg-body-tertiary border-0 mb-4">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Nomor kartu</span>
+                  <strong id="detail-card">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Plat nomor</span>
+                  <strong id="detail-plate">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Tujuan</span>
+                  <strong id="detail-destination">—</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="gate-select">Nomor gerbang <span class="text-danger">*</span></label>
+              <select class="form-select" id="gate-select" required>
+                <option value="">Pilih gerbang</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="line-select">Nomor line <span class="text-danger">*</span></label>
+              <select class="form-select" id="line-select" required disabled>
+                <option value="">Pilih gerbang terlebih dahulu</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="seal-number">Nomor segel</label>
+              <input class="form-control" id="seal-number" type="text" maxlength="100" placeholder="Masukkan nomor segel jika tersedia">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="loading-notes">Catatan</label>
+              <textarea class="form-control" id="loading-notes" rows="4" maxlength="1000" placeholder="Catatan pemeriksaan atau loading"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" form="start-loading-form" class="btn btn-primary" id="save-start-button">
+          <i class="bi bi-play-circle me-1"></i>Mulai
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+window.trcmComponentsReady.then(async function () {
+  "use strict";
+
+  const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+  let session = null;
+  try { session = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { session = null; }
+
+  if (!session || !session.access_token || !session.user) {
+    window.location.replace("../index.html");
+    return;
+  }
+
+  const role = session.user.role || "";
+  const canStart = role === "checker" || role === "admin";
+  const table = document.getElementById("loading-table");
+  const resultCount = document.getElementById("result-count");
+  const searchCard = document.getElementById("search-card");
+  const resetSearch = document.getElementById("reset-search");
+  const refreshButton = document.getElementById("refresh-button");
+  const gateSelect = document.getElementById("gate-select");
+  const lineSelect = document.getElementById("line-select");
+  const sealNumber = document.getElementById("seal-number");
+  const loadingNotes = document.getElementById("loading-notes");
+  const form = document.getElementById("start-loading-form");
+  const saveButton = document.getElementById("save-start-button");
+  const modalElement = document.getElementById("start-loading-modal");
+  const modal = new bootstrap.Modal(modalElement);
+
+  let visits = [];
+  let gates = [];
+  let lines = [];
+  let selectedVisit = null;
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
+
+  async function request(path, options) {
+    const response = await fetch(SUPABASE_URL + path, Object.assign({
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token
+      }
+    }, options || {}));
+
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan ke database gagal.");
+    }
+
+    return data;
+  }
+
+  function formatDestination(activityType) {
+    if (activityType === "inbound") return "Inbound";
+    if (activityType === "outbound") return "Outbound";
+    return activityType || "—";
+  }
+
+  function renderTable() {
+    const needle = searchCard.value.trim().toLowerCase();
+    const filtered = visits.filter(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "";
+      return !needle || card.toLowerCase().includes(needle);
+    });
+
+    resultCount.textContent = filtered.length + " truck menunggu Mulai Loading";
+
+    if (!filtered.length) {
+      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck yang menunggu Mulai Loading.</td></tr>';
+      return;
+    }
+
+    table.innerHTML = filtered.map(function (visit) {
+      const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+      const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      return '<tr>' +
+        '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
+        '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
+        '<td>' + escapeHtml(formatDestination(visit.activity_type)) + '</td>' +
+        '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
+        '<td>' + escapeHtml(client) + '</td>' +
+        '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
+        '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
+        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-play-circle me-1"></i>Mulai</button></td>' +
+      '</tr>';
+    }).join("");
+  }
+
+  function populateGates() {
+    gateSelect.innerHTML = '<option value="">Pilih gerbang</option>' +
+      gates.map(function (gate) {
+        return '<option value="' + escapeHtml(gate.id) + '">Gate ' + escapeHtml(gate.gate_number) + '</option>';
+      }).join("");
+  }
+
+  function populateLines(gateId) {
+    const matching = lines.filter(function (line) { return line.gate_id === gateId; });
+    lineSelect.disabled = !gateId;
+    lineSelect.innerHTML = gateId
+      ? '<option value="">Pilih line</option>' + matching.map(function (line) {
+          return '<option value="' + escapeHtml(line.id) + '">Line ' + escapeHtml(line.line_number) + '</option>';
+        }).join("")
+      : '<option value="">Pilih gerbang terlebih dahulu</option>';
+  }
+
+  async function loadReferenceData() {
+    const [gateData, lineData] = await Promise.all([
+      request("/rest/v1/gates?select=id,gate_number&order=gate_number.asc"),
+      request("/rest/v1/line_numbers?select=id,gate_id,line_number&order=line_number.asc")
+    ]);
+    gates = Array.isArray(gateData) ? gateData : [];
+    lines = Array.isArray(lineData) ? lineData : [];
+    populateGates();
+  }
+
+  async function loadVisits() {
+    table.innerHTML = '<tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>';
+    resultCount.textContent = "Memuat data...";
+    refreshButton.disabled = true;
+
+    try {
+      const select = [
+        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number",
+        "process_status","wh_in_at","registered_at","clients(name)","cards(card_number)"
+      ].join(",");
+      const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
+        "&process_status=in.(registered)&wh_out_at=is.null&order=registered_at.asc";
+      const data = await request(path);
+      if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
+      visits = data;
+      renderTable();
+    } catch (error) {
+      console.error("TRCM Mulai Loading:", error);
+      table.innerHTML = '<tr><td colspan="8" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
+      resultCount.textContent = "Gagal memuat data";
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: error.message || "Daftar truck tidak dapat dimuat.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      refreshButton.disabled = false;
+    }
+  }
+
+  function openStartModal(visit) {
+    selectedVisit = visit;
+    const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
+    const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+    document.getElementById("selected-visit-summary").textContent = card + " · " + (visit.plate_number || "—") + " · " + client;
+    document.getElementById("detail-card").textContent = card;
+    document.getElementById("detail-plate").textContent = visit.plate_number || "—";
+    document.getElementById("detail-destination").textContent = formatDestination(visit.activity_type);
+    gateSelect.value = "";
+    lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
+    lineSelect.disabled = true;
+    sealNumber.value = visit.seal_number || "";
+    loadingNotes.value = visit.notes || "";
+    form.classList.remove("was-validated");
+    modal.show();
+  }
+
+  async function saveStart(event) {
+    event.preventDefault();
+    if (!form.checkValidity() || !selectedVisit || !canStart) {
+      form.classList.add("was-validated");
+      return;
+    }
+
+    saveButton.disabled = true;
+    const startedAt = new Date().toISOString();
+
+    try {
+      await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + session.access_token,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify({
+          gate_id: gateSelect.value,
+          line_number_id: lineSelect.value,
+          seal_number: sealNumber.value.trim() || null,
+          notes: loadingNotes.value.trim() || null,
+          process_status: "started",
+          final_status: "processing",
+          started_at: startedAt
+        })
+      });
+
+      try {
+        await request("/rest/v1/visit_events", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            visit_id: selectedVisit.id,
+            status: "started",
+            user_id: session.user.id
+          })
+        });
+      } catch (eventError) {
+        await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+          method: "PATCH",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            process_status: "registered",
+            final_status: null,
+            started_at: null
+          })
+        });
+        throw eventError;
+      }
+
+      modal.hide();
+      await Swal.fire({
+        icon: "success",
+        title: "Mulai tersimpan",
+        text: "Truck berhasil ditandai sebagai Proses Loading.",
+        confirmButtonText: "Selesai",
+        confirmButtonColor: "#0066B3"
+      });
+      await loadVisits();
+    } catch (error) {
+      console.error("TRCM Mulai Loading save:", error);
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal menyimpan",
+        text: error.message || "Perubahan Mulai Loading tidak berhasil disimpan.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      saveButton.disabled = false;
+    }
+  }
+
+  gateSelect.addEventListener("change", function () {
+    populateLines(gateSelect.value);
+  });
+  searchCard.addEventListener("input", renderTable);
+  resetSearch.addEventListener("click", function () {
+    searchCard.value = "";
+    renderTable();
+  });
+  refreshButton.addEventListener("click", loadVisits);
+  form.addEventListener("submit", saveStart);
+
+  table.addEventListener("click", function (event) {
+    const button = event.target.closest(".start-loading-button");
+    if (!button || !canStart) return;
+    const visit = visits.find(function (item) { return item.id === button.dataset.visitId; });
+    if (visit) openStartModal(visit);
+  });
+
+  if (!canStart) {
+    await Swal.fire({
+      icon: "error",
+      title: "Akses terbatas",
+      text: "Menu Mulai Loading hanya dapat digunakan oleh Checker atau Admin.",
+      confirmButtonText: "Tutup",
+      confirmButtonColor: "#0066B3"
+    });
+  }
+
+  await Promise.all([loadReferenceData(), loadVisits()]);
+});
+</script>
+</body>
+</html>
