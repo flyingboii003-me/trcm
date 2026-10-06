@@ -107,7 +107,31 @@ button,input,select{font:inherit}
 .welcome-kicker::before{content:'';width:6px;height:6px;background:var(--cj-orange);border-radius:50%}
 .welcome-card-icon{position:absolute;right:2rem;bottom:1.5rem;width:76px;height:76px;border-radius:18px;display:grid;place-items:center;background:rgba(0,110,205,.18);color:#fff;font-size:2rem}
 .operational-chart{min-height:260px}
-.content-card{margin-bottom:1.5rem}
+.content-card{margin-bottom:1.5rem}.checklist-card .card-header{align-items:center}
+.checklist-card .card-title{margin-bottom:.35rem}
+.checklist-card .card-header p{margin:0;color:var(--text-muted);font-size:.8rem}
+.checklist-fill-button{border:1px solid rgba(0,110,205,.16);background:#EEF5FB;color:var(--cj-blue);font-weight:700;border-radius:var(--radius-md)}
+.checklist-fill-button:hover{background:var(--cj-blue);color:#fff;border-color:var(--cj-blue)}
+.vehicle-checklist{display:flex;flex-direction:column;gap:.25rem}
+.checklist-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:1rem;padding:.7rem 0;border-bottom:1px solid rgba(11,19,15,.06)}
+.checklist-row:last-child{border-bottom:0}
+.checklist-label{min-width:0;color:var(--text-primary);font-size:.875rem;line-height:1.45}
+.form-check-custom{display:flex;align-items:center;gap:.5rem;min-height:1.5rem;margin:0}
+.form-check-input-custom{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;flex:0 0 18px;background:#fff;background-position:center;background-repeat:no-repeat;background-size:contain;border:1px solid rgba(11,19,15,.15);border-radius:50rem;transition:background-color .25s ease,border-color .25s ease,box-shadow .25s ease;cursor:pointer}
+.form-check-input-custom:focus{outline:0;border-color:var(--cj-blue);box-shadow:0 0 0 3px rgba(0,110,205,.14)}
+.form-check-input-custom:checked{background-color:var(--cj-blue);border-color:var(--cj-blue);box-shadow:inset 0 0 0 4px #fff}
+.form-check-label{color:var(--text-muted);font-size:.78rem;font-weight:600;cursor:pointer}
+.form-check-custom:has(.form-check-input-custom:checked) .form-check-label{color:var(--cj-blue)}
+@media (max-width:575.98px){.checklist-card .content-card-header{align-items:flex-start;gap:.75rem}.checklist-fill-button{flex:0 0 auto}.checklist-row{grid-template-columns:minmax(0,1fr);gap:.35rem;padding:.8rem 0}.checklist-choice{margin-left:.1rem}.form-check-custom{padding:.15rem 0}}
+
+.checklist-fill-button{border:1px solid rgba(0,110,205,.16);background:#EEF5FB;color:var(--cj-blue);font-weight:700;border-radius:var(--radius-md)}
+.checklist-fill-button:hover{background:var(--cj-blue);color:#fff;border-color:var(--cj-blue)}
+.vehicle-checklist{display:flex;flex-direction:column;gap:.75rem}
+.checklist-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:.85rem;padding:.9rem 1rem;border:1px solid rgba(11,19,15,.07);border-radius:var(--radius-md);background:#fff;color:var(--text-primary);font-size:.875rem}
+.checklist-choice{display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;color:var(--text-muted);font-size:.78rem;font-weight:600}
+.checklist-choice .form-check-input{margin:0}
+@media (max-width:575.98px){.checklist-card .content-card-header{align-items:flex-start;gap:.75rem}.checklist-fill-button{flex:0 0 auto}.checklist-row{grid-template-columns:minmax(0,1fr);gap:.55rem}.checklist-choice{margin-left:.1rem}}
+
 .trcm-table{margin-bottom:0}
 .trcm-table th,.trcm-table td{padding:1rem 1.25rem;border-bottom:1px solid rgba(11,19,15,.05);white-space:nowrap}
 .trcm-table th{background:#F8FAF9;color:var(--text-muted);font-size:.75rem;text-transform:uppercase;font-weight:700;letter-spacing:.05em}
@@ -451,5 +475,138 @@ button,input,select{font:inherit}
     min-height:34px;
     padding:.4rem .65rem;
     font-size:.72rem;
+  }
+}
+
+
+/* CJ Logistics visual refinement — status pills and blue surfaces */
+:root{
+  --trcm-sidebar:#0f4f7a;
+  --trcm-sidebar-hover:#155f8f;
+  --trcm-sidebar-muted:#c4d7e6;
+  --trcm-welcome:#0b64a0;
+  --trcm-welcome-hover:#0a5b92;
+  --trcm-welcome-soft:#eaf4fb;
+}
+.sidebar-wrapper{background:linear-gradient(180deg,#0f4f7a 0%,#0d496f 100%);}
+.sidebar-menu-link{color:#d7e7f2;}
+.sidebar-menu-link .menu-icon{color:#c9dce9;}
+.sidebar-menu-link:hover{background:rgba(255,255,255,.10);color:#f4f9fc;}
+.sidebar-menu-link:hover .menu-icon{color:#f4f9fc;}
+.sidebar-menu-link.active{background:#1677b7;color:#fff;box-shadow:0 4px 12px rgba(5,48,77,.20);}
+.sidebar-menu-link.active .menu-icon{color:#fff;}
+.sidebar-menu-title,.sidebar-section-title,.sidebar-menu-separator{color:#bcd2e1;}
+.sidebar-footer{border-top-color:rgba(255,255,255,.14);}
+.welcome-card{border-color:#0a5b92;background:linear-gradient(135deg,#0b64a0 0%,#1677b7 100%);box-shadow:0 8px 24px rgba(11,100,160,.16);}
+.welcome-card-copy,.welcome-card h2{color:#fff;}
+.welcome-kicker{color:#d9efff;}
+.welcome-card p{color:rgba(255,255,255,.86);}
+.welcome-card a{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.55);text-underline-offset:2px;}
+.welcome-card a:hover{color:#fff;text-decoration-color:#fff;}
+.welcome-card-icon{background:rgba(255,255,255,.14);color:#fff;}
+.destination{border:1px solid transparent;}
+.destination.destination-inbound{background:#eaf3fc;border-color:#cfe3f5;color:#006ecd;}
+.destination.destination-outbound{background:#fdebed;border-color:#f5cbd0;color:#c5121a;}
+.status-badge.status-registered{background:#eaf3fc;border:1px solid #cfe3f5;color:#006ecd;}
+.status-badge.status-started,.status-badge.status-processing{background:#fff3e5;border:1px solid #ffd9ad;color:#d96f00;}
+.status-badge.status-completed{border:1px solid #cdebd8;}
+
+.status-badge.status-registered .status-dot,
+.status-badge.status-registered::before{color:#006ecd;background-color:#006ecd;}
+
+/* Force active/open sidebar icons to white over Spark icon defaults */
+.sidebar-menu-link.active,
+.sidebar-menu-link.active .menu-icon,
+.sidebar-menu-link.active i,
+.sidebar-menu-link.active svg,
+.sidebar-menu-link.active svg *,
+.sidebar-menu-link.active [class^="bi-"],
+.sidebar-menu-link.active [class*=" bi-"]{
+  color:#fff !important;
+  fill:#fff !important;
+  stroke:#fff !important;
+}
+.sidebar-menu-link.active .menu-icon::before,
+.sidebar-menu-link.active .menu-icon::after{
+  color:#fff !important;
+}
+
+/* Gate Security — Registrasi Armada */
+.registration-summary-card{position:sticky;top:1rem;}
+.registration-summary{display:grid;gap:0;}
+.registration-summary>div{display:flex;justify-content:space-between;gap:1rem;padding:.8rem 0;border-bottom:1px solid #edf1f3;}
+.registration-summary>div:last-child{border-bottom:0;}
+.registration-summary span{color:#6c7e75;font-size:.78rem;}
+.registration-summary strong{font-size:.85rem;text-align:right;word-break:break-word;}
+.registration-actions{display:grid;gap:.65rem;margin-top:1rem;padding-top:1rem;border-top:1px solid #edf1f3;}
+.registration-alert{border-radius:.75rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;}
+.registration-alert.alert-error{background:#fff1f2;border:1px solid #f5cbd0;color:#b4232d;}
+.registration-alert.alert-success{background:#eef8f2;border:1px solid #cdebd8;color:#18794e;}
+.registration-alert.d-none{display:none;}
+@media(max-width:1199.98px){.registration-summary-card{position:static;}}
+@media(max-width:575.98px){
+  .registration-summary>div{align-items:flex-start;flex-direction:column;gap:.25rem;}
+  .registration-summary strong{text-align:left;}
+}
+
+/* Gate Security — searchable master-data controls */
+.searchable-select{position:relative;}
+.searchable-select .form-control{padding-right:2.5rem;}
+.searchable-options{position:absolute;z-index:1050;left:0;right:0;top:calc(100% + .35rem);display:none;max-height:240px;overflow:auto;padding:.35rem;background:#fff;border:1px solid #dfe7e3;border-radius:.75rem;box-shadow:0 10px 28px rgba(24,42,34,.12);}
+.searchable-options.is-open{display:grid;}
+.searchable-option{display:block;width:100%;border:0;background:transparent;border-radius:.55rem;padding:.65rem .75rem;text-align:left;color:#33443c;font:inherit;font-size:.84rem;cursor:pointer;}
+.searchable-option:hover,.searchable-option:focus{background:#eef5f1;color:#087f5b;outline:0;}
+.searchable-empty{padding:.7rem .75rem;color:#7a8881;font-size:.82rem;}
+.registration-actions .btn-success{background:#198754;border-color:#198754;color:#fff;}
+.registration-actions .btn-success:hover,.registration-actions .btn-success:focus{background:#157347;border-color:#146c43;color:#fff;}
+.registration-actions .btn-warning{background:#f59f00;border-color:#f59f00;color:#fff;}
+.registration-actions .btn-warning:hover,.registration-actions .btn-warning:focus{background:#e08f00;border-color:#d78900;color:#fff;}
+#vehicle-inspect-exp:disabled{background-color:#f3f5f4;color:#8b9690;cursor:not-allowed;}
+
+/* Gate Security searchable vendor dropdown */
+.searchable-select{position:relative;z-index:20;}
+.searchable-options{z-index:2000;}
+.searchable-select:focus-within{z-index:2001;}
+.content-card:has(.searchable-select){overflow:visible;}
+.content-card:has(.searchable-select) .card-body{overflow:visible;}
+#card-randomize{border-color:#dfe7e3;background:#fff;color:#5f6f67;}
+#card-randomize:hover,#card-randomize:focus{border-color:#006ECD;background:#eef5fb;color:#006ECD;box-shadow:0 0 0 .2rem rgba(0,110,205,.12);}
+#card-randomize:active{background:#006ECD;border-color:#006ECD;color:#fff;}
+
+
+/* Gate Security refinements */
+.vendor-master-card{overflow:visible;z-index:5;}
+.card-randomize-button{width:42px;min-width:42px;min-height:42px;padding:.5rem;border:1px solid var(--border);border-radius:var(--radius-lg);background:#fff;color:var(--cj-blue);box-shadow:var(--shadow-sm);display:inline-flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s ease;}
+.card-randomize-button:hover,.card-randomize-button:focus-visible{background:#eef5fb;color:var(--cj-blue-hover);border-color:rgba(0,110,205,.24);box-shadow:0 4px 12px rgba(11,19,15,.06);}
+.card-randomize-button:active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff;transform:translateY(1px);}
+.searchable-select{z-index:20;}
+.searchable-options{z-index:2000;}
+
+
+/* Gate Security mobile status badge */
+@media(max-width:575.98px){
+  .content-card-header .status-badge{
+    flex:0 0 auto;
+    padding:.2rem .5rem;
+    gap:.3rem;
+    font-size:.68rem;
+    line-height:1.2;
+    white-space:nowrap;
+  }
+  .content-card-header .status-badge .status-dot{
+    width:5px;
+    height:5px;
+    flex:0 0 5px;
+  }
+}
+@media(max-width:380px){
+  .content-card-header .status-badge{
+    padding:.18rem .45rem;
+    font-size:.64rem;
+  }
+  .content-card-header .status-badge .status-dot{
+    width:4px;
+    height:4px;
+    flex-basis:4px;
   }
 }

@@ -23,7 +23,7 @@
   <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
   <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
-    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Plat nomor</th><th>Tujuan</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
+    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Plat nomor</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="6" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
     <div class="pagination-wrap">
       <div class="pagination-summary" id="pagination-summary"></div>
       <nav aria-label="Paginasi riwayat">
@@ -253,7 +253,7 @@ async function openVisitModal(visitId) {
       "card_id",
       "plate_number",
       "container_num",
-      "destination",
+      "activity_type",
       "vendor",
       "client_id",
       "driver_name",
@@ -266,7 +266,7 @@ async function openVisitModal(visitId) {
       "vehicle_inspect_exp",
       "shipment_type",
       "shipment_number",
-      "manifest_number",
+      "destination_city",
       "gate_id",
       "line_number_id",
       "seal_number",
@@ -334,7 +334,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Nomor kartu", card, true),
       renderDetailItem("Plat nomor", visit.plate_number, true),
       renderDetailItem("Nomor kontainer", visit.container_num, true),
-      renderDetailItem("Tujuan", visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : visit.destination),
+      renderDetailItem("Tipe Aktivitas", visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : visit.activity_type),
       renderDetailItem("Klien", client),
       renderDetailItem("Nama sopir", visit.driver_name),
       renderDetailItem("Nomor telepon sopir", visit.driver_phone, true),
@@ -349,7 +349,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
       renderDetailItem("Tipe shipment", visit.shipment_type),
       renderDetailItem("Nomor shipment", visit.shipment_number, true),
-      renderDetailItem("Nomor manifest / loading list", visit.manifest_number, true),
+      renderDetailItem("Tujuan (Gudang / Kota)", visit.activity_type_city, true),
       renderDetailItem("Nomor gerbang", gate),
       renderDetailItem("Nomor line", lineNumber),
       renderDetailItem("Nomor segel", visit.seal_number, true),
@@ -412,13 +412,13 @@ function renderTable() {
   }
 
   truckTable.innerHTML = pageRows.map(function (visit) {
-    const destination = visit.destination === "inbound" ? "Inbound" : visit.destination === "outbound" ? "Outbound" : "—";
+    const destination = visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : "—";
     const status = statusLabels[visit.process_status] || visit.process_status || "—";
     const client = visit.client || (visit.clients && visit.clients.name) || "—";
     const secondary = visit.driver_name || visit.driver || client;
     return '<tr>' +
       '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
-      '<td><span class="destination">' + escapeHtml(destination) + '</span></td>' +
+      '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td><span class="status-badge status-' + escapeHtml(visit.process_status || "") + '"><span class="status-dot"></span>' + escapeHtml(status) + '</span></td>' +
       '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
@@ -482,7 +482,7 @@ async function loadVisits() {
       "id",
       "plate_number",
       "container_num",
-      "destination",
+      "activity_type",
       "vendor",
       "client_id",
       "driver_name",
@@ -599,7 +599,7 @@ exportButton.addEventListener("click", function () {
   const rows = filteredVisits();
   const header = [
     "Plat nomor",
-    "Tujuan",
+    "Tipe Aktivitas",
     "Klien",
     "Vendor",
     "Nomor shipment",
@@ -610,7 +610,7 @@ exportButton.addEventListener("click", function () {
 
   const csvRows = rows.map(function (visit) {
     const destination =
-      visit.destination === "inbound" ? "Inbound" : "Outbound";
+      visit.activity_type === "inbound" ? "Inbound" : "Outbound";
     const status = statusLabels[visit.process_status] || visit.process_status || "";
     const duration =
       visit.process_status === "completed"

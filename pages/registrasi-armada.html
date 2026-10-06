@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - Registrasi Armada Gate Security">
+<title>Registrasi Armada — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Registrasi Armada</h1>
+            <p class="page-subtitle">Daftarkan truck yang masuk ke gudang sebelum diteruskan ke proses Checker.</p>
+          </div>
+        </div>
+        <form id="registration-form" novalidate>
+          <div class="row g-3">
+            <div class="col-12 col-xl-8">
+              <section class="card content-card mb-3 vendor-master-card">
+                <div class="card-header content-card-header">
+                  <div><h2 class="card-title">Data kunjungan</h2><p>Informasi utama untuk membuat visit baru.</p></div>
+                  <span class="status-badge status-registered"><span class="status-dot"></span>WH In</span>
+                </div>
+                <div class="card-body">
+                  <div id="registration-alert" class="registration-alert d-none" role="alert"></div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="card-id">Nomor kartu <span class="text-danger">*</span></label>
+                      <div class="input-group">
+                        <input class="form-control" id="card-id" type="text" readonly required aria-describedby="card-randomize">
+                        <button class="btn card-randomize-button" type="button" id="card-randomize" title="Acak nomor kartu" aria-label="Acak nomor kartu"><i class="bi bi-shuffle"></i></button>
+                      </div>
+                      <div class="invalid-feedback">Nomor kartu belum tersedia.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="activity-type">Tipe Aktivitas <span class="text-danger">*</span></label>
+                      <select class="form-select" id="activity-type" required>
+                        <option value="">Pilih tipe aktivitas</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option>
+                      </select>
+                      <div class="invalid-feedback">Tipe aktivitas wajib dipilih.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="plate-number">Plat nomor <span class="text-danger">*</span></label>
+                      <input class="form-control text-uppercase" id="plate-number" type="text" maxlength="20" autocomplete="off" placeholder="Contoh: B 1234 XYZ" required>
+                      <div class="invalid-feedback">Plat nomor wajib diisi.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="container-num">Nomor container</label>
+                      <input class="form-control" id="container-num" type="text" maxlength="30" placeholder="Opsional">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="vendor-search">Vendor <span class="text-danger">*</span></label>
+                      <div class="searchable-select" id="vendor-select">
+                        <input class="form-control" id="vendor-search" type="search" autocomplete="off" placeholder="Cari vendor..." role="combobox" aria-expanded="false" aria-controls="vendor-options">
+                        <input id="vendor" type="hidden">
+                        <div class="searchable-options" id="vendor-options" role="listbox"></div>
+                      </div>
+                      
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="client">Klien <span class="text-danger">*</span></label>
+                      <select class="form-select" id="client" required><option value="">Pilih klien</option></select>
+                      <div class="invalid-feedback">Klien wajib dipilih.</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card content-card mb-3">
+                <div class="card-header content-card-header">
+                  <div><h2 class="card-title">Data driver dan kendaraan</h2><p>Informasi driver dan kendaraan yang tersedia saat registrasi.</p></div>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6"><label class="form-label" for="driver-name">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="driver-name" type="text" maxlength="120" required><div class="invalid-feedback">Nama driver wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="driver-phone">Nomor telepon driver</label><input class="form-control" id="driver-phone" type="tel" maxlength="30"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="truck-type">Tipe truck <span class="text-danger">*</span></label><div class="searchable-select" id="truck-type-select"><input class="form-control" id="truck-type-search" type="search" autocomplete="off" placeholder="Cari tipe truck..." role="combobox" aria-expanded="false" aria-controls="truck-type-options"><input id="truck-type" type="hidden" required><div class="searchable-options" id="truck-type-options" role="listbox"></div></div><div class="invalid-feedback">Tipe truck wajib diisi.</div></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-type">Tipe SIM</label><select class="form-select" id="license-type"><option value="">Pilih tipe SIM</option><option value="sim_a">SIM A</option><option value="sim_a_umum">SIM A Umum</option><option value="sim_b1">SIM B1</option><option value="sim_b1_umum">SIM B1 Umum</option><option value="sim_b2">SIM B2</option><option value="sim_b2_umum">SIM B2 Umum</option></select></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-num">Nomor SIM</label><input class="form-control" id="license-num" type="text" maxlength="40"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="license-exp">Masa berlaku SIM</label><input class="form-control" id="license-exp" type="date"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="vehicle-exp">Masa berlaku STNK</label><input class="form-control" id="vehicle-exp" type="date"></div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="vehicle-inspect-exp">Masa berlaku KIR</label>
+                      <input class="form-control" id="vehicle-inspect-exp" type="date">
+                      <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="kir-expired"><label class="form-check-label" for="kir-expired">KIR Kadaluarsa</label></div>
+                      
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+                            <section class="card content-card mb-3 checklist-card">
+                <div class="card-header content-card-header">
+                  <div><h2 class="card-title">Peralatan dan Kelengkapan Kendaraan</h2><p>Pastikan seluruh perlengkapan wajib tersedia sebelum armada melanjutkan proses registrasi.</p></div>
+                  <button type="button" class="btn btn-sm checklist-fill-button" id="equipment-check-all">Check semua</button>
+                </div>
+                <div class="card-body">
+                  <div class="vehicle-checklist" id="equipment-checklist">
+                    <div class="checklist-row">
+                      <div class="checklist-label">Pengaman kargo</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-cargo_security-yes" name="equipment-cargo_security" data-checklist="equipment.cargo_security_yes" checked><label class="form-check-label" for="equipment-cargo_security-yes">Ada</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-cargo_security-no" name="equipment-cargo_security" data-checklist="equipment.cargo_security_no" ><label class="form-check-label" for="equipment-cargo_security-no">Tidak ada</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Dokumen pengiriman barang</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-shipping_documents-yes" name="equipment-shipping_documents" data-checklist="equipment.shipping_documents_yes" checked><label class="form-check-label" for="equipment-shipping_documents-yes">Ada</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-shipping_documents-no" name="equipment-shipping_documents" data-checklist="equipment.shipping_documents_no" ><label class="form-check-label" for="equipment-shipping_documents-no">Tidak ada</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Ganjal ban 2 buah</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-wheel_chocks-yes" name="equipment-wheel_chocks" data-checklist="equipment.wheel_chocks_yes" checked><label class="form-check-label" for="equipment-wheel_chocks-yes">Ada</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-wheel_chocks-no" name="equipment-wheel_chocks" data-checklist="equipment.wheel_chocks_no" ><label class="form-check-label" for="equipment-wheel_chocks-no">Tidak ada</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">APD driver dan kernet (Sepatu, Rompi, dan Helm safety)</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-ppe-yes" name="equipment-ppe" data-checklist="equipment.ppe_yes" checked><label class="form-check-label" for="equipment-ppe-yes">Ada</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-ppe-no" name="equipment-ppe" data-checklist="equipment.ppe_no" ><label class="form-check-label" for="equipment-ppe-no">Tidak ada</label></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card content-card mb-3 checklist-card">
+                <div class="card-header content-card-header">
+                  <div><h2 class="card-title">Kondisi Kendaraan</h2><p>Periksa kondisi kendaraan sebelum armada melanjutkan proses registrasi.</p></div>
+                  <button type="button" class="btn btn-sm checklist-fill-button" id="condition-check-all">Isi semua</button>
+                </div>
+                <div class="card-body">
+                  <div class="vehicle-checklist" id="condition-checklist">
+                    <div class="checklist-row">
+                      <div class="checklist-label">Suhu bagian dalam kabin untuk produk yang dipersyaratkan</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-cabin_temperature-yes" name="condition-cabin_temperature" data-checklist="condition.cabin_temperature_yes" checked><label class="form-check-label" for="condition-cabin_temperature-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-cabin_temperature-no" name="condition-cabin_temperature" data-checklist="condition.cabin_temperature_no" ><label class="form-check-label" for="condition-cabin_temperature-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Kondisi kabin dan kendaraan baik secara umum</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-general_condition-yes" name="condition-general_condition" data-checklist="condition.general_condition_yes" checked><label class="form-check-label" for="condition-general_condition-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-general_condition-no" name="condition-general_condition" data-checklist="condition.general_condition_no" ><label class="form-check-label" for="condition-general_condition-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Kebocoran oli/bahan bakar</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-oil_fuel_leakage-yes" name="condition-oil_fuel_leakage" data-checklist="condition.oil_fuel_leakage_yes" checked><label class="form-check-label" for="condition-oil_fuel_leakage-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-oil_fuel_leakage-no" name="condition-oil_fuel_leakage" data-checklist="condition.oil_fuel_leakage_no" ><label class="form-check-label" for="condition-oil_fuel_leakage-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Safety belt tersedia dan berfungsi</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-safety_belt-yes" name="condition-safety_belt" data-checklist="condition.safety_belt_yes" checked><label class="form-check-label" for="condition-safety_belt-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-safety_belt-no" name="condition-safety_belt" data-checklist="condition.safety_belt_no" ><label class="form-check-label" for="condition-safety_belt-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Rem tangan berfungsi dengan baik</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-handbrake-yes" name="condition-handbrake" data-checklist="condition.handbrake_yes" checked><label class="form-check-label" for="condition-handbrake-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-handbrake-no" name="condition-handbrake" data-checklist="condition.handbrake_no" ><label class="form-check-label" for="condition-handbrake-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Kabin kendaraan bersih dan tidak keropos</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-cabin_clean-yes" name="condition-cabin_clean" data-checklist="condition.cabin_clean_yes" checked><label class="form-check-label" for="condition-cabin_clean-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-cabin_clean-no" name="condition-cabin_clean" data-checklist="condition.cabin_clean_no" ><label class="form-check-label" for="condition-cabin_clean-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Kaca spion berfungsi dengan baik dan tidak pecah</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-mirror-yes" name="condition-mirror" data-checklist="condition.mirror_yes" checked><label class="form-check-label" for="condition-mirror-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-mirror-no" name="condition-mirror" data-checklist="condition.mirror_no" ><label class="form-check-label" for="condition-mirror-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Pintu kendaraan berfungsi dengan baik dan tidak ada kerusakan</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-door-yes" name="condition-door" data-checklist="condition.door_yes" checked><label class="form-check-label" for="condition-door-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-door-no" name="condition-door" data-checklist="condition.door_no" ><label class="form-check-label" for="condition-door-no">Tidak</label></div>
+                    </div>
+                    <div class="checklist-row">
+                      <div class="checklist-label">Kondisi kontainer bersih dan kering, tidak berbau kuat/pekat, tidak berlubang/bocor, dan tidak ada pest issue</div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-container-yes" name="condition-container" data-checklist="condition.container_yes" checked><label class="form-check-label" for="condition-container-yes">Ya</label></div>
+                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-container-no" name="condition-container" data-checklist="condition.container_no" ><label class="form-check-label" for="condition-container-no">Tidak</label></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card content-card">
+                <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2><p>Informasi pengiriman dan kota tujuan atau asal armada.</p></div></div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6"><label class="form-label" for="shipment-type">Tipe shipment</label><input class="form-control" id="shipment-type" maxlength="80"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="shipment-number">Nomor shipment</label><input class="form-control" id="shipment-number" maxlength="80"></div>
+                    <div class="col-12"><label class="form-label" for="destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="destination-city" maxlength="100" placeholder="Contoh: Surabaya" required><div class="invalid-feedback">Tujuan (Gudang / Kota) wajib diisi.</div></div>
+                    <div class="col-12"><label class="form-label" for="notes">Catatan</label><textarea class="form-control" id="notes" rows="4" maxlength="1000" placeholder="Catatan tambahan untuk visit"></textarea></div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="col-12 col-xl-4">
+              <section class="card content-card registration-summary-card">
+                <div class="card-header content-card-header"><div><h2 class="card-title">Ringkasan registrasi</h2><p>Periksa kembali data sebelum mendaftarkan armada.</p></div></div>
+                <div class="card-body">
+                  <div class="registration-summary">
+                    <div><span>Plat nomor</span><strong id="summary-plate">—</strong></div>
+                    <div><span>Tipe Aktivitas</span><strong id="summary-destination">—</strong></div>
+                    <div><span>Tujuan (Gudang / Kota)</span><strong id="summary-city">—</strong></div>
+                    <div><span>Driver</span><strong id="summary-driver">—</strong></div>
+                    <div><span>Vendor</span><strong id="summary-vendor">—</strong></div>
+                    <div><span>Klien</span><strong id="summary-client">—</strong></div>
+                  </div>
+                  <div class="registration-actions">
+                    <button class="btn btn-success w-100" type="submit" id="register-button"><i class="bi bi-check2-circle me-1"></i>Register</button>
+                    <button class="btn btn-warning w-100" type="button" id="reset-button"><i class="bi bi-arrow-counterclockwise me-1"></i>Atur ulang</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+window.trcmComponentsReady.then(async function () {
+  "use strict";
+  const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+  let session = null;
+  try { session = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { session = null; }
+  if (!session || !session.access_token || !session.user) { window.location.replace("../index.html"); return; }
+
+  const form = document.getElementById("registration-form");
+  const alertBox = document.getElementById("registration-alert");
+  const resetButton = document.getElementById("reset-button");
+  const cardInput = document.getElementById("card-id");
+  const cardRandomize = document.getElementById("card-randomize");
+  const vendorSearch = document.getElementById("vendor-search");
+  const vendorValue = document.getElementById("vendor");
+  const vendorOptions = document.getElementById("vendor-options");
+  const truckTypeSearch = document.getElementById("truck-type-search");
+  const truckTypeValue = document.getElementById("truck-type");
+  const truckTypeOptions = document.getElementById("truck-type-options");
+  const vendorFeedback = null;
+  const kirExpired = document.getElementById("kir-expired");
+  const kirDate = document.getElementById("vehicle-inspect-exp");
+  const plateInput = document.getElementById("plate-number");
+  const clientSelect = document.getElementById("client");
+  const fields = {
+    cardId: cardInput, activityType: document.getElementById("activity-type"), plateNumber: plateInput,
+    containerNum: document.getElementById("container-num"), vendor: vendorValue, client: clientSelect,
+    driverName: document.getElementById("driver-name"), driverPhone: document.getElementById("driver-phone"),
+    truckType: document.getElementById("truck-type"), licenseType: document.getElementById("license-type"),
+    licenseNum: document.getElementById("license-num"), licenseExp: document.getElementById("license-exp"),
+    vehicleExp: document.getElementById("vehicle-exp"), vehicleInspectExp: kirDate,
+    shipmentType: document.getElementById("shipment-type"), shipmentNumber: document.getElementById("shipment-number"),
+    destinationCity: document.getElementById("destination-city"), notes: document.getElementById("notes")
+  };
+  let vendors = [];
+  let truckTypes = [];
+  let cards = [];
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
+  function setAlert(message, type) { alertBox.className = "registration-alert alert-" + type; alertBox.textContent = message; }
+  function clearAlert() { alertBox.className = "registration-alert d-none"; alertBox.textContent = ""; }
+
+  async function getJson(path) {
+    const response = await fetch(SUPABASE_URL + path, {headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + session.access_token}});
+    const text = await response.text();
+    let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+    if (response.status === 401) { sessionStorage.removeItem("trcm_session"); window.location.replace("../index.html"); return null; }
+    if (!response.ok) throw new Error(data && (data.message || data.hint) ? (data.message || data.hint) : "Gagal mengambil data master.");
+    return data;
+  }
+
+  function populateClients(rows) {
+    clientSelect.innerHTML = '<option value="">Pilih klien</option>' + rows.map(function (row) {
+      return '<option value="' + escapeHtml(row.id) + '">' + escapeHtml(row.name) + '</option>';
+    }).join("");
+  }
+
+  function renderVendorOptions(query) {
+    const rawQuery = String(query || "").trim();
+    const needle = rawQuery.toLowerCase();
+    const filtered = vendors.filter(function (vendor) { return vendor.name.toLowerCase().includes(needle); });
+    const exactMatch = vendors.some(function (vendor) { return vendor.name.toLowerCase() === needle; });
+    vendorOptions.innerHTML = filtered.map(function (vendor) {
+      return '<button type="button" class="searchable-option" data-id="' + escapeHtml(vendor.id) + '" data-name="' + escapeHtml(vendor.name) + '">' + escapeHtml(vendor.name) + '</button>';
+    }).join("");
+    if (rawQuery && !exactMatch) {
+      vendorOptions.innerHTML += '<button type="button" class="searchable-option searchable-option-custom" data-custom="' + escapeHtml(rawQuery) + '">Gunakan "' + escapeHtml(rawQuery) + '"</button>';
+    }
+    if (!filtered.length && !rawQuery) {
+      vendorOptions.innerHTML = '<div class="searchable-empty">Vendor tidak ditemukan.</div>';
+    }
+    vendorOptions.classList.add("is-open");
+    vendorSearch.setAttribute("aria-expanded", "true");
+  }
+
+  function closeVendorOptions() { vendorOptions.classList.remove("is-open"); vendorSearch.setAttribute("aria-expanded", "false"); }
+  function selectVendor(id, name) {
+    vendorValue.value = name;
+    vendorSearch.value = name;
+    closeVendorOptions();
+    updateSummary();
+  }
+  function renderTruckTypeOptions(query) {
+    const needle = String(query || "").trim().toLowerCase();
+    const filtered = truckTypes.filter(function (item) { return item.name.toLowerCase().includes(needle); });
+    const exactMatch = truckTypes.some(function (item) { return item.name.toLowerCase() === needle; });
+    truckTypeOptions.innerHTML = filtered.map(function (item) {
+      return '<button type="button" class="searchable-option" data-name="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</button>';
+    }).join("");
+    if (needle && !exactMatch) {
+      truckTypeOptions.innerHTML += '<button type="button" class="searchable-option searchable-option-custom" data-custom="' + escapeHtml(query.trim()) + '">Gunakan "' + escapeHtml(query.trim()) + '"</button>';
+    }
+    if (!filtered.length && !needle) {
+      truckTypeOptions.innerHTML = '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
+    }
+    truckTypeOptions.classList.add("is-open");
+    truckTypeSearch.setAttribute("aria-expanded", "true");
+  }
+  function closeTruckTypeOptions() {
+    truckTypeOptions.classList.remove("is-open");
+    truckTypeSearch.setAttribute("aria-expanded", "false");
+  }
+  function selectTruckType(name) {
+    truckTypeValue.value = name;
+    truckTypeSearch.value = name;
+    closeTruckTypeOptions();
+    updateSummary();
+  }
+
+  async function getTodayUsedCardIds() {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+    const rows = await getJson("/rest/v1/visits?select=card_id&created_at=gte." + encodeURIComponent(start) + "&created_at=lt." + encodeURIComponent(end));
+    return new Set((rows || []).map(function (row) { return row.card_id; }).filter(Boolean));
+  }
+
+  async function randomizeCard() {
+    const usedIds = await getTodayUsedCardIds();
+    const available = cards.filter(function (card) {
+      const cardNumber = String(card.card_number || "");
+      const numericPart = Number(cardNumber.replace(/^SID/i, ""));
+      return card.is_active && numericPart >= 1 && numericPart <= 90 && !usedIds.has(card.id);
+    });
+    if (!available.length) {
+      cardInput.value = "";
+      cardInput.setCustomValidity("Tidak ada kartu aktif yang tersedia untuk hari ini.");
+      setAlert("Tidak ada nomor kartu aktif yang belum digunakan hari ini.", "error");
+      return;
+    }
+    const selected = available[Math.floor(Math.random() * available.length)];
+    cardInput.value = selected.card_number;
+    cardInput.dataset.cardId = selected.id;
+    cardInput.setCustomValidity("");
+  }
+
+  async function loadMasterData() {
+    const [cardRows, vendorRows, clientRows, truckTypeRows] = await Promise.all([
+      getJson("/rest/v1/cards?select=id,card_number,is_active&is_active=eq.true&order=card_number.asc"),
+      getJson("/rest/v1/vendors?select=id,name&order=name.asc"),
+      getJson("/rest/v1/clients?select=id,name&order=name.asc"),
+      getJson("/rest/v1/truck_types?select=id,name,is_active&is_active=eq.true&order=name.asc")
+    ]);
+    cards = cardRows || []; vendors = vendorRows || []; truckTypes = truckTypeRows || [];
+    populateClients(clientRows || []);
+    closeVendorOptions();
+    await randomizeCard();
+  }
+
+  function updateSummary() {
+    document.getElementById("summary-plate").textContent = fields.plateNumber.value.trim().toUpperCase() || "—";
+    const direction = fields.activityType.value === "inbound" ? "Inbound" : fields.activityType.value === "outbound" ? "Outbound" : "—";
+    document.getElementById("summary-destination").textContent = direction;
+    document.getElementById("summary-city").textContent = fields.destinationCity.value.trim() || "—";
+    document.getElementById("summary-driver").textContent = fields.driverName.value.trim() || "—";
+    document.getElementById("summary-vendor").textContent = vendorSearch.value.trim() || "—";
+    document.getElementById("summary-client").textContent = clientSelect.value ? clientSelect.selectedOptions[0].textContent : "—";
+  }
+
+  function setChecklistPairState(container, key, value) {
+    const inputs = Array.from(container.querySelectorAll('input[data-checklist^="' + key + '"]'));
+    inputs.forEach(function (input) {
+      input.checked = input.dataset.checklist === key + "_" + value;
+    });
+  }
+
+  function getChecklistSnapshot() {
+    const snapshot = { equipment: {}, condition: {} };
+    document.querySelectorAll('input[data-checklist]').forEach(function (input) {
+      if (!input.checked) return;
+      const parts = input.dataset.checklist.split(".");
+      const group = parts[0];
+      const key = parts[1];
+      const base = key.replace(/_(yes|no|absent)$/, "");
+      let value = key.endsWith("_yes") ? true : key.endsWith("_no") || key.endsWith("_absent") ? false : true;
+      if (key.endsWith("_absent")) value = false;
+      snapshot[group][base] = value;
+    });
+    return snapshot;
+  }
+
+  function setupChecklist() {
+    const equipmentRows = Array.from(document.querySelectorAll("#equipment-checklist .checklist-row"));
+    const conditionRows = Array.from(document.querySelectorAll("#condition-checklist .checklist-row"));
+
+    document.getElementById("equipment-check-all").addEventListener("click", function () {
+      equipmentRows.forEach(function (row) {
+        const inputs = row.querySelectorAll('input[type="radio"]');
+        if (inputs[0]) inputs[0].checked = true;
+        if (inputs[1]) inputs[1].checked = false;
+      });
+    });
+
+    document.getElementById("condition-check-all").addEventListener("click", function () {
+      conditionRows.forEach(function (row) {
+        const inputs = row.querySelectorAll('input[type="checkbox"]');
+        if (inputs[0]) inputs[0].checked = true;
+        if (inputs[1]) inputs[1].checked = false;
+      });
+      const oilNo = document.querySelector('input[data-checklist="condition.oil_fuel_leakage_no"]');
+      const oilYes = document.querySelector('input[data-checklist="condition.oil_fuel_leakage_yes"]');
+      if (oilNo) oilNo.checked = true;
+      if (oilYes) oilYes.checked = false;
+    });
+  }
+
+  function syncKirState() {
+    kirDate.disabled = kirExpired.checked;
+    kirDate.required = false;
+    if (kirExpired.checked) { kirDate.value = ""; kirDate.setCustomValidity(""); }
+  }
+
+  function validateBusinessRules() {
+    const plate = fields.plateNumber.value.trim().toUpperCase();
+    fields.plateNumber.value = plate;
+    if (plate.length < 3) { fields.plateNumber.setCustomValidity("Plat nomor minimal 3 karakter."); return false; }
+    fields.plateNumber.setCustomValidity("");
+    kirDate.setCustomValidity("");
+    return true;
+  }
+
+  plateInput.addEventListener("input", function () { plateInput.value = plateInput.value.toUpperCase(); updateSummary(); });
+  Object.values(fields).forEach(function (field) {
+    if (field === vendorValue || field === cardInput) return;
+    field.addEventListener("input", updateSummary); field.addEventListener("change", updateSummary);
+  });
+  vendorSearch.addEventListener("focus", function () { renderVendorOptions(vendorSearch.value); });
+  vendorSearch.addEventListener("input", function () { vendorValue.value = ""; renderVendorOptions(vendorSearch.value); updateSummary(); });
+  truckTypeSearch.addEventListener("focus", function () { renderTruckTypeOptions(truckTypeSearch.value); });
+  truckTypeSearch.addEventListener("input", function () { truckTypeValue.value = truckTypeSearch.value.trim(); renderTruckTypeOptions(truckTypeSearch.value); updateSummary(); });
+  truckTypeOptions.addEventListener("click", function (event) {
+    const option = event.target.closest(".searchable-option");
+    if (option) selectTruckType(option.dataset.custom || option.dataset.name);
+  });
+  vendorOptions.addEventListener("click", function (event) {
+    const option = event.target.closest(".searchable-option");
+    if (option) selectVendor(option.dataset.id, option.dataset.name);
+  });
+  document.addEventListener("click", function (event) {
+    if (!document.getElementById("vendor-select").contains(event.target)) closeVendorOptions();
+    if (!document.getElementById("truck-type-select").contains(event.target)) closeTruckTypeOptions();
+  });
+  clientSelect.addEventListener("change", updateSummary);
+  kirExpired.addEventListener("change", function () { syncKirState(); updateSummary(); });
+  cardRandomize.addEventListener("click", function () { randomizeCard().catch(function (error) { setAlert(error.message, "error"); }); });
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault(); clearAlert();
+    if (!validateBusinessRules() || !form.checkValidity()) {
+      form.classList.add("was-validated");
+      setAlert("Periksa kembali seluruh field wajib sebelum Register.", "error");
+      return;
+    }
+    const checklistSnapshot = getChecklistSnapshot();
+    if (!Object.keys(checklistSnapshot.equipment).length || !Object.keys(checklistSnapshot.condition).length) {
+      setAlert("Lengkapi checklist peralatan dan kondisi kendaraan sebelum Register.", "error");
+      return;
+    }
+    setAlert("Validasi berhasil. Checklist kendaraan siap diteruskan bersama data visit.", "success");
+  });
+
+  resetButton.addEventListener("click", async function () {
+    form.reset(); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; truckTypeValue.value = ""; truckTypeSearch.value = ""; syncKirState();
+    try { await randomizeCard(); } catch (error) { setAlert(error.message, "error"); }
+    updateSummary();
+  });
+
+  setupChecklist();
+  syncKirState();
+  try { await loadMasterData(); updateSummary(); } catch (error) { setAlert(error.message || "Master data gagal dimuat.", "error"); }
+});
+</script>
+</body>
+</html>
