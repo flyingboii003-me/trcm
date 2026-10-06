@@ -107,6 +107,23 @@
                   <strong id="detail-destination">—</strong>
                 </div>
                 <div class="col-12">
+                  <label class="form-label" for="loading-photo">Foto Loading</label>
+                  <input class="form-control" id="loading-photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+                  <div class="form-text">Ambil satu foto dokumentasi loading. Foto akan dikompres sebelum disimpan.</div>
+                  <div class="mt-3 d-flex align-items-center gap-2" id="loading-photo-preview-wrap" hidden>
+                    <div class="position-relative">
+                      <img id="loading-photo-preview" src="" alt="Pratinjau foto loading" width="72" height="72" class="rounded-3 object-fit-cover border">
+                      <button type="button" class="btn btn-sm btn-light border position-absolute top-0 end-0 translate-middle rounded-circle p-0" id="remove-loading-photo" aria-label="Hapus foto">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </div>
+                    <div>
+                      <div class="small fw-semibold" id="loading-photo-name">—</div>
+                      <div class="small text-muted" id="loading-photo-status">Siap diunggah</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12">
                   <label class="form-label" for="finish-notes">Catatan</label>
                   <textarea class="form-control" id="finish-notes" rows="4" maxlength="1000" placeholder="Catatan penyelesaian loading"></textarea>
                 </div>
@@ -150,6 +167,12 @@ window.trcmComponentsReady.then(async function () {
   const resetSearch = document.getElementById("reset-search");
   const refreshButton = document.getElementById("refresh-button");
   const finishNotes = document.getElementById("finish-notes");
+  const loadingPhoto = document.getElementById("loading-photo");
+  const loadingPhotoPreviewWrap = document.getElementById("loading-photo-preview-wrap");
+  const loadingPhotoPreview = document.getElementById("loading-photo-preview");
+  const loadingPhotoName = document.getElementById("loading-photo-name");
+  const loadingPhotoStatus = document.getElementById("loading-photo-status");
+  const removeLoadingPhoto = document.getElementById("remove-loading-photo");
   const form = document.getElementById("finish-loading-form");
   const saveButton = document.getElementById("save-finish-button");
   const modalElement = document.getElementById("finish-loading-modal");
@@ -157,6 +180,8 @@ window.trcmComponentsReady.then(async function () {
 
   let visits = [];
   let selectedVisit = null;
+  let selectedPhotoFile = null;
+  let selectedPhotoPreviewUrl = null;
 
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, function (character) {
@@ -187,6 +212,93 @@ window.trcmComponentsReady.then(async function () {
     }
 
     return data;
+  }
+
+  function resetLoadingPhoto() {
+    selectedPhotoFile = null;
+    if (selectedPhotoPreviewUrl) {
+      URL.revokeObjectURL(selectedPhotoPreviewUrl);
+      selectedPhotoPreviewUrl = null;
+    }
+    loadingPhoto.value = "";
+    loadingPhotoPreview.src = "";
+    loadingPhotoPreviewWrap.hidden = true;
+    loadingPhotoName.textContent = "—";
+    loadingPhotoStatus.textContent = "Siap diunggah";
+  }
+
+  function setLoadingPhoto(file) {
+    if (!file) {
+      resetLoadingPhoto();
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      resetLoadingPhoto();
+      throw new Error("Foto harus berformat JPG, PNG, atau WebP.");
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      resetLoadingPhoto();
+      throw new Error("Ukuran foto maksimal 10 MB.");
+    }
+    if (selectedPhotoPreviewUrl) URL.revokeObjectURL(selectedPhotoPreviewUrl);
+    selectedPhotoFile = file;
+    selectedPhotoPreviewUrl = URL.createObjectURL(file);
+    loadingPhotoPreview.src = selectedPhotoPreviewUrl;
+    loadingPhotoPreviewWrap.hidden = false;
+    loadingPhotoName.textContent = file.name;
+    loadingPhotoStatus.textContent = "Siap diunggah";
+  }
+
+  async function compressPhoto(file) {
+    const bitmap = await createImageBitmap(file);
+    const maxDimension = 1600;
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d", { alpha: false });
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise(function (resolve) {
+      canvas.toBlob(resolve, "image/webp", 0.78);
+    });
+    if (!blob) throw new Error("Foto gagal diproses.");
+    return blob;
+  }
+
+  async function uploadLoadingPhoto(visitId, file) {
+    loadingPhotoStatus.textContent = "Mengunggah...";
+    const blob = await compressPhoto(file);
+    const objectPath = visitId + "/" + crypto.randomUUID() + ".webp";
+    const response = await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token,
+        "Content-Type": "image/webp",
+        "x-upsert": "false"
+      },
+      body: blob
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      let detail = null;
+      try { detail = text ? JSON.parse(text) : null; } catch {}
+      throw new Error(detail && (detail.message || detail.error) ? (detail.message || detail.error) : "Foto gagal diunggah.");
+    }
+    loadingPhotoStatus.textContent = "Terunggah";
+    return objectPath;
+  }
+
+  async function deleteLoadingPhoto(objectPath) {
+    if (!objectPath) return;
+    await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath.split("/").map(encodeURIComponent).join("/"), {
+      method: "DELETE",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token
+      }
+    });
   }
 
   function formatDestination(activityType) {
@@ -266,6 +378,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("detail-plate").textContent = visit.plate_number || "—";
     document.getElementById("detail-destination").textContent = formatDestination(visit.activity_type);
     finishNotes.value = visit.notes || "";
+    resetLoadingPhoto();
     form.classList.remove("was-validated");
     modal.show();
   }
@@ -278,9 +391,35 @@ window.trcmComponentsReady.then(async function () {
     }
 
     saveButton.disabled = true;
+    if (!selectedPhotoFile) {
+      saveButton.disabled = false;
+      await Swal.fire({ icon: "warning", title: "Foto belum dipilih", text: "Ambil atau pilih foto loading sebelum menyelesaikan proses.", confirmButtonText: "Tutup", confirmButtonColor: "#0066B3" });
+      return;
+    }
+    let uploadedPhotoPath = null;
+    let photoRecordId = null;
     const completedAt = new Date().toISOString();
 
     try {
+      uploadedPhotoPath = await uploadLoadingPhoto(selectedVisit.id, selectedPhotoFile);
+
+      await request("/rest/v1/photos", {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: "Bearer " + session.access_token,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          visit_id: selectedVisit.id,
+          photo_type: "loading_completion",
+          file_location: uploadedPhotoPath
+        })
+      }).then(function (rows) {
+        if (Array.isArray(rows) && rows[0] && rows[0].id) photoRecordId = rows[0].id;
+      });
+
       await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
         method: "PATCH",
         headers: {
@@ -338,9 +477,18 @@ window.trcmComponentsReady.then(async function () {
         confirmButtonText: "Selesai",
         confirmButtonColor: "#0066B3"
       });
+      resetLoadingPhoto();
       await loadVisits();
     } catch (error) {
       console.error("TRCM Selesai Loading save:", error);
+      if (photoRecordId) {
+        try {
+          await request("/rest/v1/photos?id=eq." + encodeURIComponent(photoRecordId), { method: "DELETE" });
+        } catch {}
+      }
+      if (uploadedPhotoPath) {
+        try { await deleteLoadingPhoto(uploadedPhotoPath); } catch {}
+      }
       await Swal.fire({
         icon: "error",
         title: "Gagal menyimpan",
@@ -353,6 +501,12 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
+  loadingPhoto.addEventListener("change", async function () {
+    try { setLoadingPhoto(loadingPhoto.files && loadingPhoto.files[0]); }
+    catch (error) { await Swal.fire({ icon: "error", title: "Foto tidak valid", text: error.message, confirmButtonText: "Tutup", confirmButtonColor: "#0066B3" }); }
+  });
+
+  removeLoadingPhoto.addEventListener("click", resetLoadingPhoto);
   form.addEventListener("submit", saveFinish);
 
   table.addEventListener("click", function (event) {
