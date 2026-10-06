@@ -227,6 +227,7 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../assets/js/components.js"></script>
 <script>
 window.trcmComponentsReady.then(async function () {
@@ -281,6 +282,24 @@ window.trcmComponentsReady.then(async function () {
     let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = null; }
     if (response.status === 401) { sessionStorage.removeItem("trcm_session"); window.location.replace("../index.html"); return null; }
     if (!response.ok) throw new Error(data && (data.message || data.hint) ? (data.message || data.hint) : "Gagal mengambil data master.");
+    return data;
+  }
+
+  async function postJson(path, payload) {
+    const response = await fetch(SUPABASE_URL + path, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify(payload)
+    });
+    const text = await response.text();
+    let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+    if (response.status === 401) { sessionStorage.removeItem("trcm_session"); window.location.replace("../index.html"); return null; }
+    if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Data gagal disimpan.");
     return data;
   }
 
@@ -428,7 +447,7 @@ window.trcmComponentsReady.then(async function () {
 
     document.getElementById("condition-check-all").addEventListener("click", function () {
       conditionRows.forEach(function (row) {
-        const inputs = row.querySelectorAll('input[type="checkbox"]');
+        const inputs = row.querySelectorAll('input[type="radio"]');
         if (inputs[0]) inputs[0].checked = true;
         if (inputs[1]) inputs[1].checked = false;
       });
@@ -479,7 +498,7 @@ window.trcmComponentsReady.then(async function () {
   kirExpired.addEventListener("change", function () { syncKirState(); updateSummary(); });
   cardRandomize.addEventListener("click", function () { randomizeCard().catch(function (error) { setAlert(error.message, "error"); }); });
 
-  form.addEventListener("submit", function (event) {
+  form.addEventListener("submit", async function (event) {
     event.preventDefault(); clearAlert();
     if (!validateBusinessRules() || !form.checkValidity()) {
       form.classList.add("was-validated");
@@ -487,11 +506,76 @@ window.trcmComponentsReady.then(async function () {
       return;
     }
     const checklistSnapshot = getChecklistSnapshot();
-    if (!Object.keys(checklistSnapshot.equipment).length || !Object.keys(checklistSnapshot.condition).length) {
-      setAlert("Lengkapi checklist peralatan dan kondisi kendaraan sebelum Register.", "error");
+    const equipmentKeys = ["cargo_security","shipping_documents","wheel_chocks","ppe"];
+    const conditionKeys = ["cabin_temperature","general_condition","oil_fuel_leakage","safety_belt","handbrake","cabin_clean","mirror","door","container"];
+    if (equipmentKeys.some(function (key) { return typeof checklistSnapshot.equipment[key] !== "boolean"; }) ||
+        conditionKeys.some(function (key) { return typeof checklistSnapshot.condition[key] !== "boolean"; })) {
+      setAlert("Lengkapi seluruh checklist peralatan dan kondisi kendaraan sebelum Register.", "error");
       return;
     }
-    setAlert("Validasi berhasil. Checklist kendaraan siap diteruskan bersama data visit.", "success");
+
+    const registerButton = document.getElementById("register-button");
+    registerButton.disabled = true;
+    const originalButtonHtml = registerButton.innerHTML;
+    registerButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Menyimpan...';
+
+    const payload = {
+      card_id: cardInput.dataset.cardId || null,
+      plate_number: fields.plateNumber.value.trim().toUpperCase(),
+      container_num: fields.containerNum.value.trim() || null,
+      activity_type: fields.activityType.value,
+      client_id: fields.client.value || null,
+      driver_name: fields.driverName.value.trim(),
+      driver_phone: fields.driverPhone.value.trim() || null,
+      truck_type: fields.truckType.value.trim() || null,
+      license_type: fields.licenseType.value || null,
+      license_num: fields.licenseNum.value.trim() || null,
+      license_exp: fields.licenseExp.value || null,
+      vehicle_exp: fields.vehicleExp.value || null,
+      vehicle_inspect_exp: kirExpired.checked ? null : (fields.vehicleInspectExp.value || null),
+      shipment_type: fields.shipmentType.value.trim() || null,
+      shipment_number: fields.shipmentNumber.value.trim() || null,
+      destination_city: fields.destinationCity.value.trim() || null,
+      notes: fields.notes.value.trim() || null,
+      vendor: fields.vendor.value.trim() || null,
+      vehicle_checklist: checklistSnapshot,
+      registered_at: new Date().toISOString()
+    };
+
+    try {
+      const savedRows = await postJson("/rest/v1/visits", payload);
+      const saved = Array.isArray(savedRows) ? savedRows[0] : savedRows;
+      clearAlert();
+      await Swal.fire({
+        icon: "success",
+        title: "Registrasi Berhasil",
+        html: 'Data armada berhasil disimpan.<br><strong>Nomor kartu: ' + escapeHtml(cardInput.value) + '</strong>',
+        confirmButtonText: "Selesai",
+        confirmButtonColor: "#0066B3"
+      });
+      form.reset();
+      form.classList.remove("was-validated");
+      vendorValue.value = "";
+      vendorSearch.value = "";
+      truckTypeValue.value = "";
+      truckTypeSearch.value = "";
+      cardInput.dataset.cardId = "";
+      syncKirState();
+      try { await randomizeCard(); } catch (error) { setAlert(error.message, "error"); }
+      updateSummary();
+    } catch (error) {
+      setAlert(error.message || "Data gagal disimpan.", "error");
+      await Swal.fire({
+        icon: "error",
+        title: "Registrasi Gagal",
+        text: error.message || "Data tidak berhasil disimpan.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+    } finally {
+      registerButton.disabled = false;
+      registerButton.innerHTML = originalButtonHtml;
+    }
   });
 
   resetButton.addEventListener("click", async function () {
