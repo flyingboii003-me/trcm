@@ -713,11 +713,6 @@ function renderTable() {
     '</tr>';
   }).join("");
 
-  truckTable.querySelectorAll("[data-visit-id]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      openVisitModal(button.getAttribute("data-visit-id"));
-    });
-  });
 }
 
 function renderPagination(totalRows, totalPages) {
