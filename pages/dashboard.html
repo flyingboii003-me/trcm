@@ -297,6 +297,17 @@ function renderCharts() {
       : '<span class="chart-category-empty">Belum ada data</span>';
   };
   renderLegend("vendor-chart-legend", vendorEntries);
+  renderLegend("client-chart-legend", clientDefinitions.map(function (definition) {
+    const entry = Object.entries(clientCounts).find(function (item) {
+      return item[0].toLowerCase() === definition.key.toLowerCase();
+    });
+    return [definition.label, entry ? entry[1] : 0];
+  }), function (name) {
+    const definition = clientDefinitions.find(function (item) {
+      return item.label.toLowerCase() === String(name).toLowerCase();
+    });
+    return definition ? definition.color : "#6B7280";
+  });
 
 
 }
