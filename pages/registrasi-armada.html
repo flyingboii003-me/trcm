@@ -564,7 +564,9 @@ window.trcmComponentsReady.then(async function () {
         confirmButtonColor: "#0066B3"
       });
       if (window.matchMedia("(max-width: 767.98px)").matches) {
-        window.location.reload();
+        sessionStorage.setItem("trcm_registration_reload", "1");
+        window.history.scrollRestoration = "manual";
+        window.location.replace(window.location.pathname + window.location.search);
         return;
       }
       form.reset();
