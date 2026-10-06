@@ -557,3 +557,32 @@ button,input,select{font:inherit}
 .card-randomize-button:active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff;transform:translateY(1px);}
 .searchable-select{z-index:20;}
 .searchable-options{z-index:2000;}
+
+
+/* Gate Security mobile status badge */
+@media(max-width:575.98px){
+  .content-card-header .status-badge{
+    flex:0 0 auto;
+    padding:.2rem .5rem;
+    gap:.3rem;
+    font-size:.68rem;
+    line-height:1.2;
+    white-space:nowrap;
+  }
+  .content-card-header .status-badge .status-dot{
+    width:5px;
+    height:5px;
+    flex:0 0 5px;
+  }
+}
+@media(max-width:380px){
+  .content-card-header .status-badge{
+    padding:.18rem .45rem;
+    font-size:.64rem;
+  }
+  .content-card-header .status-badge .status-dot{
+    width:4px;
+    height:4px;
+    flex-basis:4px;
+  }
+}
