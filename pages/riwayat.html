@@ -418,7 +418,7 @@ function renderTable() {
     const secondary = visit.driver_name || visit.driver || client;
     return '<tr>' +
       '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
-      '<td><span class="destination">' + escapeHtml(destination) + '</span></td>' +
+      '<td><span class="destination ' + (visit.destination === "inbound" ? "destination-inbound" : visit.destination === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td><span class="status-badge status-' + escapeHtml(visit.process_status || "") + '"><span class="status-dot"></span>' + escapeHtml(status) + '</span></td>' +
       '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at)) + '</span></td>' +
