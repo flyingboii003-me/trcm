@@ -204,11 +204,19 @@ window.trcmComponentsReady.then(async function () {
   }
 
   function renderVendorOptions(query) {
-    const needle = String(query || "").trim().toLowerCase();
+    const rawQuery = String(query || "").trim();
+    const needle = rawQuery.toLowerCase();
     const filtered = vendors.filter(function (vendor) { return vendor.name.toLowerCase().includes(needle); });
-    vendorOptions.innerHTML = filtered.length ? filtered.map(function (vendor) {
+    const exactMatch = vendors.some(function (vendor) { return vendor.name.toLowerCase() === needle; });
+    vendorOptions.innerHTML = filtered.map(function (vendor) {
       return '<button type="button" class="searchable-option" data-id="' + escapeHtml(vendor.id) + '" data-name="' + escapeHtml(vendor.name) + '">' + escapeHtml(vendor.name) + '</button>';
-    }).join("") : '<div class="searchable-empty">Vendor tidak ditemukan.</div>';
+    }).join("");
+    if (rawQuery && !exactMatch) {
+      vendorOptions.innerHTML += '<button type="button" class="searchable-option searchable-option-custom" data-custom="' + escapeHtml(rawQuery) + '">Gunakan "' + escapeHtml(rawQuery) + '"</button>';
+    }
+    if (!filtered.length && !rawQuery) {
+      vendorOptions.innerHTML = '<div class="searchable-empty">Vendor tidak ditemukan.</div>';
+    }
     vendorOptions.classList.add("is-open");
     vendorSearch.setAttribute("aria-expanded", "true");
   }
@@ -323,7 +331,7 @@ window.trcmComponentsReady.then(async function () {
   truckTypeSearch.addEventListener("input", function () { truckTypeValue.value = truckTypeSearch.value.trim(); renderTruckTypeOptions(truckTypeSearch.value); updateSummary(); });
   truckTypeOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
-    if (option) selectTruckType(option.dataset.custom || option.dataset.name);
+    if (option) selectVendor(option.dataset.id, option.dataset.custom || option.dataset.name);
   });
   vendorOptions.addEventListener("click", function (event) {
     const option = event.target.closest(".searchable-option");
