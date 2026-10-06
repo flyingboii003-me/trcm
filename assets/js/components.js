@@ -17,6 +17,7 @@
 
     if (page === "dashboard.html" || page === "") return "dashboard";
     if (page === "riwayat.html") return "riwayat";
+    if (page === "registrasi-armada.html") return "registrasi-armada";
     if (page === "checker.html") return "checker";
     if (page === "master-data.html") return "master-data";
 
@@ -42,7 +43,8 @@
   function setPageTitle() {
     const titles = {
       dashboard: "Dashboard TRCM",
-      riwayat: "Riwayat"
+      riwayat: "Riwayat",
+      "registrasi-armada": "Registrasi Armada"
     };
 
     const key = currentPageKey();
