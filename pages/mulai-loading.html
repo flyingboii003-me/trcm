@@ -284,7 +284,7 @@ window.trcmComponentsReady.then(async function () {
     try {
       const select = [
         "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number",
-        "process_status","wh_in_at","registered_at","clients(name)","cards(card_number)"
+        "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
         "&process_status=in.(registered)&wh_out_at=is.null&order=registered_at.asc";
