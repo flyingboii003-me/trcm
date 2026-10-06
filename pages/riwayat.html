@@ -210,16 +210,7 @@ function photoTypeLabel(type) {
 }
 
 function statusLabel(value) {
-  const labels = {
-    registered: "Terdaftar",
-    started: "Sedang proses",
-    completed: "Selesai",
-    parked: "Parkir",
-    processing: "Proses",
-    cancelled: "Batal"
-  };
-
-  return labels[value] || displayValue(value);
+  return (window.trcmStatusLabels && window.trcmStatusLabels[value]) || displayValue(value);
 }
 
 function renderDetailItem(label, value, mono) {
