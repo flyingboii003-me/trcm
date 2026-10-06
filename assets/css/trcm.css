@@ -142,10 +142,12 @@ button,input,select{font:inherit}
 .destination{display:inline-flex;padding:.25rem .65rem;border-radius:50rem;background:#EEF5FB;color:var(--cj-blue);font-size:.75rem;font-weight:700}
 .status-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .65rem;border-radius:50rem;font-size:.75rem;font-weight:700}
 .status-dot{width:6px;height:6px;border-radius:50%}
-.status-badge.status-registered{background:#F1F5F9;color:#64748B}.status-badge.status-registered .status-dot{background:#64748B}
-.status-badge.status-started{background:var(--sys-orange-bg);color:#C26B00}.status-badge.status-started .status-dot{background:var(--cj-orange)}
-.status-badge.status-completed{background:var(--sys-green-bg);color:#15803D}.status-badge.status-completed .status-dot{background:var(--sys-green)}
-.status-badge.status-cancelled{background:var(--sys-red-bg);color:#B91C1C}.status-badge.status-cancelled .status-dot{background:var(--cj-red)}
+.status-badge.status-registered,.status-badge.status-wh-in{background:#F1F5F9;color:#64748B}.status-badge.status-registered .status-dot,.status-badge.status-wh-in .status-dot{background:#64748B}
+.status-badge.status-queue{background:var(--sys-blue-bg);color:#0066B3}.status-badge.status-queue .status-dot{background:var(--cj-blue)}
+.status-badge.status-started,.status-badge.status-start-loading{background:var(--sys-orange-bg);color:#C26B00}.status-badge.status-started .status-dot,.status-badge.status-start-loading .status-dot{background:var(--cj-orange)}
+.status-badge.status-done-loading,.status-badge.status-completed{background:var(--sys-green-bg);color:#15803D}.status-badge.status-done-loading .status-dot,.status-badge.status-completed .status-dot{background:var(--sys-green)}
+.status-badge.status-wh-out{background:#E8F5EE;color:#18794E}.status-badge.status-wh-out .status-dot{background:#18794E}
+.status-badge.status-cancelled,.status-badge.status-unknown{background:var(--sys-red-bg);color:#B91C1C}.status-badge.status-cancelled .status-dot,.status-badge.status-unknown .status-dot{background:var(--cj-red)}
 .action-column,.action-cell{text-align:center!important}
 .action-button{width:32px;height:32px;border-radius:var(--radius-md);border:1px solid rgba(11,19,15,.08);background:#fff;color:var(--cj-blue);display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .2s}
 .action-button:hover{background:var(--cj-blue);color:#fff;border-color:var(--cj-blue)}
