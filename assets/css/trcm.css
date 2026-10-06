@@ -538,3 +538,13 @@ button,input,select{font:inherit}
 .registration-actions .btn-warning{background:#f59f00;border-color:#f59f00;color:#fff;}
 .registration-actions .btn-warning:hover,.registration-actions .btn-warning:focus{background:#e08f00;border-color:#d78900;color:#fff;}
 #vehicle-inspect-exp:disabled{background-color:#f3f5f4;color:#8b9690;cursor:not-allowed;}
+
+/* Gate Security searchable vendor dropdown */
+.searchable-select{position:relative;z-index:20;}
+.searchable-options{z-index:2000;}
+.searchable-select:focus-within{z-index:2001;}
+.content-card:has(.searchable-select){overflow:visible;}
+.content-card:has(.searchable-select) .card-body{overflow:visible;}
+#card-randomize{border-color:#dfe7e3;background:#fff;color:#5f6f67;}
+#card-randomize:hover,#card-randomize:focus{border-color:#006ECD;background:#eef5fb;color:#006ECD;box-shadow:0 0 0 .2rem rgba(0,110,205,.12);}
+#card-randomize:active{background:#006ECD;border-color:#006ECD;color:#fff;}
