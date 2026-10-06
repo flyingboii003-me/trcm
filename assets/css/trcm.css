@@ -453,3 +453,31 @@ button,input,select{font:inherit}
     font-size:.72rem;
   }
 }
+
+
+/* CJ Logistics visual refinement — status pills and blue surfaces */
+:root{
+  --trcm-sidebar:#0f4f7a;
+  --trcm-sidebar-hover:#155f8f;
+  --trcm-sidebar-muted:#c4d7e6;
+  --trcm-welcome:#0b64a0;
+  --trcm-welcome-hover:#0a5b92;
+  --trcm-welcome-soft:#eaf4fb;
+}
+.sidebar-wrapper{background:linear-gradient(180deg,#0f4f7a 0%,#0d496f 100%);}
+.sidebar-menu-link:hover{background:rgba(255,255,255,.10);}
+.sidebar-menu-link.active{background:#1677b7;box-shadow:0 4px 12px rgba(5,48,77,.20);}
+.sidebar-footer{border-top-color:rgba(255,255,255,.14);}
+.welcome-card{border-color:#0a5b92;background:linear-gradient(135deg,#0b64a0 0%,#1677b7 100%);box-shadow:0 8px 24px rgba(11,100,160,.16);}
+.welcome-card-copy,.welcome-card h2{color:#fff;}
+.welcome-kicker{color:#d9efff;}
+.welcome-card p{color:rgba(255,255,255,.86);}
+.welcome-card a{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.55);text-underline-offset:2px;}
+.welcome-card a:hover{color:#fff;text-decoration-color:#fff;}
+.welcome-card-icon{background:rgba(255,255,255,.14);color:#fff;}
+.destination{border:1px solid transparent;}
+.destination.destination-inbound{background:#eaf3fc;border-color:#cfe3f5;color:#006ecd;}
+.destination.destination-outbound{background:#fdebed;border-color:#f5cbd0;color:#c5121a;}
+.status-badge.status-registered{background:#eaf3fc;border:1px solid #cfe3f5;color:#006ecd;}
+.status-badge.status-started,.status-badge.status-processing{background:#eaf3fc;border:1px solid #cfe3f5;color:#006ecd;}
+.status-badge.status-completed{border:1px solid #cdebd8;}
