@@ -150,7 +150,7 @@ button,input,select{font:inherit}
 .status-badge.status-cancelled,.status-badge.status-unknown{background:var(--sys-red-bg);color:#B91C1C}.status-badge.status-cancelled .status-dot,.status-badge.status-unknown .status-dot{background:var(--cj-red)}
 .action-column,.action-cell{text-align:center!important}
 .action-button{width:32px;height:32px;border-radius:var(--radius-md);border:1px solid rgba(11,19,15,.08);background:#fff;color:var(--cj-blue);display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .2s}
-.action-button:hover{background:var(--cj-blue);color:#fff;border-color:var(--cj-blue)}
+.action-button:hover{background:var(--cj-blue);color:#fff;border-color:var(--cj-blue)}.action-button-danger{color:#B91C1C}.action-button-danger:hover{background:#B91C1C;color:#fff;border-color:#B91C1C}
 .table-state{text-align:center!important;padding:2.5rem 1rem!important;color:var(--text-muted)!important}
 .error-state{color:var(--cj-red)!important}
 .filter-toolbar{background:#fff;padding:1.25rem;border-bottom:1px solid rgba(11,19,15,.06);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem}
