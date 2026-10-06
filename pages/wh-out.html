@@ -203,7 +203,7 @@ window.trcmComponentsReady.then(async function () {
       ].join(",");
 
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
-        "&completed_at=not.is.null&wh_out_at=is.null&order=completed_at.asc";
+        "&process_status=eq.completed&completed_at=not.is.null&wh_out_at=is.null&order=completed_at.asc";
 
       const data = await request(path);
 
@@ -249,7 +249,7 @@ window.trcmComponentsReady.then(async function () {
     const whOutAt = new Date().toISOString();
 
     try {
-      await request("/rest/v1/visits?id=eq." + encodeURIComponent(visit.id), {
+      const updatedVisit = await request("/rest/v1/visits?id=eq." + encodeURIComponent(visit.id) + "&process_status=eq.completed&completed_at=not.is.null&wh_out_at=is.null", {
         method: "PATCH",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
@@ -259,6 +259,10 @@ window.trcmComponentsReady.then(async function () {
         },
         body: JSON.stringify({ wh_out_at: whOutAt })
       });
+
+      if (!Array.isArray(updatedVisit) || updatedVisit.length !== 1) {
+        throw new Error("Armada sudah berubah status atau sudah diproses WH Out oleh pengguna lain.");
+      }
 
       try {
         await request("/rest/v1/visit_events", {
