@@ -225,7 +225,7 @@
     queue: { label: "Antri/Parkir", className: "status-queue" },
     start_loading: { label: "Proses Loading", className: "status-start-loading" },
     done_loading: { label: "Selesai Loading", className: "status-done-loading" },
-    wh_out: { label: "Selesai/Keluar Gudang", className: "status-wh-out" },
+    wh_out: { label: "WH Out", className: "status-wh-out" },
     registered: { label: "Terdaftar", className: "status-wh-in" },
     started: { label: "Proses Loading", className: "status-start-loading" },
     completed: { label: "Selesai Loading", className: "status-done-loading" }

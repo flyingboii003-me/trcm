@@ -38,7 +38,7 @@
 
 <div id="visit-detail-container"></div>
 <div class="modal fade" id="visit-edit-modal" tabindex="-1" aria-labelledby="visit-edit-modal-title" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <div>
@@ -84,6 +84,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp
 const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
 const visitModal = document.getElementById("visit-modal");
 const visitModalClose = document.getElementById("visit-modal-close");
+const visitModalCloseTop = document.getElementById("visit-modal-close-top");
 const visitModalTitle = document.getElementById("visit-modal-title");
 const visitModalSubtitle = document.getElementById("visit-modal-subtitle");
 const visitModalBody = document.getElementById("visit-modal-body");
@@ -341,7 +342,9 @@ function displayValue(value) {
 function photoTypeLabel(type) {
   const labels = {
     seal_initial: "Seal awal",
-    seal_final: "Seal akhir"
+    seal_final: "Seal akhir",
+    registration: "Dokumentasi registrasi",
+    loading_completion: "Foto loading"
   };
 
   return labels[type] || displayValue(type);
@@ -500,16 +503,73 @@ async function openVisitModal(visitId) {
     ].join("");
 
     const photos = Array.isArray(visit.photos) ? visit.photos : [];
-    const photoHtml = photos.length
-      ? photos.map(function (photo) {
-          return '<div class="photo-item"><span class="photo-type">' +
-            escapeHtml(photoTypeLabel(photo.photo_type)) +
-            '</span><span class="photo-location">' +
-            escapeHtml(photo.file_location) +
-            '</span><span class="event-meta">' +
-            escapeHtml(formatDateTime(photo.created_at)) +
-            "</span></div>";
-        }).join("")
+    async function createSignedPhotoUrl(fileLocation) {
+      if (!fileLocation) return null;
+
+      const objectPath = String(fileLocation)
+        .replace(/^\/+/g, "")
+        .replace(/^trcm-visit-photos\//, "");
+
+      if (!objectPath) return null;
+
+      const response = await fetch(
+        SUPABASE_URL + "/storage/v1/object/sign/trcm-visit-photos/" +
+        objectPath.split("/").map(encodeURIComponent).join("/"),
+        {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + trcmSession.access_token,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ expiresIn: 3600 })
+        }
+      );
+
+      const responseText = await response.text();
+      let data = null;
+      try { data = responseText ? JSON.parse(responseText) : null; } catch {}
+
+      if (!response.ok) {
+        console.error("Gagal membuat signed URL foto:", response.status, data);
+        return null;
+      }
+
+      const signedPath = data && (data.signedURL || data.signedUrl);
+      if (!signedPath) return null;
+
+      if (signedPath.startsWith("http://") || signedPath.startsWith("https://")) {
+        return signedPath;
+      }
+
+      const normalizedSignedPath = signedPath.startsWith("/")
+        ? signedPath
+        : "/" + signedPath;
+
+      return SUPABASE_URL + (
+        normalizedSignedPath.startsWith("/storage/v1/")
+          ? normalizedSignedPath
+          : "/storage/v1" + normalizedSignedPath
+      );
+    }
+    const photoResults = await Promise.all(photos.map(async function (photo) {
+      return { photo: photo, url: await createSignedPhotoUrl(photo.file_location) };
+    }));
+    const photoHtml = photoResults.length
+      ? '<div class="photo-grid">' + photoResults.map(function (item) {
+          const photo = item.photo;
+          const label = photoTypeLabel(photo.photo_type);
+          if (!item.url) {
+            return '<div class="photo-item"><span class="photo-type">' + escapeHtml(label) + '</span><span class="photo-location">Foto tidak dapat dibuka.</span><span class="event-meta">' + escapeHtml(formatDateTime(photo.created_at)) + '</span></div>';
+          }
+          return '<div class="photo-item">' +
+            '<a class="photo-thumb-button" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" title="Buka foto ukuran penuh">' +
+              '<img src="' + escapeHtml(item.url) + '" alt="' + escapeHtml(label) + '" loading="lazy">' +
+            '</a>' +
+            '<span class="photo-type">' + escapeHtml(label) + '</span>' +
+            '<span class="photo-item-meta">' + escapeHtml(formatDateTime(photo.created_at)) + '</span>' +
+          '</div>';
+        }).join("") + '</div>'
       : '<div class="modal-empty">Belum ada foto yang tercatat untuk visit ini.</div>';
 
     visitModalBody.innerHTML =
@@ -552,7 +612,7 @@ function renderTable() {
       '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
       '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
-      '<td>' + (window.trcmStatusBadge ? window.trcmStatusBadge(visit.process_status) : '<span class="status-badge status-unknown"><span class="status-dot"></span>' + escapeHtml(status) + '</span>') + '</td>' +
+      '<td>' + (window.trcmStatusBadge ? window.trcmStatusBadge(window.trcmVisitStatus ? window.trcmVisitStatus(visit) : visit.process_status) : '<span class="status-badge status-unknown"><span class="status-dot"></span>' + escapeHtml(status) + '</span>') + '</td>' +
       '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at || visit.created_at)) + '</span></td>' +
       '<td class="action-cell">' +
         '<button class="detail-button me-1" type="button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-arrow-up-right-square"></i><span>Detail</span></button>' +
@@ -630,6 +690,7 @@ async function loadVisits() {
       "registered_at",
       "started_at",
       "completed_at",
+      "wh_out_at",
       "created_at",
       "cards(card_number)",
       "clients(name)",
@@ -749,6 +810,7 @@ truckTable.addEventListener("click", async function (event) {
 });
 
 visitModalClose.addEventListener("click", closeVisitModal);
+visitModalCloseTop.addEventListener("click", closeVisitModal);
 visitModalBackdrop.addEventListener("click", function (event) {
   if (event.target === visitModalBackdrop) {
     closeVisitModal();
