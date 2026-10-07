@@ -517,8 +517,9 @@ async function openVisitModal(visitId) {
       const text = await response.text();
       let data = null;
       try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-      if (!response.ok || !data || !data.signedURL) return null;
-      return data.signedURL;
+      const signedUrl = data && (data.signedUrl || data.signedURL);
+      if (!response.ok || !signedUrl) return null;
+      return signedUrl;
     }
     const photoResults = await Promise.all(photos.map(async function (photo) {
       return { photo: photo, url: await createSignedPhotoUrl(photo.file_location) };
