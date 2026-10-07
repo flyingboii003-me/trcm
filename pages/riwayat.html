@@ -542,8 +542,14 @@ async function openVisitModal(visitId) {
         return signedPath;
       }
 
+      const normalizedSignedPath = signedPath.startsWith("/")
+        ? signedPath
+        : "/" + signedPath;
+
       return SUPABASE_URL + (
-        signedPath.startsWith("/") ? signedPath : "/" + signedPath
+        normalizedSignedPath.startsWith("/storage/v1/")
+          ? normalizedSignedPath
+          : "/storage/v1" + normalizedSignedPath
       );
     }
     const photoResults = await Promise.all(photos.map(async function (photo) {
