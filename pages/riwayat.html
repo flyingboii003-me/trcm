@@ -505,23 +505,46 @@ async function openVisitModal(visitId) {
     const photos = Array.isArray(visit.photos) ? visit.photos : [];
     async function createSignedPhotoUrl(fileLocation) {
       if (!fileLocation) return null;
-      const response = await fetch(SUPABASE_URL + "/storage/v1/object/sign/trcm-visit-photos/" + fileLocation.split("/").map(encodeURIComponent).join("/"), {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_PUBLISHABLE_KEY,
-          Authorization: "Bearer " + trcmSession.access_token,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ expiresIn: 3600 })
-      });
-      const text = await response.text();
+
+      const objectPath = String(fileLocation)
+        .replace(/^\/+/g, "")
+        .replace(/^trcm-visit-photos\//, "");
+
+      if (!objectPath) return null;
+
+      const response = await fetch(
+        SUPABASE_URL + "/storage/v1/object/sign/trcm-visit-photos/" +
+        objectPath.split("/").map(encodeURIComponent).join("/"),
+        {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + trcmSession.access_token,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ expiresIn: 3600 })
+        }
+      );
+
+      const responseText = await response.text();
       let data = null;
-      try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-      const signedUrl = data && (data.signedURL || data.signedUrl);
-      if (!response.ok || !signedUrl) return null;
-      return signedUrl.startsWith("http://") || signedUrl.startsWith("https://")
-        ? signedUrl
-        : SUPABASE_URL + (signedUrl.startsWith("/") ? signedUrl : "/" + signedUrl);
+      try { data = responseText ? JSON.parse(responseText) : null; } catch {}
+
+      if (!response.ok) {
+        console.error("Gagal membuat signed URL foto:", response.status, data);
+        return null;
+      }
+
+      const signedPath = data && (data.signedURL || data.signedUrl);
+      if (!signedPath) return null;
+
+      if (signedPath.startsWith("http://") || signedPath.startsWith("https://")) {
+        return signedPath;
+      }
+
+      return SUPABASE_URL + (
+        signedPath.startsWith("/") ? signedPath : "/" + signedPath
+      );
     }
     const photoResults = await Promise.all(photos.map(async function (photo) {
       return { photo: photo, url: await createSignedPhotoUrl(photo.file_location) };
