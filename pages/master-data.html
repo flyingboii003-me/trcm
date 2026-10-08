@@ -23,7 +23,7 @@
 .master-actions{display:flex;align-items:center;gap:.5rem}
 .master-table-wrap{overflow:auto}
 .master-table .table-state{min-height:160px;vertical-align:middle}
-.master-count{font-size:.75rem;color:var(--text-muted);font-weight:600}
+.master-count{font-size:.75rem;color:var(--text-muted);font-weight:600}.master-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--border)}.master-pagination-info{font-size:.75rem;color:var(--text-muted)}.master-pagination-controls{display:flex;align-items:center;gap:.35rem}.master-page-size{width:auto;min-width:76px;font-size:.78rem}.master-page-button{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:var(--radius-md);font-size:.78rem;font-weight:700}.master-page-button:hover:not(:disabled){background:#F8FAF9;color:var(--cj-blue)}.master-page-button.active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff}.master-page-button:disabled{opacity:.45;cursor:not-allowed}.master-page-ellipsis{min-width:24px;text-align:center;color:var(--text-muted);font-size:.78rem}
 .master-status{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;font-size:.72rem;font-weight:700}
 .master-status.active{background:var(--sys-green-bg);color:#15803D}
 .master-status.inactive{background:#F1F5F4;color:var(--text-muted)}
@@ -99,6 +99,19 @@
                 </tbody>
               </table>
             </div>
+            <div class="master-pagination" id="master-pagination" aria-label="Paginasi data">
+              <div class="master-pagination-info" id="master-pagination-info">0 data</div>
+              <div class="master-pagination-controls">
+                <select class="form-select master-page-size" id="master-page-size" aria-label="Jumlah data per halaman">
+                  <option value="10">10 / halaman</option>
+                  <option value="25" selected>25 / halaman</option>
+                  <option value="50">50 / halaman</option>
+                </select>
+                <button class="master-page-button" type="button" id="master-page-prev" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button>
+                <div id="master-page-numbers" class="d-flex gap-1"></div>
+                <button class="master-page-button" type="button" id="master-page-next" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
           </div>
         </section>
       </div>
@@ -143,6 +156,9 @@
   let activeTab = "cards";
   let editId = null;
   let masterRows = [];
+  let totalRows = 0;
+  let currentPage = 1;
+  let pageSize = 25;
   let modal = null;
 
   const configs = {
@@ -232,6 +248,11 @@
     title: document.getElementById("master-section-title"),
     subtitle: document.getElementById("master-section-subtitle"),
     count: document.getElementById("master-count"),
+    paginationInfo: document.getElementById("master-pagination-info"),
+    pageSize: document.getElementById("master-page-size"),
+    pagePrev: document.getElementById("master-page-prev"),
+    pageNext: document.getElementById("master-page-next"),
+    pageNumbers: document.getElementById("master-page-numbers"),
     search: document.getElementById("master-search-input"),
     refresh: document.getElementById("master-refresh"),
     add: document.getElementById("master-add"),
@@ -348,12 +369,44 @@
     return escapeHtml(row[key] ?? "—");
   }
 
+  function renderPagination() {
+    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const from = totalRows === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+    const to = Math.min(currentPage * pageSize, totalRows);
+    elements.paginationInfo.textContent = totalRows === 0 ? "0 data" : "Menampilkan " + from + "–" + to + " dari " + totalRows + " data";
+    elements.pagePrev.disabled = currentPage <= 1;
+    elements.pageNext.disabled = currentPage >= totalPages;
+
+    const pages = [];
+    const addPage = function (page) {
+      pages.push('<button class="master-page-button' + (page === currentPage ? ' active' : '') + '" type="button" data-page="' + page + '" aria-label="Halaman ' + page + '">' + page + '</button>');
+    };
+
+    if (totalPages <= 7) {
+      for (let page = 1; page <= totalPages; page += 1) addPage(page);
+    } else {
+      addPage(1);
+      if (currentPage > 4) pages.push('<span class="master-page-ellipsis">…</span>');
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let page = start; page <= end; page += 1) addPage(page);
+      if (currentPage < totalPages - 3) pages.push('<span class="master-page-ellipsis">…</span>');
+      addPage(totalPages);
+    }
+    elements.pageNumbers.innerHTML = pages.join("");
+  }
+
   function renderTable() {
     const config = configs[activeTab];
     const query = normalizeSearch(elements.search.value);
-    const rows = masterRows.filter(function (row) { return rowMatches(row, query); });
+    const filteredRows = masterRows.filter(function (row) { return rowMatches(row, query); });
+    const start = (currentPage - 1) * pageSize;
+    const rows = filteredRows.slice(start, start + pageSize);
 
-    elements.count.textContent = rows.length + " data";
+    totalRows = filteredRows.length;
+    elements.count.textContent = totalRows + " data";
 
     elements.head.innerHTML =
       "<tr>" +
@@ -365,6 +418,7 @@
         '<tr><td class="table-state" colspan="' + (config.columns.length + 1) + '">' +
         (masterRows.length ? "Tidak ada data yang sesuai dengan pencarian." : "Belum ada data.") +
         "</td></tr>";
+      renderPagination();
       return;
     }
 
@@ -379,6 +433,8 @@
         config.columns.map(function (column) { return "<td>" + getDisplayValue(row, column.key) + "</td>"; }).join("") +
         '<td class="action-cell">' + actions + "</td></tr>";
     }).join("");
+
+    renderPagination();
   }
 
   function renderFields(row) {
@@ -629,11 +685,14 @@
         "&order=" + encodeURIComponent(config.order)
       );
       masterRows = Array.isArray(data) ? data : [];
+      totalRows = masterRows.length;
       renderTable();
     } catch (error) {
       masterRows = [];
+      totalRows = 0;
       elements.count.textContent = "Gagal memuat";
       elements.body.innerHTML = '<tr><td class="table-state error-state" colspan="' + (config.columns.length + 1) + '">Data gagal dimuat. ' + escapeHtml(error.message || "Silakan coba lagi.") + "</td></tr>";
+      renderPagination();
     } finally {
       elements.refresh.disabled = false;
     }
@@ -655,6 +714,7 @@
     elements.title.textContent = config.label;
     elements.subtitle.textContent = config.subtitle;
     elements.search.value = "";
+    currentPage = 1;
     elements.search.placeholder = config.searchPlaceholder;
 
     await loadData();
@@ -666,8 +726,35 @@
     });
   });
 
-  elements.search.addEventListener("input", renderTable);
+  elements.search.addEventListener("input", function () {
+    currentPage = 1;
+    renderTable();
+  });
   elements.refresh.addEventListener("click", loadData);
+  elements.pageSize.addEventListener("change", function () {
+    pageSize = Number(elements.pageSize.value) || 25;
+    currentPage = 1;
+    renderTable();
+  });
+  elements.pagePrev.addEventListener("click", function () {
+    if (currentPage > 1) {
+      currentPage -= 1;
+      renderTable();
+    }
+  });
+  elements.pageNext.addEventListener("click", function () {
+    if (currentPage < Math.ceil(totalRows / pageSize)) {
+      currentPage += 1;
+      renderTable();
+    }
+  });
+  elements.pageNumbers.addEventListener("click", function (event) {
+    const button = event.target.closest("[data-page]");
+    if (button) {
+      currentPage = Number(button.getAttribute("data-page"));
+      renderTable();
+    }
+  });
   elements.add.addEventListener("click", function () { openModal(null); });
   elements.form.addEventListener("submit", saveData);
 
