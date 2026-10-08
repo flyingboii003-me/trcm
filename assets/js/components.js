@@ -29,6 +29,59 @@
     return "";
   }
 
+  async function applyPermissionVisibility() {
+    const session = (() => {
+      try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); }
+      catch { return null; }
+    })();
+    const accessToken = session && session.access_token;
+    if (!accessToken) return;
+
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.style.visibility = "hidden";
+
+    try {
+      const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_menu_permissions", {
+        method: "POST",
+        headers: {
+          "apikey": "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+          "Authorization": "Bearer " + accessToken,
+          "Content-Type": "application/json"
+        },
+        body: "{}"
+      });
+
+      if (!response.ok) throw new Error("Permission menu gagal dimuat.");
+      const rows = await response.json();
+      const allowed = new Set((Array.isArray(rows) ? rows : []).map(function (row) {
+        return String(row.resource_key || "");
+      }));
+
+      document.querySelectorAll("[data-resource-key]").forEach(function (element) {
+        const resourceKey = element.getAttribute("data-resource-key");
+        const visible = allowed.has(resourceKey);
+        const item = element.closest(".sidebar-menu-item") || element;
+        item.hidden = !visible;
+      });
+
+      document.querySelectorAll("[data-resource-group]").forEach(function (group) {
+        const submenu = group.nextElementSibling;
+        const hasVisibleChild = submenu && Array.from(submenu.querySelectorAll("[data-resource-key]")).some(function (item) {
+          const li = item.closest(".sidebar-menu-item") || item;
+          return !li.hidden;
+        });
+        const parentItem = group.closest(".sidebar-menu-item");
+        if (parentItem) parentItem.hidden = !hasVisibleChild;
+      });
+
+      syncCollapsibleMenuState();
+    } catch (error) {
+      console.error("TRCM permission visibility:", error);
+    } finally {
+      if (sidebar) sidebar.style.visibility = "";
+    }
+  }
+
   function setupCollapsibleMenus() {
     const toggles = document.querySelectorAll("[data-menu-toggle]");
     toggles.forEach(function (toggle) {
@@ -198,7 +251,8 @@
     .then(function (loaded) {
       if (loaded) {
         setupCollapsibleMenus();
-  setActiveMenu();
+        applyPermissionVisibility();
+        setActiveMenu();
       }
       return loaded;
     });
@@ -213,6 +267,7 @@
 
     if (loaded) {
       setActiveMenu();
+      applyPermissionVisibility();
       setPageTitle();
       setAccountNames();
       setupMobileSidebar();
