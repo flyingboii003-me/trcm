@@ -356,7 +356,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(client) + '</td>' +
         '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
-        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
+        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canFinish ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
       '</tr>';
     }).join("");
   }
@@ -413,7 +413,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function saveFinish(event) {
     event.preventDefault();
-    if (!form.checkValidity() || !selectedVisit || !canStart) {
+    if (!form.checkValidity() || !selectedVisit || !canFinish) {
       form.classList.add("was-validated");
       return;
     }
@@ -552,12 +552,12 @@ window.trcmComponentsReady.then(async function () {
 
   table.addEventListener("click", function (event) {
     const button = event.target.closest(".finish-loading-button");
-    if (!button || !canStart) return;
+    if (!button || !canFinish) return;
     const visit = visits.find(function (item) { return item.id === button.dataset.visitId; });
     if (visit) openFinishModal(visit);
   });
 
-  if (!canStart) {
+  if (!canFinish) {
     await Swal.fire({
       icon: "error",
       title: "Akses terbatas",
