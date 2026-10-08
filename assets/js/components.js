@@ -5,6 +5,7 @@
   const topbarContainer = document.getElementById("topbar-container");
   const detailContainer = document.getElementById("visit-detail-container");
   const tableToolbarContainer = document.getElementById("table-toolbar-container");
+  const permissionState = new Set();
 
   if (!container) {
     window.trcmSidebarReady = Promise.resolve(false);
@@ -57,7 +58,7 @@
     const accessToken = session && session.access_token;
     if (!accessToken) return null;
 
-    const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_menu_permissions", {
+    const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_permissions", {
       method: "POST",
       headers: {
         "apikey": "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
@@ -67,12 +68,42 @@
       body: "{}"
     });
 
-    if (!response.ok) throw new Error("Permission menu gagal dimuat.");
+    if (!response.ok) throw new Error("Permission user gagal dimuat.");
     const rows = await response.json();
-    return new Set((Array.isArray(rows) ? rows : []).map(function (row) {
-      return String(row.resource_key || "");
-    }));
+
+    permissionState.clear();
+    (Array.isArray(rows) ? rows : []).forEach(function (row) {
+      const resourceKey = String(row.resource_key || "");
+      const permissionKey = String(row.permission_key || "");
+      if (resourceKey && permissionKey) {
+        permissionState.add(resourceKey + ":" + permissionKey);
+      }
+    });
+
+    return new Set((Array.isArray(rows) ? rows : [])
+      .filter(function (row) { return String(row.permission_key || "") === "view"; })
+      .map(function (row) { return String(row.resource_key || ""); }));
   }
+
+  window.trcmPermissions = {
+    can: function (resourceKey, permissionKey) {
+      return permissionState.has(String(resourceKey || "") + ":" + String(permissionKey || ""));
+    },
+    apply: function (root) {
+      const scope = root || document;
+      scope.querySelectorAll("[data-permission]").forEach(function (element) {
+        const value = String(element.getAttribute("data-permission") || "");
+        const separatorIndex = value.indexOf(":");
+        if (separatorIndex < 1) return;
+        const resourceKey = value.slice(0, separatorIndex);
+        const permissionKey = value.slice(separatorIndex + 1);
+        element.hidden = !window.trcmPermissions.can(resourceKey, permissionKey);
+      });
+    },
+    loaded: function () {
+      return permissionState.size > 0;
+    }
+  };
 
   async function applyPermissionVisibility(allowed) {
     if (!allowed) return;
@@ -309,6 +340,7 @@
       const permitted = await enforcePagePermission(allowed);
       if (permitted) {
         await applyPermissionVisibility(allowed);
+        window.trcmPermissions.apply(document);
         setActiveMenu();
       }
       return permitted;
