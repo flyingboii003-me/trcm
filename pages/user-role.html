@@ -28,8 +28,16 @@
 .user-role-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;background:#EEF5FB;color:var(--cj-blue);font-size:.72rem;font-weight:700}
 .user-role-status{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;font-size:.72rem;font-weight:700}
 .user-role-status.active{background:var(--sys-green-bg);color:#15803D}.user-role-status.inactive{background:#FEE2E2;color:#B91C1C}
-.user-role-modal .modal-content{border:0;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg)}
-.user-role-modal .modal-header{padding:1.35rem 1.5rem;border-bottom:1px solid var(--border)}.user-role-modal .modal-body{padding:1.5rem}.user-role-modal .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border)}
+.user-role-modal .modal-content{border:0;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);overflow:hidden}
+.user-role-modal .modal-header{padding:1.15rem 1.35rem;border-bottom:1px solid var(--border)}
+.user-role-modal .modal-body{padding:1.35rem}
+.user-role-modal .modal-footer{padding:.9rem 1.35rem;border-top:1px solid var(--border)}
+.user-role-modal .form-label{font-size:.76rem;font-weight:700;color:var(--text-main);margin-bottom:.45rem}
+.user-role-modal .form-control,.user-role-modal .form-select{min-height:42px;font-size:.82rem}
+.user-role-modal textarea.form-control{min-height:auto}
+.user-role-modal .form-text{font-size:.7rem;line-height:1.45}
+.user-role-modal .form-check-label{font-size:.78rem;font-weight:600}
+.user-role-modal .modal-footer .btn{min-width:82px}
 .permission-role-bar{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
 .permission-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--radius-lg)}
 .permission-table{margin:0;min-width:720px}.permission-table th{font-size:.72rem;color:var(--text-muted);font-weight:700;white-space:nowrap}.permission-table td{font-size:.8rem;vertical-align:middle}
@@ -38,9 +46,37 @@
 .permission-group{background:#F8FAF9}.permission-group td{font-weight:700;color:var(--cj-blue)}
 .user-role-alert{display:none}.user-role-alert.is-visible{display:block}
 @media(max-width:575.98px){
- .user-role-tabs{overflow-x:auto;flex-wrap:nowrap}.user-role-tab{white-space:nowrap}.user-role-toolbar{align-items:stretch}.user-role-search{max-width:none}.user-role-actions{width:100%}.user-role-actions .btn{flex:1}
- .user-role-pagination{align-items:center;gap:.75rem}.user-role-pagination-info{width:100%}.user-role-page-controls{width:100%;justify-content:center}.user-role-page-list{max-width:calc(100vw - 120px);overflow:hidden}
+ .user-role-tabs{overflow-x:auto;flex-wrap:nowrap;margin-bottom:1rem}
+ .user-role-tab{white-space:nowrap;padding:.6rem .8rem;font-size:.76rem}
+ .user-role-toolbar{align-items:stretch;gap:.7rem}
+ .user-role-search{max-width:none}
+ .user-role-actions{width:100%;justify-content:flex-end;gap:.4rem}
+ .user-role-actions .btn{flex:0 0 auto;width:auto;min-height:36px;padding:.45rem .7rem;font-size:.72rem}
+ .user-role-actions .btn i{margin-right:0!important}
+ .user-role-actions .btn:not(:has(i)){padding-inline:.7rem}
+ #user-add,#role-add{min-width:0}
+ #user-refresh,#role-refresh{width:38px;padding-inline:0;font-size:0}
+ #user-refresh i,#role-refresh i{font-size:.9rem}
+ #role-delete{min-width:38px;width:38px;padding-inline:0;font-size:0}
+ #role-delete i{font-size:.9rem}
+ #role-edit{min-width:38px;width:38px;padding-inline:0;font-size:0}
+ #role-edit i{font-size:.9rem}
+ .permission-role-bar{gap:.55rem;align-items:flex-end}
+ .permission-role-bar>div{flex:1 1 100%}
  .permission-role-bar .form-select{width:100%}
+ .user-role-pagination{align-items:center;gap:.75rem}
+ .user-role-pagination-info{width:100%}
+ .user-role-page-controls{width:100%;justify-content:center}
+ .user-role-page-list{max-width:calc(100vw - 120px);overflow:hidden}
+ .user-role-modal .modal-dialog{margin:.75rem}
+ .user-role-modal .modal-content{border-radius:1rem}
+ .user-role-modal .modal-header{padding:.9rem 1rem}
+ .user-role-modal .modal-body{padding:1rem}
+ .user-role-modal .modal-footer{padding:.75rem 1rem}
+ .user-role-modal .modal-title,.user-role-modal .master-modal-title{font-size:1rem}
+ .user-role-modal .master-modal-kicker{font-size:.65rem}
+ .user-role-modal .form-control,.user-role-modal .form-select{min-height:40px}
+ .user-role-modal .modal-footer .btn{min-width:0;flex:1;padding:.55rem .7rem;font-size:.76rem}
 }
 </style>
 </head>
