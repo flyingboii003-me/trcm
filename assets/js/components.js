@@ -31,6 +31,9 @@
   }
 
   function currentPageResourceKey() {
+    const explicitResource = document.body && document.body.getAttribute("data-page-resource");
+    if (explicitResource) return explicitResource;
+
     const page = currentPageKey();
     return {
       dashboard: "dashboard",
