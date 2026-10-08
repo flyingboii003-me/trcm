@@ -24,6 +24,7 @@
     if (page === "selesai-loading.html") return "selesai-loading";
     if (page === "checker.html") return "checker";
     if (page === "master-data.html") return "master-data";
+    if (page === "user-role.html") return "user-role";
 
     return "";
   }
@@ -88,7 +89,8 @@
       "registrasi-armada": "WH In",
       "wh-in": "WH In",
       "wh-out": "WH Out",
-      "master-data": "Master Data"
+      "master-data": "Master Data",
+      "user-role": "User & Role"
     };
 
     const key = currentPageKey();
