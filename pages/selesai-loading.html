@@ -170,8 +170,7 @@ window.trcmComponentsReady.then(async function () {
     return;
   }
 
-  const role = session.user.role || "";
-  const canStart = role === "checker" || role === "admin";
+  const canFinish = window.trcmPermissions.can("finish_loading", "update");
   const table = document.getElementById("finish-loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
