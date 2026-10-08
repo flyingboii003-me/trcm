@@ -100,13 +100,15 @@
         element.hidden = !window.trcmPermissions.can(resourceKey, permissionKey);
       });
     },
+    canView: function (resourceKey) {
+      return permissionState.has(String(resourceKey || "") + ":view");
+    },
     loaded: function () {
       return permissionState.size > 0;
     }
   };
 
-  async function applyPermissionVisibility(allowed) {
-    if (!allowed) return;
+  async function applyPermissionVisibility() {
 
     const sidebar = document.getElementById("sidebar");
     if (sidebar) sidebar.style.visibility = "hidden";
@@ -114,7 +116,7 @@
     try {
       document.querySelectorAll("[data-resource-key]").forEach(function (element) {
         const resourceKey = element.getAttribute("data-resource-key");
-        const visible = allowed.has(resourceKey);
+        const visible = permissionState.has(String(resourceKey || "") + ":view");
         const item = element.closest(".sidebar-menu-item") || element;
         item.hidden = !visible;
       });
@@ -135,11 +137,11 @@
     }
   }
 
-  async function enforcePagePermission(allowed) {
+  async function enforcePagePermission() {
     const resourceKey = currentPageResourceKey();
-    if (!resourceKey || !allowed) return true;
+    if (!resourceKey) return true;
 
-    if (allowed.has(resourceKey)) return true;
+    if (permissionState.has(resourceKey + ":view")) return true;
 
     showPageAccessDenied();
     return false;
@@ -337,9 +339,9 @@
     try {
       const allowed = await loadMyMenuPermissions();
       if (!allowed) return true;
-      const permitted = await enforcePagePermission(allowed);
+      const permitted = await enforcePagePermission();
       if (permitted) {
-        await applyPermissionVisibility(allowed);
+        await applyPermissionVisibility();
         window.trcmPermissions.apply(document);
         setActiveMenu();
       }
