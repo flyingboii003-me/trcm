@@ -145,9 +145,10 @@ window.trcmComponentsReady.then(async function () {
     table.innerHTML=filtered.map(function(v){
       const card=v.cards&&v.cards.card_number?v.cards.card_number:"—",client=v.clients&&v.clients.name?v.clients.name:"—";
       const isQueued=v.process_status==="queue";
+      const canParkThisVisit=isGateSecurity && canQueueUpdate && v.process_status==="wh_in";
       const queueButton=isQueued
         ? '<button type="button" class="btn btn-light border btn-sm" disabled><i class="bi bi-p-square me-1"></i>Sudah Antri</button>'
-        : canQueueUpdate
+        : canParkThisVisit
           ? '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
           : '';
       const canStartThisVisit=canStartFromQueue && (isQueued || canGateBypass);
