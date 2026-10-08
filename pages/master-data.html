@@ -70,6 +70,7 @@
           <button class="master-tab" type="button" data-master-tab="clients" role="tab" aria-selected="false"><i class="bi bi-person-badge"></i>Client</button>
           <button class="master-tab" type="button" data-master-tab="gates" role="tab" aria-selected="false"><i class="bi bi-door-open"></i>Gate</button>
           <button class="master-tab" type="button" data-master-tab="line_numbers" role="tab" aria-selected="false"><i class="bi bi-list-ol"></i>Line</button>
+          <button class="master-tab" type="button" data-master-tab="truck_types" role="tab" aria-selected="false"><i class="bi bi-truck"></i>Tipe Truck</button>
         </div>
 
         <section class="card content-card">
@@ -217,6 +218,23 @@
       ],
       fields: [
         { key: "gate_number", label: "Nomor gate", type: "number", required: true, min: 1, max: 9999, placeholder: "Contoh: 1" }
+      ]
+    },
+    truck_types: {
+      label: "Tipe Truck",
+      singular: "tipe truck",
+      subtitle: "Jenis truck yang tersedia untuk registrasi armada.",
+      select: "id,name,is_active,created_at",
+      order: "name.asc",
+      searchPlaceholder: "Cari tipe truck...",
+      columns: [
+        { key: "name", label: "Nama tipe truck" },
+        { key: "is_active", label: "Status" },
+        { key: "created_at", label: "Dibuat" }
+      ],
+      fields: [
+        { key: "name", label: "Nama tipe truck", type: "text", required: true, maxlength: 120, placeholder: "Contoh: Wingbox" },
+        { key: "is_active", label: "Status", type: "select", options: [{value:"true",label:"Aktif"},{value:"false",label:"Tidak aktif"}], required: true }
       ]
     },
     line_numbers: {
