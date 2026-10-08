@@ -29,34 +29,58 @@
     return "";
   }
 
-  async function applyPermissionVisibility() {
+  function currentPageResourceKey() {
+    const page = currentPageKey();
+    return {
+      dashboard: "dashboard",
+      riwayat: "history",
+      "wh-in": "wh_in",
+      "antri-parkir": "queue_parking",
+      "wh-out": "wh_out",
+      "mulai-loading": "start_loading",
+      "selesai-loading": "finish_loading",
+      "master-data": "master_data",
+      "user-role": "user_role"
+    }[page] || "";
+  }
+
+  function showPageAccessDenied() {
+    const main = document.querySelector("main") || document.body;
+    main.innerHTML = '<div class="container-fluid py-5"><div class="card border-0 shadow-sm"><div class="card-body text-center py-5"><div class="mb-3"><i class="bi bi-shield-lock fs-1 text-secondary"></i></div><h4 class="mb-2">Akses tidak tersedia</h4><p class="text-secondary mb-4">Anda tidak memiliki permission untuk membuka halaman ini.</p><a class="btn btn-primary" href="dashboard.html">Kembali ke Dashboard</a></div></div></div>';
+  }
+
+  async function loadMyMenuPermissions() {
     const session = (() => {
       try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); }
       catch { return null; }
     })();
     const accessToken = session && session.access_token;
-    if (!accessToken) return;
+    if (!accessToken) return null;
+
+    const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_menu_permissions", {
+      method: "POST",
+      headers: {
+        "apikey": "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+        "Authorization": "Bearer " + accessToken,
+        "Content-Type": "application/json"
+      },
+      body: "{}"
+    });
+
+    if (!response.ok) throw new Error("Permission menu gagal dimuat.");
+    const rows = await response.json();
+    return new Set((Array.isArray(rows) ? rows : []).map(function (row) {
+      return String(row.resource_key || "");
+    }));
+  }
+
+  async function applyPermissionVisibility(allowed) {
+    if (!allowed) return;
 
     const sidebar = document.getElementById("sidebar");
     if (sidebar) sidebar.style.visibility = "hidden";
 
     try {
-      const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_menu_permissions", {
-        method: "POST",
-        headers: {
-          "apikey": "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
-          "Authorization": "Bearer " + accessToken,
-          "Content-Type": "application/json"
-        },
-        body: "{}"
-      });
-
-      if (!response.ok) throw new Error("Permission menu gagal dimuat.");
-      const rows = await response.json();
-      const allowed = new Set((Array.isArray(rows) ? rows : []).map(function (row) {
-        return String(row.resource_key || "");
-      }));
-
       document.querySelectorAll("[data-resource-key]").forEach(function (element) {
         const resourceKey = element.getAttribute("data-resource-key");
         const visible = allowed.has(resourceKey);
@@ -75,11 +99,19 @@
       });
 
       syncCollapsibleMenuState();
-    } catch (error) {
-      console.error("TRCM permission visibility:", error);
     } finally {
       if (sidebar) sidebar.style.visibility = "";
     }
+  }
+
+  async function enforcePagePermission(allowed) {
+    const resourceKey = currentPageResourceKey();
+    if (!resourceKey || !allowed) return true;
+
+    if (allowed.has(resourceKey)) return true;
+
+    showPageAccessDenied();
+    return false;
   }
 
   function setupCollapsibleMenus() {
@@ -251,7 +283,6 @@
     .then(function (loaded) {
       if (loaded) {
         setupCollapsibleMenus();
-        applyPermissionVisibility();
         setActiveMenu();
       }
       return loaded;
@@ -262,19 +293,30 @@
     loadFragment("../components/topbar.html", topbarContainer, false),
     loadFragment("../components/visit-detail.html", detailContainer, false),
     loadFragment("../components/table-toolbar.html", tableToolbarContainer, false)
-  ]).then(function (results) {
+  ]).then(async function (results) {
     const loaded = results.every(Boolean);
 
-    if (loaded) {
-      setActiveMenu();
-      applyPermissionVisibility();
-      setPageTitle();
-      setAccountNames();
-      setupMobileSidebar();
-      setupLogout();
-    }
+    if (!loaded) return false;
 
-    return loaded;
+    setPageTitle();
+    setAccountNames();
+    setupMobileSidebar();
+    setupLogout();
+
+    try {
+      const allowed = await loadMyMenuPermissions();
+      if (!allowed) return true;
+      const permitted = await enforcePagePermission(allowed);
+      if (permitted) {
+        await applyPermissionVisibility(allowed);
+        setActiveMenu();
+      }
+      return permitted;
+    } catch (error) {
+      console.error("TRCM permission guard:", error);
+      showPageAccessDenied();
+      return false;
+    }
   });
 
   const statusConfig = {
