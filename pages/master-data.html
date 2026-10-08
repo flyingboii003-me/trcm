@@ -23,7 +23,7 @@
 .master-actions{display:flex;align-items:center;gap:.5rem}
 .master-table-wrap{overflow:auto}
 .master-table .table-state{min-height:160px;vertical-align:middle}
-.master-count{font-size:.75rem;color:var(--text-muted);font-weight:600}.master-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--border)}.master-pagination-info{font-size:.75rem;color:var(--text-muted);white-space:nowrap}.master-pagination-controls{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-numbers{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-button{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:var(--radius-md);font-size:.78rem;font-weight:700}.master-page-button:hover:not(:disabled){background:#F8FAF9;color:var(--cj-blue)}.master-page-button.active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff}.master-page-button:disabled{opacity:.45;cursor:not-allowed}.master-page-ellipsis{min-width:24px;text-align:center;color:var(--text-muted);font-size:.78rem}
+.master-count{font-size:.75rem;color:var(--text-muted);font-weight:600}.master-status-inactive{background:#FEE2E2!important;color:#B91C1C!important}.master-status-inactive .status-dot{background:#DC2626!important}.master-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--border)}.master-pagination-info{font-size:.75rem;color:var(--text-muted);white-space:nowrap}.master-pagination-controls{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-numbers{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-button{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:var(--radius-md);font-size:.78rem;font-weight:700}.master-page-button:hover:not(:disabled){background:#F8FAF9;color:var(--cj-blue)}.master-page-button.active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff}.master-page-button:disabled{opacity:.45;cursor:not-allowed}.master-page-ellipsis{min-width:24px;text-align:center;color:var(--text-muted);font-size:.78rem}
 .master-status{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;font-size:.72rem;font-weight:700}
 .master-status.active{background:var(--sys-green-bg);color:#15803D}
 .master-status.inactive{background:#F1F5F4;color:var(--text-muted)}
@@ -153,7 +153,7 @@
   let masterRows = [];
   let totalRows = 0;
   let currentPage = 1;
-  const pageSize = 25;
+  const pageSize = 10;
   let modal = null;
 
   const configs = {
@@ -357,7 +357,7 @@
     if (key === "is_active") {
       return row.is_active
         ? '<span class="master-status active"><span class="status-dot"></span>Aktif</span>'
-        : '<span class="master-status inactive"><span class="status-dot"></span>Tidak aktif</span>';
+        : '<span class="master-status inactive master-status-inactive"><span class="status-dot"></span>Tidak aktif</span>';
     }
     if (key === "created_at") return escapeHtml(formatDate(row.created_at));
     return escapeHtml(row[key] ?? "—");
