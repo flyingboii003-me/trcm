@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - Master Data">
+<title>Master Data — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+.master-tabs{display:flex;gap:.35rem;flex-wrap:wrap;padding:.35rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);margin-bottom:1.25rem}
+.master-tab{border:0;background:transparent;color:var(--text-muted);font-weight:700;font-size:.82rem;border-radius:var(--radius-md);padding:.7rem 1rem;display:inline-flex;align-items:center;gap:.45rem;cursor:pointer}
+.master-tab:hover{color:var(--cj-blue);background:#F8FAF9}
+.master-tab.active{background:#EEF5FB;color:var(--cj-blue)}
+.master-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.master-search{flex:1 1 260px;max-width:460px}
+.master-search label{display:block;margin:0 0 .4rem;color:var(--text-muted);font-size:.72rem;font-weight:700}
+.master-actions{display:flex;align-items:center;gap:.5rem}
+.master-table-wrap{overflow:auto}
+.master-table .table-state{min-height:160px;vertical-align:middle}
+.master-count{font-size:.75rem;color:var(--text-muted);font-weight:600}
+.master-status{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;font-size:.72rem;font-weight:700}
+.master-status.active{background:var(--sys-green-bg);color:#15803D}
+.master-status.inactive{background:#F1F5F4;color:var(--text-muted)}
+.master-modal .modal-content{border:0;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg)}
+.master-modal .modal-header{padding:1.35rem 1.5rem;border-bottom:1px solid var(--border)}
+.master-modal .modal-body{padding:1.5rem}
+.master-modal .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border)}
+.master-modal-kicker{display:block;color:var(--cj-blue);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.2rem}
+.master-modal-title{font-size:1.2rem;font-weight:700;margin:0}
+.master-empty{padding:2.5rem 1rem;text-align:center;color:var(--text-muted)}
+.master-alert{display:none;margin-bottom:1rem}
+.master-alert.is-visible{display:block}
+.master-gate-hint{font-size:.72rem;color:var(--text-muted);margin-top:.35rem}
+@media(max-width:575.98px){
+  .master-tabs{overflow-x:auto;flex-wrap:nowrap}
+  .master-tab{white-space:nowrap}
+  .master-toolbar{align-items:stretch}
+  .master-search{max-width:none}
+  .master-actions{width:100%}
+  .master-actions .btn{flex:1}
+}
+</style>
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <div class="page-header-kicker">Administrasi</div>
+            <h1 class="page-title">Master Data</h1>
+            <p class="page-subtitle">Kelola data referensi yang digunakan dalam proses operasional TRCM.</p>
+          </div>
+        </div>
+
+        <div id="access-alert" class="alert alert-danger master-alert" role="alert"></div>
+
+        <div class="master-tabs" role="tablist" aria-label="Master data">
+          <button class="master-tab active" type="button" data-master-tab="cards" role="tab" aria-selected="true"><i class="bi bi-credit-card-2-front"></i>Kartu</button>
+          <button class="master-tab" type="button" data-master-tab="vendors" role="tab" aria-selected="false"><i class="bi bi-building"></i>Vendor</button>
+          <button class="master-tab" type="button" data-master-tab="clients" role="tab" aria-selected="false"><i class="bi bi-person-badge"></i>Client</button>
+          <button class="master-tab" type="button" data-master-tab="gates" role="tab" aria-selected="false"><i class="bi bi-door-open"></i>Gate</button>
+          <button class="master-tab" type="button" data-master-tab="line_numbers" role="tab" aria-selected="false"><i class="bi bi-list-ol"></i>Line</button>
+        </div>
+
+        <section class="card content-card">
+          <div class="card-header content-card-header">
+            <div>
+              <h2 class="card-title" id="master-section-title">Kartu</h2>
+              <p id="master-section-subtitle">Nomor kartu yang digunakan saat registrasi armada.</p>
+            </div>
+            <span class="master-count" id="master-count">0 data</span>
+          </div>
+          <div class="card-body">
+            <div class="master-toolbar">
+              <div class="master-search">
+                <label for="master-search-input">Cari data</label>
+                <input class="form-control" id="master-search-input" type="search" autocomplete="off" placeholder="Cari...">
+              </div>
+              <div class="master-actions">
+                <button class="btn btn-light" type="button" id="master-refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn btn-primary" type="button" id="master-add"><i class="bi bi-plus-lg me-1"></i>Tambah data</button>
+              </div>
+            </div>
+            <div class="master-table-wrap">
+              <table class="table trcm-table master-table align-middle">
+                <thead id="master-table-head"></thead>
+                <tbody id="master-table-body">
+                  <tr><td class="table-state" colspan="4">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal fade master-modal" id="master-modal" tabindex="-1" aria-labelledby="master-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="master-form" novalidate>
+        <div class="modal-header">
+          <div>
+            <span class="master-modal-kicker" id="master-modal-kicker">Master Data</span>
+            <h2 class="master-modal-title" id="master-modal-title">Tambah data</h2>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <div id="master-form-alert" class="alert alert-danger master-alert" role="alert"></div>
+          <div id="master-fields"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="master-save"><i class="bi bi-check2 me-1"></i>Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
+
+  let session = null;
+  let activeTab = "cards";
+  let editId = null;
+  let masterRows = [];
+  let modal = null;
+
+  const configs = {
+    cards: {
+      label: "Kartu",
+      singular: "kartu",
+      subtitle: "Nomor kartu yang digunakan saat registrasi armada.",
+      select: "id,card_number,is_active,created_at,updated_at",
+      order: "card_number.asc",
+      searchPlaceholder: "Cari nomor kartu...",
+      columns: [
+        { key: "card_number", label: "Nomor kartu" },
+        { key: "is_active", label: "Status" },
+        { key: "created_at", label: "Dibuat" }
+      ],
+      fields: [
+        { key: "card_number", label: "Nomor kartu", type: "text", required: true, maxlength: 80, placeholder: "Contoh: TRCM-0001" },
+        { key: "is_active", label: "Status", type: "select", options: [{value:"true",label:"Aktif"},{value:"false",label:"Tidak aktif"}], required: true }
+      ]
+    },
+    vendors: {
+      label: "Vendor",
+      singular: "vendor",
+      subtitle: "Vendor atau perusahaan transportasi yang digunakan pada registrasi armada.",
+      select: "id,name,created_at,updated_at",
+      order: "name.asc",
+      searchPlaceholder: "Cari vendor...",
+      columns: [
+        { key: "name", label: "Nama vendor" },
+        { key: "created_at", label: "Dibuat" }
+      ],
+      fields: [
+        { key: "name", label: "Nama vendor", type: "text", required: true, maxlength: 160, placeholder: "Nama vendor" }
+      ]
+    },
+    clients: {
+      label: "Client",
+      singular: "client",
+      subtitle: "Client yang digunakan dalam proses registrasi dan monitoring kunjungan.",
+      select: "id,name,created_at,updated_at",
+      order: "name.asc",
+      searchPlaceholder: "Cari client...",
+      columns: [
+        { key: "name", label: "Nama client" },
+        { key: "created_at", label: "Dibuat" }
+      ],
+      fields: [
+        { key: "name", label: "Nama client", type: "text", required: true, maxlength: 160, placeholder: "Nama client" }
+      ]
+    },
+    gates: {
+      label: "Gate",
+      singular: "gate",
+      subtitle: "Nomor gerbang yang tersedia untuk proses operasional.",
+      select: "id,gate_number,created_at,updated_at",
+      order: "gate_number.asc",
+      searchPlaceholder: "Cari nomor gate...",
+      columns: [
+        { key: "gate_number", label: "Nomor gate" },
+        { key: "created_at", label: "Dibuat" }
+      ],
+      fields: [
+        { key: "gate_number", label: "Nomor gate", type: "number", required: true, min: 1, max: 9999, placeholder: "Contoh: 1" }
+      ]
+    },
+    line_numbers: {
+      label: "Line",
+      singular: "line",
+      subtitle: "Nomor line dan gate yang menjadi referensi proses loading.",
+      select: "id,line_number,gate_id,created_at,updated_at,gates(gate_number)",
+      order: "line_number.asc",
+      searchPlaceholder: "Cari nomor line atau gate...",
+      columns: [
+        { key: "line_number", label: "Nomor line" },
+        { key: "gate", label: "Gate" },
+        { key: "created_at", label: "Dibuat" }
+      ],
+      fields: [
+        { key: "line_number", label: "Nomor line", type: "number", required: true, min: 1, max: 9999, placeholder: "Contoh: 1" },
+        { key: "gate_id", label: "Gate", type: "select", required: true, options: [] }
+      ]
+    }
+  };
+
+  const elements = {
+    accessAlert: document.getElementById("access-alert"),
+    title: document.getElementById("master-section-title"),
+    subtitle: document.getElementById("master-section-subtitle"),
+    count: document.getElementById("master-count"),
+    search: document.getElementById("master-search-input"),
+    refresh: document.getElementById("master-refresh"),
+    add: document.getElementById("master-add"),
+    head: document.getElementById("master-table-head"),
+    body: document.getElementById("master-table-body"),
+    form: document.getElementById("master-form"),
+    formAlert: document.getElementById("master-form-alert"),
+    fields: document.getElementById("master-fields"),
+    modalTitle: document.getElementById("master-modal-title"),
+    modalKicker: document.getElementById("master-modal-kicker"),
+    save: document.getElementById("master-save")
+  };
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
+
+  function getSession() {
+    try {
+      return JSON.parse(sessionStorage.getItem("trcm_session") || "null");
+    } catch {
+      return null;
+    }
+  }
+
+  function getRole(value) {
+    if (!value || typeof value !== "object") return "";
+    return String(
+      value.role ||
+      (value.user && value.user.role) ||
+      (value.profile && value.profile.role) ||
+      ""
+    ).toLowerCase();
+  }
+
+  function showAccessError(message) {
+    elements.accessAlert.textContent = message;
+    elements.accessAlert.classList.add("is-visible");
+    elements.add.disabled = true;
+    elements.refresh.disabled = true;
+  }
+
+  function apiHeaders(extra) {
+    return Object.assign({
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: "Bearer " + session.access_token,
+      Accept: "application/json"
+    }, extra || {});
+  }
+
+  async function apiRequest(path, options) {
+    const response = await fetch(SUPABASE_URL + path, Object.assign({}, options || {}, {
+      headers: apiHeaders((options && options.headers) || {})
+    }));
+
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      return null;
+    }
+
+    if (!response.ok) {
+      const message =
+        (data && (data.message || data.error_description || data.error)) ||
+        "Permintaan ke database gagal.";
+      throw new Error(message);
+    }
+
+    return data;
+  }
+
+  function formatDate(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat("id-ID", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(date);
+  }
+
+  function normalizeSearch(value) {
+    return String(value || "").toLowerCase().trim();
+  }
+
+  function rowMatches(row, query) {
+    if (!query) return true;
+    const gateNumber = row.gates && row.gates.gate_number;
+    return normalizeSearch([
+      row.card_number,
+      row.name,
+      row.gate_number,
+      row.line_number,
+      gateNumber
+    ].join(" ")).includes(query);
+  }
+
+  function getDisplayValue(row, key) {
+    if (key === "gate") {
+      return row.gates && row.gates.gate_number ? "Gate " + row.gates.gate_number : "—";
+    }
+    if (key === "is_active") {
+      return row.is_active
+        ? '<span class="master-status active"><span class="status-dot"></span>Aktif</span>'
+        : '<span class="master-status inactive"><span class="status-dot"></span>Tidak aktif</span>';
+    }
+    if (key === "created_at") return escapeHtml(formatDate(row.created_at));
+    return escapeHtml(row[key] ?? "—");
+  }
+
+  function renderTable() {
+    const config = configs[activeTab];
+    const query = normalizeSearch(elements.search.value);
+    const rows = masterRows.filter(function (row) { return rowMatches(row, query); });
+
+    elements.count.textContent = rows.length + " data";
+
+    elements.head.innerHTML =
+      "<tr>" +
+      config.columns.map(function (column) { return "<th>" + escapeHtml(column.label) + "</th>"; }).join("") +
+      "<th class=\"action-column\">Aksi</th></tr>";
+
+    if (!rows.length) {
+      elements.body.innerHTML =
+        '<tr><td class="table-state" colspan="' + (config.columns.length + 1) + '">' +
+        (masterRows.length ? "Tidak ada data yang sesuai dengan pencarian." : "Belum ada data.") +
+        "</td></tr>";
+      return;
+    }
+
+    elements.body.innerHTML = rows.map(function (row) {
+      const actions =
+        '<button class="action-button me-1" type="button" title="Edit ' + escapeHtml(config.singular) + '" aria-label="Edit ' + escapeHtml(config.singular) + '" data-edit-id="' + escapeHtml(row.id) + '"><i class="bi bi-pencil-square"></i></button>' +
+        (activeTab === "cards"
+          ? '<button class="action-button" type="button" title="' + (row.is_active ? "Nonaktifkan" : "Aktifkan") + '" aria-label="' + (row.is_active ? "Nonaktifkan" : "Aktifkan") + '" data-toggle-id="' + escapeHtml(row.id) + '"><i class="bi ' + (row.is_active ? "bi-toggle2-on" : "bi-toggle2-off") + '"></i></button>'
+          : '<button class="action-button action-button-danger" type="button" title="Hapus ' + escapeHtml(config.singular) + '" aria-label="Hapus ' + escapeHtml(config.singular) + '" data-delete-id="' + escapeHtml(row.id) + '"><i class="bi bi-trash3"></i></button>');
+
+      return "<tr>" +
+        config.columns.map(function (column) { return "<td>" + getDisplayValue(row, column.key) + "</td>"; }).join("") +
+        '<td class="action-cell">' + actions + "</td></tr>";
+    }).join("");
+  }
+
+  function renderFields(row) {
+    const config = configs[activeTab];
+    elements.fields.innerHTML = config.fields.map(function (field) {
+      const value = row && row[field.key] !== undefined && row[field.key] !== null
+        ? String(row[field.key])
+        : "";
+
+      if (field.type === "select") {
+        return '<div class="mb-3">' +
+          '<label class="form-label" for="master-field-' + escapeHtml(field.key) + '">' + escapeHtml(field.label) + (field.required ? ' <span class="text-danger">*</span>' : "") + '</label>' +
+          '<select class="form-select" id="master-field-' + escapeHtml(field.key) + '"' + (field.required ? " required" : "") + ">" +
+          '<option value="">Pilih ' + escapeHtml(field.label.toLowerCase()) + "</option>" +
+          field.options.map(function (option) {
+            return '<option value="' + escapeHtml(option.value) + '"' + (value === option.value ? " selected" : "") + ">" + escapeHtml(option.label) + "</option>";
+          }).join("") +
+          "</select></div>";
+      }
+
+      return '<div class="mb-3">' +
+        '<label class="form-label" for="master-field-' + escapeHtml(field.key) + '">' + escapeHtml(field.label) + (field.required ? ' <span class="text-danger">*</span>' : "") + '</label>' +
+        '<input class="form-control" id="master-field-' + escapeHtml(field.key) + '" type="' + escapeHtml(field.type) + '" value="' + escapeHtml(value) + '"' +
+        (field.required ? " required" : "") +
+        (field.maxlength ? ' maxlength="' + field.maxlength + '"' : "") +
+        (field.min !== undefined ? ' min="' + field.min + '"' : "") +
+        (field.max !== undefined ? ' max="' + field.max + '"' : "") +
+        (field.placeholder ? ' placeholder="' + escapeHtml(field.placeholder) + '"' : "") +
+        ">" +
+        (field.key === "gate_id" ? '<div class="master-gate-hint">Line akan tersedia pada gate yang dipilih.</div>' : "") +
+        "</div>";
+    }).join("");
+
+    const gateField = document.getElementById("master-field-gate_id");
+    if (gateField) {
+      loadGateOptions(gateField, row && row.gate_id ? row.gate_id : "");
+    }
+  }
+
+  async function loadGateOptions(select, selectedId) {
+    try {
+      const data = await apiRequest("/rest/v1/gates?select=id,gate_number&order=gate_number.asc");
+      const options = Array.isArray(data) ? data : [];
+      select.innerHTML =
+        '<option value="">Pilih gate</option>' +
+        options.map(function (gate) {
+          return '<option value="' + escapeHtml(gate.id) + '"' + (gate.id === selectedId ? " selected" : "") + ">Gate " + escapeHtml(gate.gate_number) + "</option>";
+        }).join("");
+    } catch (error) {
+      select.innerHTML = '<option value="">Gate gagal dimuat</option>';
+      showFormError(error.message);
+    }
+  }
+
+  function openModal(row) {
+    const config = configs[activeTab];
+    editId = row ? row.id : null;
+    elements.modalKicker.textContent = config.label;
+    elements.modalTitle.textContent = row ? "Edit " + config.singular : "Tambah " + config.singular;
+    elements.save.innerHTML = '<i class="bi bi-check2 me-1"></i>' + (row ? "Simpan perubahan" : "Simpan");
+    clearFormError();
+    renderFields(row || null);
+    modal.show();
+  }
+
+  function clearFormError() {
+    elements.formAlert.textContent = "";
+    elements.formAlert.classList.remove("is-visible");
+  }
+
+  function showFormError(message) {
+    elements.formAlert.textContent = message;
+    elements.formAlert.classList.add("is-visible");
+  }
+
+  function collectPayload() {
+    const config = configs[activeTab];
+    const payload = {};
+
+    config.fields.forEach(function (field) {
+      const element = document.getElementById("master-field-" + field.key);
+      if (!element) return;
+
+      if (field.type === "number") {
+        payload[field.key] = element.value ? Number(element.value) : null;
+      } else if (field.type === "select" && field.key === "is_active") {
+        payload[field.key] = element.value === "true";
+      } else {
+        payload[field.key] = element.value.trim();
+      }
+    });
+
+    return payload;
+  }
+
+  async function saveData(event) {
+    event.preventDefault();
+    clearFormError();
+
+    if (!elements.form.checkValidity()) {
+      elements.form.classList.add("was-validated");
+      return;
+    }
+
+    const payload = collectPayload();
+    const config = configs[activeTab];
+    const isEdit = Boolean(editId);
+    const saveLabel = elements.save.innerHTML;
+
+    elements.save.disabled = true;
+    elements.save.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Menyimpan...';
+
+    try {
+      let path = "/rest/v1/" + activeTab;
+      let options = {
+        method: isEdit ? "PATCH" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Prefer: isEdit ? "return=representation" : "return=representation"
+        },
+        body: JSON.stringify(payload)
+      };
+
+      if (isEdit) path += "?id=eq." + encodeURIComponent(editId);
+
+      const result = await apiRequest(path, options);
+      if (!Array.isArray(result) || !result.length) {
+        throw new Error("Database tidak mengembalikan data yang tersimpan.");
+      }
+
+      modal.hide();
+      await Swal.fire({
+        icon: "success",
+        title: isEdit ? "Perubahan tersimpan" : "Data ditambahkan",
+        text: config.label + " berhasil " + (isEdit ? "diperbarui." : "ditambahkan."),
+        confirmButtonText: "Selesai",
+        confirmButtonColor: "#006ECD"
+      });
+      await loadData();
+    } catch (error) {
+      showFormError(error.message || "Data gagal disimpan.");
+    } finally {
+      elements.save.disabled = false;
+      elements.save.innerHTML = saveLabel;
+    }
+  }
+
+  async function editRow(id) {
+    const row = masterRows.find(function (item) { return item.id === id; });
+    if (row) openModal(row);
+  }
+
+  async function toggleCard(id) {
+    const row = masterRows.find(function (item) { return item.id === id; });
+    if (!row) return;
+
+    const nextActive = !row.is_active;
+    const result = await Swal.fire({
+      icon: "question",
+      title: nextActive ? "Aktifkan kartu?" : "Nonaktifkan kartu?",
+      text: "Nomor kartu " + (row.card_number || "") + " akan " + (nextActive ? "diaktifkan." : "dinonaktifkan."),
+      showCancelButton: true,
+      confirmButtonText: nextActive ? "Ya, aktifkan" : "Ya, nonaktifkan",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#006ECD"
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await apiRequest("/rest/v1/cards?id=eq." + encodeURIComponent(id), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ is_active: nextActive })
+      });
+      await loadData();
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal mengubah status",
+        text: error.message || "Status kartu tidak berhasil diubah.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#006ECD"
+      });
+    }
+  }
+
+  async function deleteRow(id) {
+    const config = configs[activeTab];
+    const row = masterRows.find(function (item) { return item.id === id; });
+    if (!row) return;
+
+    const label =
+      row.name ||
+      (row.gate_number !== undefined ? "Gate " + row.gate_number : "") ||
+      (row.line_number !== undefined ? "Line " + row.line_number : "") ||
+      row.card_number ||
+      config.singular;
+
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Hapus " + config.singular + "?",
+      html: "Data <strong>" + escapeHtml(label) + "</strong> akan dihapus. Tindakan ini tidak dapat dibatalkan.",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc3545"
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await apiRequest("/rest/v1/" + activeTab + "?id=eq." + encodeURIComponent(id), {
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" }
+      });
+      await Swal.fire({
+        icon: "success",
+        title: "Data dihapus",
+        text: config.label + " berhasil dihapus.",
+        confirmButtonText: "Selesai",
+        confirmButtonColor: "#006ECD"
+      });
+      await loadData();
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal menghapus",
+        text: error.message || "Data tidak dapat dihapus. Periksa relasi data yang masih menggunakan record ini.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#006ECD"
+      });
+    }
+  }
+
+  async function loadData() {
+    const config = configs[activeTab];
+    elements.body.innerHTML = '<tr><td class="table-state" colspan="' + (config.columns.length + 1) + '"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Memuat data...</td></tr>';
+    elements.count.textContent = "Memuat data...";
+    elements.refresh.disabled = true;
+
+    try {
+      const data = await apiRequest(
+        "/rest/v1/" + activeTab +
+        "?select=" + encodeURIComponent(config.select) +
+        "&order=" + encodeURIComponent(config.order)
+      );
+      masterRows = Array.isArray(data) ? data : [];
+      renderTable();
+    } catch (error) {
+      masterRows = [];
+      elements.count.textContent = "Gagal memuat";
+      elements.body.innerHTML = '<tr><td class="table-state error-state" colspan="' + (config.columns.length + 1) + '">Data gagal dimuat. ' + escapeHtml(error.message || "Silakan coba lagi.") + "</td></tr>";
+    } finally {
+      elements.refresh.disabled = false;
+    }
+  }
+
+  async function switchTab(tab) {
+    if (!configs[tab] || tab === activeTab) return;
+
+    activeTab = tab;
+    editId = null;
+    const config = configs[activeTab];
+
+    document.querySelectorAll("[data-master-tab]").forEach(function (button) {
+      const selected = button.getAttribute("data-master-tab") === activeTab;
+      button.classList.toggle("active", selected);
+      button.setAttribute("aria-selected", String(selected));
+    });
+
+    elements.title.textContent = config.label;
+    elements.subtitle.textContent = config.subtitle;
+    elements.search.value = "";
+    elements.search.placeholder = config.searchPlaceholder;
+
+    await loadData();
+  }
+
+  document.querySelectorAll("[data-master-tab]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      switchTab(button.getAttribute("data-master-tab"));
+    });
+  });
+
+  elements.search.addEventListener("input", renderTable);
+  elements.refresh.addEventListener("click", loadData);
+  elements.add.addEventListener("click", function () { openModal(null); });
+  elements.form.addEventListener("submit", saveData);
+
+  elements.body.addEventListener("click", function (event) {
+    const editButton = event.target.closest("[data-edit-id]");
+    const toggleButton = event.target.closest("[data-toggle-id]");
+    const deleteButton = event.target.closest("[data-delete-id]");
+
+    if (editButton) editRow(editButton.getAttribute("data-edit-id"));
+    if (toggleButton) toggleCard(toggleButton.getAttribute("data-toggle-id"));
+    if (deleteButton) deleteRow(deleteButton.getAttribute("data-delete-id"));
+  });
+
+  async function init() {
+    session = getSession();
+
+    if (!session || !session.access_token) {
+      window.location.replace("../index.html");
+      return;
+    }
+
+    const role = getRole(session);
+    if (role !== "admin") {
+      showAccessError("Halaman Master Data hanya dapat digunakan oleh akun dengan role admin.");
+      elements.body.innerHTML = '<tr><td class="table-state error-state" colspan="4">Akses ditolak.</td></tr>';
+      return;
+    }
+
+    modal = new bootstrap.Modal(document.getElementById("master-modal"));
+    await loadData();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
