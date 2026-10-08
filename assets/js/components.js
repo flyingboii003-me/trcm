@@ -87,7 +87,8 @@
       riwayat: "Riwayat",
       "registrasi-armada": "WH In",
       "wh-in": "WH In",
-      "wh-out": "WH Out"
+      "wh-out": "WH Out",
+      "master-data": "Master Data"
     };
 
     const key = currentPageKey();
