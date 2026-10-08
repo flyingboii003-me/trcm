@@ -505,15 +505,10 @@
       if (isEdit) path += "?id=eq." + encodeURIComponent(editId);
 
       const result = await apiRequest(path, options);
-      if (isEdit) {
-        // PATCH may legitimately return an empty body when PostgREST/RLS
-        // does not expose the updated row. The HTTP success response already
-        // confirms the database accepted the update, so refresh the table.
-        if (result !== null && !Array.isArray(result)) {
-          throw new Error("Respons database tidak valid.");
-        }
-      } else if (!Array.isArray(result) || !result.length) {
-        throw new Error("Database tidak mengembalikan data yang tersimpan.");
+      if (!Array.isArray(result) || !result.length) {
+        throw new Error(isEdit
+          ? "Database tidak mengembalikan row yang diperbarui. Periksa permission/RLS atau ID data."
+          : "Database tidak mengembalikan data yang tersimpan.");
       }
 
       modal.hide();
