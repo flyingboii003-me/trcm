@@ -95,8 +95,7 @@ window.trcmComponentsReady.then(async function () {
     return;
   }
 
-  const role = session.user.role || "";
-  const canWhOut = role === "gatesec" || role === "admin";
+  const canWhOut = window.trcmPermissions.can("wh_out", "update");
   const table = document.getElementById("wh-out-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
