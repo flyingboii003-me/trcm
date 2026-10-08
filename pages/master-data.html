@@ -87,8 +87,8 @@
                 <input class="form-control" id="master-search-input" type="search" autocomplete="off" placeholder="Cari...">
               </div>
               <div class="master-actions">
-                <button class="btn btn-light" type="button" id="master-refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
-                <button class="btn btn-primary" type="button" id="master-add"><i class="bi bi-plus-lg me-1"></i>Tambah data</button>
+                <button class="btn btn-light" type="button" id="master-refresh" data-permission="master_data:view"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn btn-primary" type="button" id="master-add" data-permission="master_data:create"><i class="bi bi-plus-lg me-1"></i>Tambah data</button>
               </div>
             </div>
             <div class="master-table-wrap">
@@ -418,10 +418,10 @@
 
     elements.body.innerHTML = rows.map(function (row) {
       const actions =
-        '<button class="action-button me-1" type="button" title="Edit ' + escapeHtml(config.singular) + '" aria-label="Edit ' + escapeHtml(config.singular) + '" data-edit-id="' + escapeHtml(row.id) + '"><i class="bi bi-pencil-square"></i></button>' +
+        '<button class="action-button me-1" type="button" data-permission="master_data:update" title="Edit ' + escapeHtml(config.singular) + '" aria-label="Edit ' + escapeHtml(config.singular) + '" data-edit-id="' + escapeHtml(row.id) + '"><i class="bi bi-pencil-square"></i></button>' +
         (activeTab === "cards"
-          ? '<button class="action-button" type="button" title="' + (row.is_active ? "Nonaktifkan" : "Aktifkan") + '" aria-label="' + (row.is_active ? "Nonaktifkan" : "Aktifkan") + '" data-toggle-id="' + escapeHtml(row.id) + '"><i class="bi ' + (row.is_active ? "bi-toggle2-on" : "bi-toggle2-off") + '"></i></button>'
-          : '<button class="action-button action-button-danger" type="button" title="Hapus ' + escapeHtml(config.singular) + '" aria-label="Hapus ' + escapeHtml(config.singular) + '" data-delete-id="' + escapeHtml(row.id) + '"><i class="bi bi-trash3"></i></button>');
+          ? '<button class="action-button" type="button" data-permission="master_data:update" title="' + (row.is_active ? "Nonaktifkan" : "Aktifkan") + '" aria-label="' + (row.is_active ? "Nonaktifkan" : "Aktifkan") + '" data-toggle-id="' + escapeHtml(row.id) + '"><i class="bi ' + (row.is_active ? "bi-toggle2-on" : "bi-toggle2-off") + '"></i></button>'
+          : '<button class="action-button action-button-danger" type="button" data-permission="master_data:delete" title="Hapus ' + escapeHtml(config.singular) + '" aria-label="Hapus ' + escapeHtml(config.singular) + '" data-delete-id="' + escapeHtml(row.id) + '"><i class="bi bi-trash3"></i></button>');
 
       return "<tr>" +
         config.columns.map(function (column) { return "<td>" + getDisplayValue(row, column.key) + "</td>"; }).join("") +
@@ -429,6 +429,7 @@
     }).join("");
 
     renderPagination();
+    window.trcmPermissions.apply(elements.body);
   }
 
   function renderFields(row) {
@@ -488,6 +489,8 @@
     editId = row ? row.id : null;
     elements.modalKicker.textContent = config.label;
     elements.modalTitle.textContent = row ? "Edit " + config.singular : "Tambah " + config.singular;
+    elements.save.setAttribute("data-permission", "master_data:" + (row ? "update" : "create"));
+    window.trcmPermissions.apply(elements.modalFooter || elements.save.parentElement);
     elements.save.innerHTML = '<i class="bi bi-check2 me-1"></i>' + (row ? "Simpan perubahan" : "Simpan");
     clearFormError();
     renderFields(row || null);
@@ -536,6 +539,11 @@
     const payload = collectPayload();
     const config = configs[activeTab];
     const isEdit = Boolean(editId);
+    const requiredPermission = isEdit ? "update" : "create";
+    if (!window.trcmPermissions.can("master_data", requiredPermission)) {
+      showFormError("Anda tidak memiliki permission untuk menyimpan perubahan ini.");
+      return;
+    }
     const saveLabel = elements.save.innerHTML;
 
     elements.save.disabled = true;
@@ -579,11 +587,13 @@
   }
 
   async function editRow(id) {
+    if (!window.trcmPermissions.can("master_data", "update")) return;
     const row = masterRows.find(function (item) { return item.id === id; });
     if (row) openModal(row);
   }
 
   async function toggleCard(id) {
+    if (!window.trcmPermissions.can("master_data", "update")) return;
     const row = masterRows.find(function (item) { return item.id === id; });
     if (!row) return;
 
@@ -619,6 +629,7 @@
   }
 
   async function deleteRow(id) {
+    if (!window.trcmPermissions.can("master_data", "delete")) return;
     const config = configs[activeTab];
     const row = masterRows.find(function (item) { return item.id === id; });
     if (!row) return;
@@ -765,14 +776,15 @@
       return;
     }
 
-    const role = getRole(session);
-    if (role !== "admin") {
-      showAccessError("Halaman Master Data hanya dapat digunakan oleh akun dengan role admin.");
+    if (window.trcmComponentsReady) await window.trcmComponentsReady;
+    if (!window.trcmPermissions || !window.trcmPermissions.can("master_data", "view")) {
+      showAccessError("Anda tidak memiliki permission untuk membuka Master Data.");
       elements.body.innerHTML = '<tr><td class="table-state error-state" colspan="4">Akses ditolak.</td></tr>';
       return;
     }
 
     modal = new bootstrap.Modal(document.getElementById("master-modal"));
+    window.trcmPermissions.apply(document);
     await loadData();
   }
 
