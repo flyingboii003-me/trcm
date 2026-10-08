@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
   const id = String(body.id || "");
   if (!id) return json({ error: "ID user wajib diisi." }, 400);
-  if (id === authData.user.id && req.method === "DELETE") return json({ error: "Akun Administrator yang sedang login tidak dapat dihapus." }, 400);
+  if (id === authData.user.id && (req.method === "PATCH" || req.method === "DELETE")) return json({ error: "Administrator yang sedang login tidak dapat mengubah atau menghapus akun sendiri." }, 403);
 
   if (req.method === "PATCH") {
     const updates: Record<string, unknown> = {};
