@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - User & Role">
+<title>User & Role — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+.user-role-tabs{display:flex;gap:.35rem;flex-wrap:wrap;padding:.35rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);margin-bottom:1.25rem}
+.user-role-tab{border:0;background:transparent;color:var(--text-muted);font-weight:700;font-size:.82rem;border-radius:var(--radius-md);padding:.7rem 1rem;display:inline-flex;align-items:center;gap:.45rem}
+.user-role-tab.active{background:#EEF5FB;color:var(--cj-blue)}
+.user-role-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.user-role-search{flex:1 1 260px;max-width:460px}.user-role-actions{display:flex;gap:.5rem}
+.user-role-search label{display:block;margin:0 0 .4rem;color:var(--text-muted);font-size:.72rem;font-weight:700}
+.user-role-table-wrap{overflow:auto}
+.user-role-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--border)}
+.user-role-pagination-info{font-size:.75rem;color:var(--text-muted)}
+.user-role-page{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--border);background:#fff;color:var(--text-main);border-radius:var(--radius-md);font-size:.78rem;font-weight:700}
+.user-role-page.active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff}.user-role-page:disabled{opacity:.45}
+.user-role-page-list{display:flex;align-items:center;gap:.35rem}.user-role-page-controls{display:flex;gap:.35rem;align-items:center}
+.user-role-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;background:#EEF5FB;color:var(--cj-blue);font-size:.72rem;font-weight:700}
+.user-role-status{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;font-size:.72rem;font-weight:700}
+.user-role-status.active{background:var(--sys-green-bg);color:#15803D}.user-role-status.inactive{background:#FEE2E2;color:#B91C1C}
+.user-role-modal .modal-content{border:0;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);overflow:hidden}
+.user-role-modal .modal-header{padding:1.15rem 1.35rem;border-bottom:1px solid var(--border)}
+.user-role-modal .modal-body{padding:1.35rem}
+.user-role-modal .modal-footer{padding:.9rem 1.35rem;border-top:1px solid var(--border)}
+.user-role-modal .form-label{font-size:.76rem;font-weight:700;color:var(--text-main);margin-bottom:.45rem}
+.user-role-modal .form-control,.user-role-modal .form-select{min-height:42px;font-size:.82rem}
+.user-role-modal textarea.form-control{min-height:auto}
+.user-role-modal .form-text{font-size:.7rem;line-height:1.45}
+.user-role-modal .form-check-label{font-size:.78rem;font-weight:600}.user-active-check{display:flex;align-items:center;gap:.5rem;min-height:1.5rem;margin-top:.15rem}.user-active-check .form-check-input-custom{flex:0 0 18px}
+.user-role-modal .modal-footer .btn{min-width:82px}
+.role-mobile-actions{margin:0 0 .75rem;justify-content:flex-start}
+.role-management-actions{justify-content:flex-end;margin-bottom:1rem}
+.role-management-actions .btn:disabled,.user-role-table-wrap .action-button:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.spark-checklist{display:flex;align-items:center;gap:.5rem;min-height:1.5rem;margin:0;justify-content:center}
+.spark-checklist-input{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;background:#fff;background-repeat:no-repeat;background-position:center;background-size:contain;border:1px solid rgba(11,19,15,.15);border-radius:.375rem;transition:background-color .25s ease,border-color .25s ease,box-shadow .25s ease;cursor:pointer}
+.spark-checklist-input:focus{outline:0;border-color:var(--cj-blue);box-shadow:0 0 0 3px rgba(0,110,205,.12)}
+.spark-checklist-input:checked{background-color:var(--cj-blue);border-color:var(--cj-blue);background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e")}
+.spark-checklist-input:disabled{background:#f8faf9;border-color:rgba(11,19,15,.06);opacity:.65;cursor:not-allowed}
+.user-role-table-wrap .action-button:disabled{pointer-events:none}
+.permission-role-bar{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.permission-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--radius-lg)}
+.permission-table{margin:0;min-width:720px}.permission-table th{font-size:.72rem;color:var(--text-muted);font-weight:700;white-space:nowrap}.permission-table td{font-size:.8rem;vertical-align:middle}
+.permission-resource{font-weight:700}.permission-resource small{display:block;color:var(--text-muted);font-size:.68rem;font-weight:500;margin-top:.15rem}
+.permission-check{width:18px;height:18px;accent-color:var(--cj-blue)}
+.permission-group{background:#F8FAF9}.permission-group td{font-weight:700;color:var(--cj-blue)}
+.user-role-alert{display:none}.user-role-alert.is-visible{display:block}
+@media(max-width:575.98px){
+ .user-role-tabs{overflow-x:auto;flex-wrap:nowrap;margin-bottom:1rem}
+ .user-role-tab{white-space:nowrap;padding:.6rem .8rem;font-size:.76rem}
+ .user-role-toolbar{align-items:stretch;gap:.7rem}
+ .user-role-search{max-width:none}
+ .user-role-actions{width:100%;justify-content:flex-end;gap:.4rem}
+ .role-mobile-actions{margin:.15rem 0 .85rem}
+ .role-mobile-actions .user-role-actions{justify-content:flex-start}
+ .role-management-actions{justify-content:flex-end;gap:.4rem;margin-bottom:.85rem}
+ .role-management-actions .btn{min-height:36px;padding:.45rem .7rem;font-size:.72rem}
+ .user-role-actions .btn{flex:0 0 auto;width:auto;min-height:36px;padding:.45rem .7rem;font-size:.72rem}
+ .user-role-actions .btn i{margin-right:0!important}
+ .user-role-actions .btn:not(:has(i)){padding-inline:.7rem}
+ #user-add,#role-add{min-width:0}
+ #user-refresh,#role-refresh{width:38px;padding-inline:0;font-size:0}
+ #user-refresh i,#role-refresh i{font-size:.9rem}
+ #role-delete{min-width:38px;width:38px;padding-inline:0;font-size:0}
+ #role-delete i{font-size:.9rem}
+ #role-edit{min-width:38px;width:38px;padding-inline:0;font-size:0}
+ #role-edit i{font-size:.9rem}
+ .permission-role-bar{gap:.55rem;align-items:flex-end}
+ .role-management-actions{width:100%}
+ .permission-role-bar>div{flex:1 1 100%}
+ .permission-role-bar .form-select{width:100%}
+ .user-role-pagination{align-items:center;gap:.75rem}
+ .user-role-pagination-info{width:100%}
+ .user-role-page-controls{width:100%;justify-content:center}
+ .user-role-page-list{max-width:calc(100vw - 120px);overflow:hidden}
+ .user-role-modal .modal-dialog{margin:.75rem}
+ .user-role-modal .modal-content{border-radius:1rem}
+ .user-role-modal .modal-header{padding:.9rem 1rem}
+ .user-role-modal .modal-body{padding:1rem}
+ .user-role-modal .modal-footer{padding:.75rem 1rem}
+ .user-role-modal .modal-title,.user-role-modal .master-modal-title{font-size:1rem}
+ .user-role-modal .master-modal-kicker{font-size:.65rem}
+ .user-role-modal .form-control,.user-role-modal .form-select{min-height:40px}
+ .user-role-modal .user-active-check{margin-top:.25rem}
+ .user-role-modal .modal-footer .btn{min-width:0;flex:1;padding:.55rem .7rem;font-size:.76rem}
+}
+</style>
+</head>
+<body class="trcm-app" data-page-resource="user_role">
+<div class="app-layout">
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+<div id="topbar-container"></div>
+<main class="content-wrapper">
+<div class="container-fluid px-0">
+<div class="page-header">
+<div><div class="page-header-kicker">Administrasi</div><h1 class="page-title">User &amp; Role</h1><p class="page-subtitle">Kelola pengguna, role, dan hak akses TRCM.</p></div>
+</div>
+<div id="access-alert" class="alert alert-danger user-role-alert" role="alert"></div>
+
+<div class="user-role-tabs" role="tablist" aria-label="User dan Role">
+<button class="user-role-tab active" type="button" data-tab="users"><i class="bi bi-people-fill"></i>Users</button>
+<button class="user-role-tab" type="button" data-tab="roles"><i class="bi bi-shield-lock-fill"></i>Roles &amp; Permissions</button>
+</div>
+
+<section class="card content-card" id="users-panel">
+<div class="card-header content-card-header"><div><h2 class="card-title">Users</h2><p>Kelola akun Gatesec, Checker, Admin, dan Viewer.</p></div></div>
+<div class="card-body">
+<div class="user-role-toolbar">
+<div class="user-role-search"><label for="user-search">Cari user</label><input class="form-control" id="user-search" type="search" placeholder="Cari nama, username, atau email..." autocomplete="off"></div>
+<div class="user-role-actions"><button class="btn btn-light" id="user-refresh" type="button" data-permission="user_role:view"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button><button class="btn btn-primary" id="user-add" type="button" data-permission="user_role:create"><i class="bi bi-plus-lg me-1"></i>Tambah user</button></div>
+</div>
+<div class="user-role-table-wrap"><table class="table trcm-table align-middle"><thead><tr><th>Nama</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th class="action-column">Aksi</th></tr></thead><tbody id="user-body"><tr><td class="table-state" colspan="6">Memuat data...</td></tr></tbody></table></div>
+<div class="user-role-pagination"><div class="user-role-pagination-info" id="user-page-info">0 data</div><div class="user-role-page-controls"><button class="user-role-page" id="user-prev" type="button"><i class="bi bi-chevron-left"></i></button><div class="user-role-page-list" id="user-pages"></div><button class="user-role-page" id="user-next" type="button"><i class="bi bi-chevron-right"></i></button></div></div>
+</div>
+</section>
+
+<section class="card content-card d-none" id="roles-panel">
+<div class="card-header content-card-header"><div><h2 class="card-title">Roles &amp; Permissions</h2><p>Atur permission berdasarkan role. User mewarisi akses dari role yang dipilih.</p></div></div>
+<div class="card-body">
+<div class="permission-role-bar"><div class="flex-grow-1"><label class="form-label" for="role-select">Role yang dikelola</label><select class="form-select" id="role-select"></select></div></div>
+<div class="user-role-toolbar role-mobile-actions"><div class="user-role-actions"><button class="btn btn-light" id="role-refresh" type="button" data-permission="user_role:view"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button><button class="btn btn-primary" id="role-add" type="button" data-permission="user_role:create"><i class="bi bi-plus-lg me-1"></i>Tambah role</button></div></div>
+<div class="permission-role-bar role-management-actions"><button class="btn btn-light" id="role-edit" type="button" data-permission="user_role:update"><i class="bi bi-pencil-square me-1"></i>Edit role</button><button class="btn btn-outline-danger" id="role-delete" type="button" data-permission="user_role:delete"><i class="bi bi-trash3 me-1"></i>Hapus</button></div>
+<div class="permission-table-wrap"><table class="table permission-table align-middle"><thead><tr><th>Resource</th><th class="text-center">View</th><th class="text-center">Create</th><th class="text-center">Update</th><th class="text-center">Delete</th><th class="text-center">Upload</th><th class="text-center">Export</th></tr></thead><tbody id="permission-body"><tr><td colspan="7" class="table-state">Memuat permission...</td></tr></tbody></table></div>
+<div class="d-flex justify-content-end mt-3"><button class="btn btn-primary" id="permission-save" type="button" data-permission="user_role:update"><i class="bi bi-check2 me-1"></i>Simpan permission</button></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+
+<div class="modal fade user-role-modal" id="user-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><form id="user-form" novalidate><div class="modal-header"><div><span class="master-modal-kicker">User</span><h2 class="master-modal-title" id="user-modal-title">Tambah user</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div><div class="modal-body"><div id="user-form-alert" class="alert alert-danger user-role-alert"></div><div class="mb-3"><label class="form-label">Nama lengkap <span class="text-danger">*</span></label><input class="form-control" id="user-full-name" required maxlength="160"></div><div class="mb-3"><label class="form-label">Username <span class="text-danger">*</span></label><input class="form-control" id="user-username" required maxlength="80"></div><div class="mb-3"><label class="form-label">Email <span class="text-danger">*</span></label><input class="form-control" id="user-email" type="email" required maxlength="200"></div><div class="mb-3" id="password-group"><label class="form-label">Password <span class="text-danger">*</span></label><input class="form-control" id="user-password" type="password" minlength="8" autocomplete="new-password"><div class="form-text">Minimal 8 karakter. Email akun langsung dikonfirmasi oleh sistem.</div></div><div class="mb-3"><label class="form-label">Role <span class="text-danger">*</span></label><select class="form-select" id="user-role" required></select></div><div class="form-check-custom user-active-check"><input class="form-check-input-custom" id="user-active" type="checkbox" checked><label class="form-check-label" for="user-active">Akun aktif</label></div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary" id="user-save">Simpan</button></div></form></div></div></div>
+
+<div class="modal fade user-role-modal" id="role-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><form id="role-form" novalidate><div class="modal-header"><div><span class="master-modal-kicker">Role</span><h2 class="master-modal-title" id="role-modal-title">Tambah role</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div><div class="modal-body"><div id="role-form-alert" class="alert alert-danger user-role-alert"></div><div class="mb-3"><label class="form-label">Nama role <span class="text-danger">*</span></label><input class="form-control" id="role-name" required maxlength="100"></div><div class="mb-3"><label class="form-label">Key <span class="text-danger">*</span></label><input class="form-control" id="role-key" required maxlength="60" pattern="[a-z0-9_]+"><div class="form-text">Gunakan huruf kecil, angka, dan underscore. Key tidak diubah setelah role digunakan.</div></div><div class="mb-3"><label class="form-label">Deskripsi</label><textarea class="form-control" id="role-description" rows="3" maxlength="300"></textarea></div><div class="form-check-custom user-active-check"><input class="form-check-input-custom" id="role-active" type="checkbox" checked><label class="form-check-label" for="role-active">Role aktif</label></div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary" id="role-save">Simpan</button></div></form></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+(function(){
+"use strict";
+const URL="https://pcednpmjyfkuomfcmian.supabase.co", KEY="sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp", FN=URL+"/functions/v1/admin-user-management";
+let session=null, users=[], roles=[], resources=[], permissions=[], rolePermissions=[], userPage=1, roleEditId=null, userEditId=null; const PAGE=10;
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function sess(){try{return JSON.parse(sessionStorage.getItem("trcm_session")||"null")}catch{return null}}
+function headers(extra){return Object.assign({apikey:KEY,Authorization:"Bearer "+session.access_token,Accept:"application/json"},extra||{})}
+async function api(path,opt={}){const r=await fetch(URL+path,Object.assign({},opt,{headers:headers(opt.headers||{})}));const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch{}if(r.status===401){sessionStorage.removeItem("trcm_session");location.replace("../index.html");return null}if(!r.ok)throw new Error((d&&(d.message||d.error))||"Permintaan database gagal.");return d}
+async function fn(method,payload){const r=await fetch(FN,{method,headers:headers({"Content-Type":"application/json"}),body:JSON.stringify(payload)});const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch{}if(!r.ok)throw new Error((d&&d.error)||"Operasi user gagal.");return d}
+function show(id,msg){$(id).textContent=msg;$(id).classList.add("is-visible")}
+function hide(id){$(id).classList.remove("is-visible")}
+function roleName(id){const r=roles.find(x=>x.id===id);return r?r.name:"—"}
+function renderUsers(){const q=String($("user-search").value||"").toLowerCase().trim();const filtered=users.filter(u=>[u.full_name,u.username,u.auth_email,roleName(u.role_id)].join(" ").toLowerCase().includes(q));const pages=Math.max(1,Math.ceil(filtered.length/PAGE));userPage=Math.min(userPage,pages);const rows=filtered.slice((userPage-1)*PAGE,userPage*PAGE);$("user-page-info").textContent=filtered.length?"Menampilkan "+((userPage-1)*PAGE+1)+"–"+Math.min(userPage*PAGE,filtered.length)+" dari "+filtered.length+" data":"0 data";$("user-prev").disabled=userPage===1;$("user-next").disabled=userPage===pages;$("user-pages").innerHTML=Array.from({length:pages},(_,i)=>i+1).filter(p=>pages<=7||p===1||p===pages||Math.abs(p-userPage)<=1).map(p=>'<button type="button" class="user-role-page '+(p===userPage?"active":"")+'" data-page="'+p+'">'+p+"</button>").join("");$("user-body").innerHTML=rows.length?rows.map(u=>{const self=u.id===session?.user?.id;return '<tr><td><strong>'+esc(u.full_name||"—")+'</strong></td><td>'+esc(u.username||"—")+'</td><td>'+esc(u.auth_email||"—")+'</td><td><span class="user-role-badge">'+esc(roleName(u.role_id))+"</span></td><td>"+(u.is_active?'<span class="user-role-status active">Aktif</span>':'<span class="user-role-status inactive">Tidak aktif</span>')+'</td><td class="action-cell"><button class="action-button me-1" '+(self?'disabled ':"")+'data-permission="user_role:update" data-edit-user="'+esc(u.id)+'" title="'+(self?'Administrator tidak dapat mengedit akun sendiri':'Edit user')+'"><i class="bi bi-pencil-square"></i></button><button class="action-button action-button-danger" '+(self?'disabled ':"")+'data-permission="user_role:delete" data-delete-user="'+esc(u.id)+'" title="'+(self?'Administrator tidak dapat menghapus akun sendiri':'Hapus user')+'"><i class="bi bi-trash3"></i></button></td></tr>'}).join(""):'<tr><td class="table-state" colspan="6">Tidak ada user.</td></tr>';window.trcmPermissions.apply($("user-body"))}
+function roleOptions(selected){return roles.filter(r=>r.is_active||r.id===selected).map(r=>'<option value="'+esc(r.id)+'" '+(r.id===selected?"selected":"")+">"+esc(r.name)+"</option>").join("")}
+function openUser(u){const requiredPermission=u?"update":"create";if(window.trcmPermissions&&!window.trcmPermissions.can("user_role",requiredPermission))return;userEditId=u?.id||null;$("user-modal-title").textContent=u?"Edit user":"Tambah user";$("user-save").setAttribute("data-permission","user_role:"+(u?"update":"create"));$("user-full-name").value=u?.full_name||"";$("user-username").value=u?.username||"";$("user-email").value=u?.auth_email||"";$("user-role").innerHTML=roleOptions(u?.role_id);$("user-active").checked=u?u.is_active:true;$("user-password").value="";$("password-group").style.display=u?"none":"";hide("user-form-alert");window.trcmPermissions.apply($("user-save").parentElement);new bootstrap.Modal($("user-modal")).show()}
+async function saveUser(e){e.preventDefault();hide("user-form-alert");const payload={full_name:$("user-full-name").value.trim(),username:$("user-username").value.trim(),auth_email:$("user-email").value.trim(),role_id:$("user-role").value,is_active:$("user-active").checked};if(!userEditId)payload.password=$("user-password").value;const requiredPermission=userEditId?"update":"create";if(!window.trcmPermissions.can("user_role",requiredPermission)){show("user-form-alert","Anda tidak memiliki permission untuk menyimpan perubahan user.");return}if(!e.target.checkValidity()||(!userEditId&&payload.password.length<8)){e.target.classList.add("was-validated");if(!userEditId&&payload.password.length<8)show("user-form-alert","Password minimal 8 karakter.");return}try{await fn(userEditId?"PATCH":"POST",userEditId?Object.assign({id:userEditId},payload):payload);bootstrap.Modal.getInstance($("user-modal")).hide();await Swal.fire({icon:"success",title:"User tersimpan",text:"Perubahan user berhasil disimpan.",confirmButtonText:"Selesai",confirmButtonColor:"#006ECD"});await loadUsers()}catch(err){show("user-form-alert",err.message)}}
+async function loadUsers(){users=await api("/rest/v1/users?select=id,username,full_name,auth_email,role_id,is_active,created_at,updated_at&order=full_name.asc")||[];userPage=1;renderUsers()}
+async function loadRoles(){roles=await api("/rest/v1/roles?select=id,key,name,description,is_active&order=name.asc")||[];resources=await api("/rest/v1/resources?select=id,key,name,description,type,parent_id,sort_order,is_active&order=sort_order.asc")||[];permissions=await api("/rest/v1/permissions?select=id,key,name&order=key.asc")||[];rolePermissions=await api("/rest/v1/role_permissions?select=role_id,resource_id,permission_id")||[];$("role-select").innerHTML=roles.filter(r=>r.is_active).map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name)+"</option>").join("");if(!roles.length){$("permission-body").innerHTML='<tr><td colspan="7" class="table-state">Belum ada role.</td></tr>';return}renderPermissions()}
+function updateRoleAdminState(){const rid=$("role-select").value;const selected=roles.find(r=>r.id===rid);const ownRoleId=users.find(u=>u.id===session?.user?.id)?.role_id;const locked=!!selected&&(selected.key==="admin"||selected.id===ownRoleId);const canUpdate=window.trcmPermissions?.can("user_role","update")===true;const canDelete=window.trcmPermissions?.can("user_role","delete")===true;$("role-edit").disabled=locked||!canUpdate;$("role-delete").disabled=locked||!canDelete;$("permission-save").disabled=locked||!canUpdate;document.querySelectorAll("#permission-body .spark-checklist-input").forEach(input=>input.disabled=locked||!canUpdate)}
+function renderPermissions(){const rid=$("role-select").value;const allowed=new Set(rolePermissions.filter(x=>x.role_id===rid).map(x=>x.resource_id+"|"+x.permission_id));const keys=["view","create","update","delete","upload","export"];const byKey=Object.fromEntries(permissions.map(p=>[p.key,p]));$("permission-body").innerHTML=resources.filter(r=>r.is_active).map(r=>'<tr><td class="permission-resource">'+esc(r.name)+'<small>'+esc(r.key)+'</small></td>'+keys.map(k=>{const p=byKey[k];return '<td class="text-center">'+(p?'<div class="spark-checklist"><input class="permission-check spark-checklist-input" type="checkbox" data-resource="'+esc(r.id)+'" data-permission="'+esc(p.id)+'" '+(allowed.has(r.id+"|"+p.id)?"checked":"")+'>':'—')+"</div></td>"}).join("")+"</tr>").join("");updateRoleAdminState();if(window.trcmPermissions)window.trcmPermissions.apply($("permission-body"))}
+async function savePermissions(){if(!window.trcmPermissions.can("user_role","update"))return;const rid=$("role-select").value;if(!rid)return;const selectedRole=roles.find(r=>r.id===rid);const ownRoleId=users.find(u=>u.id===session?.user?.id)?.role_id;if(selectedRole?.key==="admin"||selectedRole?.id===ownRoleId)return;const selected=[...document.querySelectorAll("#permission-body input[data-resource]:checked")].map(x=>({role_id:rid,resource_id:x.dataset.resource,permission_id:x.dataset.permission}));try{await api("/rest/v1/role_permissions?role_id=eq."+encodeURIComponent(rid),{method:"DELETE",headers:{Prefer:"return=minimal"}});if(selected.length)await api("/rest/v1/role_permissions",{method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(selected)});await Swal.fire({icon:"success",title:"Permission tersimpan",text:"Permission role berhasil diperbarui.",confirmButtonText:"Selesai",confirmButtonColor:"#006ECD"});await loadRoles()}catch(e){Swal.fire({icon:"error",title:"Gagal menyimpan",text:e.message,confirmButtonText:"Tutup",confirmButtonColor:"#006ECD"})}}
+function openRole(r){const requiredPermission=r?"update":"create";if(window.trcmPermissions&&!window.trcmPermissions.can("user_role",requiredPermission))return;roleEditId=r?.id||null;$("role-modal-title").textContent=r?"Edit role":"Tambah role";$("role-save").setAttribute("data-permission","user_role:"+(r?"update":"create"));window.trcmPermissions.apply($("role-save").parentElement);$("role-name").value=r?.name||"";$("role-key").value=r?.key||"";$("role-key").disabled=!!r;$("role-description").value=r?.description||"";$("role-active").checked=r?r.is_active:true;hide("role-form-alert");new bootstrap.Modal($("role-modal")).show()}
+async function saveRole(e){e.preventDefault();hide("role-form-alert");const requiredPermission=roleEditId?"update":"create";if(!window.trcmPermissions.can("user_role",requiredPermission)){show("role-form-alert","Anda tidak memiliki permission untuk menyimpan role.");return}if(!e.target.checkValidity())return;const body={name:$("role-name").value.trim(),key:$("role-key").value.trim(),description:$("role-description").value.trim(),is_active:$("role-active").checked};try{if(roleEditId)await api("/rest/v1/roles?id=eq."+encodeURIComponent(roleEditId),{method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(body)});else await api("/rest/v1/roles",{method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(body)});bootstrap.Modal.getInstance($("role-modal")).hide();await Swal.fire({icon:"success",title:"Role tersimpan",text:"Role berhasil disimpan.",confirmButtonText:"Selesai",confirmButtonColor:"#006ECD"});await loadRoles();await loadUsers()}catch(e){show("role-form-alert",e.message)}}
+async function deleteRole(){if(!window.trcmPermissions.can("user_role","delete"))return;const id=$("role-select").value,r=roles.find(x=>x.id===id);if(!r||r.key==="admin"||r.id===users.find(u=>u.id===session?.user?.id)?.role_id)return;const c=await Swal.fire({icon:"warning",title:"Hapus role?",text:"Role "+r.name+" akan dihapus. Pastikan tidak ada user yang masih menggunakannya.",showCancelButton:true,confirmButtonText:"Ya, hapus",cancelButtonText:"Batal",confirmButtonColor:"#dc3545"});if(!c.isConfirmed)return;try{await api("/rest/v1/roles?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=minimal"}});await Swal.fire({icon:"success",title:"Role dihapus",text:"Role berhasil dihapus.",confirmButtonText:"Selesai",confirmButtonColor:"#006ECD"});await loadRoles();await loadUsers()}catch(e){Swal.fire({icon:"error",title:"Role tidak dapat dihapus",text:e.message,confirmButtonText:"Tutup",confirmButtonColor:"#006ECD"})}}
+$("user-search").addEventListener("input",()=>{userPage=1;renderUsers()});$("user-refresh").addEventListener("click",loadUsers);$("user-add").addEventListener("click",()=>openUser());$("user-form").addEventListener("submit",saveUser);$("user-prev").addEventListener("click",()=>{if(userPage>1){userPage--;renderUsers()}});$("user-next").addEventListener("click",()=>{userPage++;renderUsers()});$("user-pages").addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b){userPage=Number(b.dataset.page);renderUsers()}});$("user-body").addEventListener("click",e=>{const eb=e.target.closest("[data-edit-user]"),db=e.target.closest("[data-delete-user]");if(eb)openUser(users.find(u=>u.id===eb.dataset.editUser));if(db)deleteUser(db.dataset.deleteUser)});
+async function deleteUser(id){if(!window.trcmPermissions.can("user_role","delete"))return;const u=users.find(x=>x.id===id);if(!u)return;const c=await Swal.fire({icon:"warning",title:"Hapus user?",text:(u.full_name||u.username)+" dan akun Auth-nya akan dihapus.",showCancelButton:true,confirmButtonText:"Ya, hapus",cancelButtonText:"Batal",confirmButtonColor:"#dc3545"});if(!c.isConfirmed)return;try{await fn("DELETE",{id});await Swal.fire({icon:"success",title:"User dihapus",text:"User berhasil dihapus.",confirmButtonText:"Selesai",confirmButtonColor:"#006ECD"});await loadUsers()}catch(e){Swal.fire({icon:"error",title:"Gagal menghapus user",text:e.message,confirmButtonText:"Tutup",confirmButtonColor:"#006ECD"})}}
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));$("users-panel").classList.toggle("d-none",b.dataset.tab!=="users");$("roles-panel").classList.toggle("d-none",b.dataset.tab!=="roles")}));
+$("role-select").addEventListener("change",renderPermissions);$("permission-save").addEventListener("click",savePermissions);$("role-refresh").addEventListener("click",loadRoles);$("role-add").addEventListener("click",()=>openRole());$("role-edit").addEventListener("click",()=>openRole(roles.find(r=>r.id===$("role-select").value)));$("role-delete").addEventListener("click",deleteRole);$("role-form").addEventListener("submit",saveRole);
+async function init(){session=sess();if(!session?.access_token){location.replace("../index.html");return}try{if(window.trcmComponentsReady)await window.trcmComponentsReady;const me=await api("/rest/v1/users?select=id,role_id,is_active,roles(key,is_active)&id=eq."+encodeURIComponent(session.user?.id||""));if(!me?.length||!me[0].is_active||me[0].roles?.key!=="admin"){show("access-alert","Halaman User & Role hanya dapat digunakan oleh Administrator.");document.querySelectorAll("section").forEach(x=>x.classList.add("d-none"));return}await Promise.all([loadUsers(),loadRoles()]);window.trcmPermissions.apply(document);updateRoleAdminState()}catch(e){show("access-alert",e.message)}}
+init();
+})();
+</script>
+</body>
+</html>

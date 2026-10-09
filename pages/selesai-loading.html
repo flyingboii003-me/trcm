@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
 </head>
-<body class="trcm-app">
+<body class="trcm-app" data-page-resource="finish_loading">
 <div class="app-layout">
   <div id="sidebar-container"></div>
   <div class="main-wrapper">
@@ -170,8 +170,7 @@ window.trcmComponentsReady.then(async function () {
     return;
   }
 
-  const role = session.user.role || "";
-  const canStart = role === "checker" || role === "admin";
+  const canFinish = window.trcmPermissions.can("finish_loading", "update");
   const table = document.getElementById("finish-loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
@@ -352,12 +351,12 @@ window.trcmComponentsReady.then(async function () {
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
-        '<td>' + escapeHtml(formatActivity(visit.activity_type)) + '</td>' +
+        '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
         '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
-        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
+        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canFinish ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
       '</tr>';
     }).join("");
   }
@@ -414,7 +413,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function saveFinish(event) {
     event.preventDefault();
-    if (!form.checkValidity() || !selectedVisit || !canStart) {
+    if (!form.checkValidity() || !selectedVisit || !canFinish) {
       form.classList.add("was-validated");
       return;
     }
@@ -553,12 +552,12 @@ window.trcmComponentsReady.then(async function () {
 
   table.addEventListener("click", function (event) {
     const button = event.target.closest(".finish-loading-button");
-    if (!button || !canStart) return;
+    if (!button || !canFinish) return;
     const visit = visits.find(function (item) { return item.id === button.dataset.visitId; });
     if (visit) openFinishModal(visit);
   });
 
-  if (!canStart) {
+  if (!canFinish) {
     await Swal.fire({
       icon: "error",
       title: "Akses terbatas",

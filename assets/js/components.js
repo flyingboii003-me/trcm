@@ -5,6 +5,7 @@
   const topbarContainer = document.getElementById("topbar-container");
   const detailContainer = document.getElementById("visit-detail-container");
   const tableToolbarContainer = document.getElementById("table-toolbar-container");
+  const permissionState = new Set();
 
   if (!container) {
     window.trcmSidebarReady = Promise.resolve(false);
@@ -24,8 +25,129 @@
     if (page === "selesai-loading.html") return "selesai-loading";
     if (page === "checker.html") return "checker";
     if (page === "master-data.html") return "master-data";
+    if (page === "user-role.html") return "user-role";
 
     return "";
+  }
+
+  function currentPageResourceKey() {
+    const explicitResource = document.body && document.body.getAttribute("data-page-resource");
+    if (explicitResource) return explicitResource;
+
+    const page = currentPageKey();
+    return {
+      dashboard: "dashboard",
+      riwayat: "history",
+      "wh-in": "wh_in",
+      "antri-parkir": "queue_parking",
+      "wh-out": "wh_out",
+      "mulai-loading": "start_loading",
+      "selesai-loading": "finish_loading",
+      "master-data": "master_data",
+      "user-role": "user_role"
+    }[page] || "";
+  }
+
+  function showPageAccessDenied() {
+    const main = document.querySelector("main") || document.body;
+    main.innerHTML = '<div class="container-fluid py-5"><div class="card border-0 shadow-sm"><div class="card-body text-center py-5"><div class="mb-3"><i class="bi bi-shield-lock fs-1 text-secondary"></i></div><h4 class="mb-2">Akses tidak tersedia</h4><p class="text-secondary mb-4">Anda tidak memiliki permission untuk membuka halaman ini.</p><a class="btn btn-primary" href="dashboard.html">Kembali ke Dashboard</a></div></div></div>';
+  }
+
+  async function loadMyMenuPermissions() {
+    const session = (() => {
+      try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); }
+      catch { return null; }
+    })();
+    const accessToken = session && session.access_token;
+    if (!accessToken) return null;
+
+    const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_permissions", {
+      method: "POST",
+      headers: {
+        "apikey": "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+        "Authorization": "Bearer " + accessToken,
+        "Content-Type": "application/json"
+      },
+      body: "{}"
+    });
+
+    if (!response.ok) throw new Error("Permission user gagal dimuat.");
+    const rows = await response.json();
+
+    permissionState.clear();
+    (Array.isArray(rows) ? rows : []).forEach(function (row) {
+      const resourceKey = String(row.resource_key || "");
+      const permissionKey = String(row.permission_key || "");
+      if (resourceKey && permissionKey) {
+        permissionState.add(resourceKey + ":" + permissionKey);
+      }
+    });
+
+    return new Set((Array.isArray(rows) ? rows : [])
+      .filter(function (row) { return String(row.permission_key || "") === "view"; })
+      .map(function (row) { return String(row.resource_key || ""); }));
+  }
+
+  window.trcmPermissions = {
+    can: function (resourceKey, permissionKey) {
+      return permissionState.has(String(resourceKey || "") + ":" + String(permissionKey || ""));
+    },
+    apply: function (root) {
+      const scope = root || document;
+      scope.querySelectorAll("[data-permission]").forEach(function (element) {
+        const value = String(element.getAttribute("data-permission") || "");
+        const separatorIndex = value.indexOf(":");
+        if (separatorIndex < 1) return;
+        const resourceKey = value.slice(0, separatorIndex);
+        const permissionKey = value.slice(separatorIndex + 1);
+        element.hidden = !window.trcmPermissions.can(resourceKey, permissionKey);
+      });
+    },
+    canView: function (resourceKey) {
+      return permissionState.has(String(resourceKey || "") + ":view");
+    },
+    loaded: function () {
+      return permissionState.size > 0;
+    }
+  };
+
+  async function applyPermissionVisibility() {
+
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.style.visibility = "hidden";
+
+    try {
+      document.querySelectorAll("[data-resource-key]").forEach(function (element) {
+        const resourceKey = element.getAttribute("data-resource-key");
+        const visible = permissionState.has(String(resourceKey || "") + ":view");
+        const item = element.closest(".sidebar-menu-item") || element;
+        item.hidden = !visible;
+      });
+
+      document.querySelectorAll("[data-resource-group]").forEach(function (group) {
+        const submenu = group.nextElementSibling;
+        const hasVisibleChild = submenu && Array.from(submenu.querySelectorAll("[data-resource-key]")).some(function (item) {
+          const li = item.closest(".sidebar-menu-item") || item;
+          return !li.hidden;
+        });
+        const parentItem = group.closest(".sidebar-menu-item");
+        if (parentItem) parentItem.hidden = !hasVisibleChild;
+      });
+
+      syncCollapsibleMenuState();
+    } finally {
+      if (sidebar) sidebar.style.visibility = "";
+    }
+  }
+
+  async function enforcePagePermission() {
+    const resourceKey = currentPageResourceKey();
+    if (!resourceKey) return true;
+
+    if (permissionState.has(resourceKey + ":view")) return true;
+
+    showPageAccessDenied();
+    return false;
   }
 
   function setupCollapsibleMenus() {
@@ -87,7 +209,9 @@
       riwayat: "Riwayat",
       "registrasi-armada": "WH In",
       "wh-in": "WH In",
-      "wh-out": "WH Out"
+      "wh-out": "WH Out",
+      "master-data": "Master Data",
+      "user-role": "User & Role"
     };
 
     const key = currentPageKey();
@@ -195,7 +319,7 @@
     .then(function (loaded) {
       if (loaded) {
         setupCollapsibleMenus();
-  setActiveMenu();
+        setActiveMenu();
       }
       return loaded;
     });
@@ -205,18 +329,31 @@
     loadFragment("../components/topbar.html", topbarContainer, false),
     loadFragment("../components/visit-detail.html", detailContainer, false),
     loadFragment("../components/table-toolbar.html", tableToolbarContainer, false)
-  ]).then(function (results) {
+  ]).then(async function (results) {
     const loaded = results.every(Boolean);
 
-    if (loaded) {
-      setActiveMenu();
-      setPageTitle();
-      setAccountNames();
-      setupMobileSidebar();
-      setupLogout();
-    }
+    if (!loaded) return false;
 
-    return loaded;
+    setPageTitle();
+    setAccountNames();
+    setupMobileSidebar();
+    setupLogout();
+
+    try {
+      const allowed = await loadMyMenuPermissions();
+      if (!allowed) return true;
+      const permitted = await enforcePagePermission();
+      if (permitted) {
+        await applyPermissionVisibility();
+        window.trcmPermissions.apply(document);
+        setActiveMenu();
+      }
+      return permitted;
+    } catch (error) {
+      console.error("TRCM permission guard:", error);
+      showPageAccessDenied();
+      return false;
+    }
   });
 
   const statusConfig = {

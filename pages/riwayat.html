@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
 </head>
-<body class="trcm-app">
+<body class="trcm-app" data-page-resource="history">
 <div class="app-layout">
   <div id="sidebar-container"></div>
 
@@ -23,7 +23,7 @@
   <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
   <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
-    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="7" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
+    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan (Gudang / Kota)</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="8" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
     <div class="pagination-wrap">
       <div class="pagination-summary" id="pagination-summary"></div>
       <nav aria-label="Paginasi riwayat">
@@ -380,6 +380,7 @@ async function openVisitModal(visitId) {
       "id",
       "card_id",
       "plate_number",
+      "destination_city",
       "container_num",
       "activity_type",
       "vendor",
@@ -598,18 +599,20 @@ function renderTable() {
   renderPagination(rows.length, totalPages);
 
   if (!pageRows.length) {
-    truckTable.innerHTML = '<tr><td colspan="6" class="table-state">Tidak ada data yang sesuai dengan filter.</td></tr>';
+    truckTable.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada data yang sesuai dengan filter.</td></tr>';
     return;
   }
 
   truckTable.innerHTML = pageRows.map(function (visit) {
     const destination = visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : "—";
+    const destinationCity = visit.destination_city || "—";
     const status = statusLabels[visit.process_status] || visit.process_status || "—";
     const client = visit.client || (visit.clients && visit.clients.name) || "—";
     const secondary = visit.driver_name || visit.driver || client;
     return '<tr>' +
       '<td><span class="table-card-number">' + escapeHtml((visit.cards && visit.cards.card_number) || visit.card_number || "—") + '</span></td>' +
       '<td><span class="plate">' + escapeHtml(visit.plate_number) + '</span><span class="table-subline">' + escapeHtml(secondary) + '</span></td>' +
+      '<td>' + escapeHtml(destinationCity) + '</td>' +
       '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td>' + (window.trcmStatusBadge ? window.trcmStatusBadge(window.trcmVisitStatus ? window.trcmVisitStatus(visit) : visit.process_status) : '<span class="status-badge status-unknown"><span class="status-dot"></span>' + escapeHtml(status) + '</span>') + '</td>' +
@@ -670,7 +673,7 @@ function renderStats() {}
 
 async function loadVisits() {
   truckTable.innerHTML =
-    '<tr><td colspan="7" class="table-state">Memuat data truk...</td></tr>';
+    '<tr><td colspan="8" class="table-state">Memuat data truk...</td></tr>';
   resultCount.textContent = "Memuat data...";
   refreshButton.disabled = true;
 
@@ -678,6 +681,7 @@ async function loadVisits() {
     const select = [
       "id",
       "plate_number",
+      "destination_city",
       "container_num",
       "activity_type",
       "vendor",
@@ -742,7 +746,7 @@ async function loadVisits() {
   } catch (error) {
     console.error("TRCM dashboard:", error);
     truckTable.innerHTML =
-      '<tr><td colspan="7" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
+      '<tr><td colspan="8" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
     resultCount.textContent = "Gagal memuat data";
   } finally {
     refreshButton.disabled = false;
@@ -890,6 +894,7 @@ exportButton.addEventListener("click", function () {
   const header = [
     "Nomor kartu",
     "Plat nomor",
+    "Tujuan (Gudang / Kota)",
     "Tipe Aktivitas",
     "Klien",
     "Vendor",
@@ -912,6 +917,7 @@ exportButton.addEventListener("click", function () {
     return [
       cardNumber,
       visit.plate_number || "",
+      visit.destination_city || "",
       destination,
       (visit.clients && visit.clients.name) || "",
       visit.vendor || "",

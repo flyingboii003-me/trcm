@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
 </head>
-<body class="trcm-app">
+<body class="trcm-app" data-page-resource="start_loading">
 <div class="app-layout">
   <div id="sidebar-container"></div>
   <div class="main-wrapper">
@@ -128,6 +128,18 @@
               <input class="form-control" id="seal-number" type="text" maxlength="100" placeholder="Masukkan nomor segel jika tersedia">
             </div>
             <div class="col-12">
+              <label class="form-label">Foto Start Loading <span class="text-danger">*</span></label>
+              <div class="photo-picker-actions">
+                <button type="button" class="btn btn-light border" id="take-loading-photo"><i class="bi bi-camera me-1"></i>Ambil foto</button>
+                <button type="button" class="btn btn-light border" id="choose-loading-photos"><i class="bi bi-images me-1"></i>Pilih dari galeri</button>
+              </div>
+              <input class="visually-hidden" id="loading-camera-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+              <input class="visually-hidden" id="loading-gallery-input" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+              <div class="photo-upload-note mt-2">Tambahkan foto kondisi awal loading, segel, kontainer, shipment, atau barang. Di HP, gunakan Ambil foto untuk kamera atau Pilih dari galeri.</div>
+              <div class="mt-3 photo-preview-grid" id="loading-photo-preview-grid"></div>
+              <div class="small text-muted mt-2" id="loading-photo-status">Belum ada foto dipilih.</div>
+            </div>
+            <div class="col-12">
               <label class="form-label" for="loading-notes">Catatan</label>
               <textarea class="form-control" id="loading-notes" rows="4" maxlength="1000" placeholder="Catatan pemeriksaan atau loading"></textarea>
             </div>
@@ -161,8 +173,8 @@ window.trcmComponentsReady.then(async function () {
     return;
   }
 
-  const role = session.user.role || "";
-  const canStart = role === "checker" || role === "admin";
+  const currentRole = String(session.user.role || "").toLowerCase();
+  const canStart = currentRole === "admin" || window.trcmPermissions.can("start_loading", "update");
   const table = document.getElementById("loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
@@ -172,6 +184,12 @@ window.trcmComponentsReady.then(async function () {
   const lineSelect = document.getElementById("line-select");
   const sealNumber = document.getElementById("seal-number");
   const loadingNotes = document.getElementById("loading-notes");
+  const takeLoadingPhoto = document.getElementById("take-loading-photo");
+  const chooseLoadingPhotos = document.getElementById("choose-loading-photos");
+  const loadingCameraInput = document.getElementById("loading-camera-input");
+  const loadingGalleryInput = document.getElementById("loading-gallery-input");
+  const loadingPhotoPreviewGrid = document.getElementById("loading-photo-preview-grid");
+  const loadingPhotoStatus = document.getElementById("loading-photo-status");
   const form = document.getElementById("start-loading-form");
   const saveButton = document.getElementById("save-start-button");
   const modalElement = document.getElementById("start-loading-modal");
@@ -181,10 +199,113 @@ window.trcmComponentsReady.then(async function () {
   let gates = [];
   let lines = [];
   let selectedVisit = null;
+  let selectedPhotoFiles = [];
 
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, function (character) {
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
+  }
+
+  function resetLoadingPhoto() {
+    selectedPhotoFiles = [];
+    loadingCameraInput.value = "";
+    loadingGalleryInput.value = "";
+    renderPhotoPreviews();
+  }
+
+  function addLoadingPhotos(files) {
+    const incoming = Array.from(files || []);
+    for (const file of incoming) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        throw new Error("Semua foto harus berformat JPG, PNG, atau WebP.");
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error("Ukuran setiap foto maksimal 10 MB.");
+      }
+    }
+    const existingKeys = new Set(selectedPhotoFiles.map(function (file) {
+      return file.name + ":" + file.size + ":" + file.lastModified;
+    }));
+    incoming.forEach(function (file) {
+      const key = file.name + ":" + file.size + ":" + file.lastModified;
+      if (!existingKeys.has(key)) {
+        selectedPhotoFiles.push(file);
+        existingKeys.add(key);
+      }
+    });
+    renderPhotoPreviews();
+  }
+
+  function removeLoadingPhoto(index) {
+    selectedPhotoFiles.splice(index, 1);
+    renderPhotoPreviews();
+  }
+
+  function renderPhotoPreviews() {
+    loadingPhotoPreviewGrid.innerHTML = "";
+    selectedPhotoFiles.forEach(function (file, index) {
+      const url = URL.createObjectURL(file);
+      const item = document.createElement("div");
+      item.className = "photo-preview-item";
+      item.innerHTML =
+        '<img src="' + escapeHtml(url) + '" alt="Pratinjau foto ' + (index + 1) + '">' +
+        '<button type="button" class="btn btn-sm btn-light border photo-preview-remove" data-photo-index="' + index + '" aria-label="Hapus foto ' + (index + 1) + '"><i class="bi bi-x"></i></button>';
+      loadingPhotoPreviewGrid.appendChild(item);
+      item.querySelector("img").addEventListener("load", function () { URL.revokeObjectURL(url); }, { once: true });
+    });
+    loadingPhotoStatus.textContent = selectedPhotoFiles.length
+      ? selectedPhotoFiles.length + " foto siap diunggah."
+      : "Belum ada foto dipilih.";
+  }
+
+  async function compressPhoto(file) {
+    const bitmap = await createImageBitmap(file);
+    const maxDimension = 1600;
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d", { alpha: false });
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise(function (resolve) {
+      canvas.toBlob(resolve, "image/webp", 0.78);
+    });
+    if (!blob) throw new Error("Foto gagal diproses.");
+    return blob;
+  }
+
+  async function uploadLoadingPhoto(visitId, file) {
+    const blob = await compressPhoto(file);
+    const objectPath = visitId + "/" + crypto.randomUUID() + ".webp";
+    const response = await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token,
+        "Content-Type": "image/webp",
+        "x-upsert": "false"
+      },
+      body: blob
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      let detail = null;
+      try { detail = text ? JSON.parse(text) : null; } catch {}
+      throw new Error(detail && (detail.message || detail.error) ? (detail.message || detail.error) : "Foto gagal diunggah.");
+    }
+    return objectPath;
+  }
+
+  async function deleteLoadingPhoto(objectPath) {
+    if (!objectPath) return;
+    await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath.split("/").map(encodeURIComponent).join("/"), {
+      method: "DELETE",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: "Bearer " + session.access_token
+      }
     });
   }
 
@@ -239,7 +360,7 @@ window.trcmComponentsReady.then(async function () {
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
-        '<td>' + escapeHtml(formatDestination(visit.activity_type)) + '</td>' +
+        '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
         '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
@@ -283,7 +404,7 @@ window.trcmComponentsReady.then(async function () {
 
     try {
       const select = [
-        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number",
+        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number","destination_city",
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
@@ -315,12 +436,13 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("selected-visit-summary").textContent = card + " · " + (visit.plate_number || "—") + " · " + client;
     document.getElementById("detail-card").textContent = card;
     document.getElementById("detail-plate").textContent = visit.plate_number || "—";
-    document.getElementById("detail-destination").textContent = formatDestination(visit.activity_type);
+    document.getElementById("detail-destination").textContent = visit.destination_city || "—";
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
     lineSelect.disabled = true;
     sealNumber.value = visit.seal_number || "";
     loadingNotes.value = visit.notes || "";
+    resetLoadingPhoto();
     form.classList.remove("was-validated");
     modal.show();
   }
@@ -333,9 +455,46 @@ window.trcmComponentsReady.then(async function () {
     }
 
     saveButton.disabled = true;
+    if (!selectedPhotoFiles.length) {
+      saveButton.disabled = false;
+      await Swal.fire({
+        icon: "warning",
+        title: "Foto belum dipilih",
+        text: "Ambil atau pilih minimal satu foto kondisi awal loading sebelum memulai proses.",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#0066B3"
+      });
+      return;
+    }
+
+    const uploadedPhotoPaths = [];
+    const photoRecordIds = [];
     const startedAt = new Date().toISOString();
+    let visitStatusUpdated = false;
 
     try {
+      loadingPhotoStatus.textContent = "Mengunggah " + selectedPhotoFiles.length + " foto...";
+      for (const file of selectedPhotoFiles) {
+        const objectPath = await uploadLoadingPhoto(selectedVisit.id, file);
+        uploadedPhotoPaths.push(objectPath);
+        const rows = await request("/rest/v1/photos", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify({
+            visit_id: selectedVisit.id,
+            photo_type: "loading_start",
+            file_location: objectPath
+          })
+        });
+        if (Array.isArray(rows) && rows[0] && rows[0].id) photoRecordIds.push(rows[0].id);
+      }
+      loadingPhotoStatus.textContent = "Semua foto terunggah.";
+
       await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
         method: "PATCH",
         headers: {
@@ -354,6 +513,7 @@ window.trcmComponentsReady.then(async function () {
           started_at: startedAt
         })
       });
+      visitStatusUpdated = true;
 
       try {
         await request("/rest/v1/visit_events", {
@@ -385,6 +545,7 @@ window.trcmComponentsReady.then(async function () {
             started_at: null
           })
         });
+        visitStatusUpdated = false;
         throw eventError;
       }
 
@@ -392,13 +553,48 @@ window.trcmComponentsReady.then(async function () {
       await Swal.fire({
         icon: "success",
         title: "Mulai tersimpan",
-        text: "Truck berhasil ditandai sebagai Proses Loading.",
+        text: "Truck berhasil ditandai sebagai Proses Loading dan foto awal tersimpan.",
         confirmButtonText: "Selesai",
         confirmButtonColor: "#0066B3"
       });
+      resetLoadingPhoto();
       await loadVisits();
     } catch (error) {
       console.error("TRCM Mulai Loading save:", error);
+      if (visitStatusUpdated) {
+        try {
+          await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              Authorization: "Bearer " + session.access_token,
+              "Content-Type": "application/json",
+              Prefer: "return=minimal"
+            },
+            body: JSON.stringify({
+              process_status: "queue",
+              final_status: null,
+              started_at: null
+            })
+          });
+        } catch (rollbackError) {
+          console.error("TRCM Mulai Loading rollback:", rollbackError);
+        }
+      }
+      for (const photoRecordId of photoRecordIds) {
+        try {
+          await request("/rest/v1/photos?id=eq." + encodeURIComponent(photoRecordId), { method: "DELETE" });
+        } catch (cleanupError) {
+          console.error("TRCM photo metadata cleanup:", cleanupError);
+        }
+      }
+      for (const uploadedPhotoPath of uploadedPhotoPaths) {
+        try {
+          await deleteLoadingPhoto(uploadedPhotoPath);
+        } catch (cleanupError) {
+          console.error("TRCM photo storage cleanup:", cleanupError);
+        }
+      }
       await Swal.fire({
         icon: "error",
         title: "Gagal menyimpan",
@@ -420,6 +616,30 @@ window.trcmComponentsReady.then(async function () {
     renderTable();
   });
   refreshButton.addEventListener("click", loadVisits);
+  takeLoadingPhoto.addEventListener("click", function () { loadingCameraInput.click(); });
+  chooseLoadingPhotos.addEventListener("click", function () { loadingGalleryInput.click(); });
+  loadingCameraInput.addEventListener("change", async function () {
+    try {
+      addLoadingPhotos(loadingCameraInput.files);
+    } catch (error) {
+      await Swal.fire({ icon: "error", title: "Foto tidak valid", text: error.message, confirmButtonText: "Tutup", confirmButtonColor: "#0066B3" });
+    } finally {
+      loadingCameraInput.value = "";
+    }
+  });
+  loadingGalleryInput.addEventListener("change", async function () {
+    try {
+      addLoadingPhotos(loadingGalleryInput.files);
+    } catch (error) {
+      await Swal.fire({ icon: "error", title: "Foto tidak valid", text: error.message, confirmButtonText: "Tutup", confirmButtonColor: "#0066B3" });
+    } finally {
+      loadingGalleryInput.value = "";
+    }
+  });
+  loadingPhotoPreviewGrid.addEventListener("click", function (event) {
+    const button = event.target.closest("[data-photo-index]");
+    if (button) removeLoadingPhoto(Number(button.dataset.photoIndex));
+  });
   form.addEventListener("submit", saveStart);
 
   table.addEventListener("click", function (event) {

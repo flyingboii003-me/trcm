@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
 </head>
-<body class="trcm-app">
+<body class="trcm-app" data-page-resource="queue_parking">
 <div class="app-layout">
   <div id="sidebar-container"></div>
   <div class="main-wrapper">
@@ -108,8 +108,13 @@ window.trcmComponentsReady.then(async function () {
   let session=null;
   try{session=JSON.parse(sessionStorage.getItem("trcm_session")||"null");}catch{session=null;}
   if(!session||!session.access_token||!session.user){window.location.replace("../index.html");return;}
-  const role=session.user.role||"";
-  const canQueue=role==="gatesec"||role==="admin";
+  const canQueueUpdate=window.trcmPermissions.can("queue_parking","update");
+  const canStartLoading=window.trcmPermissions.can("start_loading","update");
+  const canStartFromQueue=canStartLoading;
+  const currentRole=String(session.user.role||"").toLowerCase();
+  const isAdmin=currentRole==="admin";
+  const isGateSecurity=currentRole==="gatesec";
+  const canGateBypass=canStartLoading && isGateSecurity;
   const table=document.getElementById("queue-table");
   const resultCount=document.getElementById("result-count");
   const searchCard=document.getElementById("search-card");
@@ -142,10 +147,18 @@ window.trcmComponentsReady.then(async function () {
     table.innerHTML=filtered.map(function(v){
       const card=v.cards&&v.cards.card_number?v.cards.card_number:"—",client=v.clients&&v.clients.name?v.clients.name:"—";
       const isQueued=v.process_status==="queue";
+      const canParkThisVisit=(isGateSecurity || isAdmin) && canQueueUpdate && v.process_status==="wh_in";
       const queueButton=isQueued
         ? '<button type="button" class="btn btn-light border btn-sm" disabled><i class="bi bi-p-square me-1"></i>Sudah Antri</button>'
-        : '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"'+(canQueue?"":" disabled")+'><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>';
-      const startButton='<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"'+(canQueue?"":" disabled")+'><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>';
+        : v.process_status==="wh_in"
+          ? canParkThisVisit
+            ? '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
+            : '<button type="button" class="btn btn-light border btn-sm" disabled title="Hanya Gate Security atau Admin yang dapat mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
+          : '';
+      const canStartThisVisit=canStartFromQueue && (isQueued || canGateBypass);
+      const startButton=canStartThisVisit
+        ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
+        : '';
       return '<tr><td><span class="table-card-number">'+escapeHtml(card)+'</span></td><td class="font-monospace fw-semibold">'+escapeHtml(v.plate_number||"—")+'</td><td>'+escapeHtml(client)+'</td><td>'+escapeHtml(activityLabel(v.activity_type))+'</td><td><span class="font-monospace">'+escapeHtml(formatDateTime(v.wh_in_at))+'</span></td><td>'+window.trcmStatusBadge(v.process_status)+'</td><td class="action-cell d-flex flex-wrap gap-2">'+queueButton+startButton+'</td></tr>';
     }).join("");;
   }
@@ -174,7 +187,7 @@ window.trcmComponentsReady.then(async function () {
     gateSelect.value="";populateLines("");sealNumber.value=v.seal_number||"";loadingNotes.value=v.notes||"";form.classList.remove("was-validated");modal.show();
   }
   async function parkVisit(visit){
-    if(!visit||!canQueue)return;
+    if(!visit||!canQueueUpdate||(!isGateSecurity&&!isAdmin))return;
     const card=visit.cards&&visit.cards.card_number?visit.cards.card_number:"—";
     try{
       const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(visit.id)+"&process_status=eq.wh_in&wh_out_at=is.null",{
@@ -208,7 +221,7 @@ window.trcmComponentsReady.then(async function () {
   }
   async function saveStart(event){
     event.preventDefault();
-    if(!form.checkValidity()||!selectedVisit||!canQueue){form.classList.add("was-validated");return;}
+    if(!form.checkValidity()||!selectedVisit||!canStartLoading){form.classList.add("was-validated");return;}
     saveButton.disabled=true;
     const startedAt=new Date().toISOString();
     const selectedCard=selectedVisit.cards&&selectedVisit.cards.card_number?selectedVisit.cards.card_number:"—";
@@ -235,17 +248,16 @@ window.trcmComponentsReady.then(async function () {
   form.addEventListener("submit",saveStart);
   table.addEventListener("click",function(event){
     const parkButton=event.target.closest(".park-button");
-    if(parkButton&&canQueue){
+    if(parkButton&&canQueueUpdate){
       const visit=visits.find(function(item){return item.id===parkButton.dataset.visitId;});
       if(visit)parkVisit(visit);
       return;
     }
     const startButton=event.target.closest(".start-loading-button");
-    if(!startButton||!canQueue)return;
+    if(!startButton||!canStartLoading)return;
     const visit=visits.find(function(item){return item.id===startButton.dataset.visitId;});
     if(visit)openStartModal(visit);
   });
-  if(!canQueue){await Swal.fire({icon:"error",title:"Akses terbatas",text:"Menu Antri / Parkir hanya dapat digunakan oleh Gate Security atau Admin.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});}
   await Promise.all([loadReferenceData(),loadVisits()]);
 });
 </script>
