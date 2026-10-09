@@ -351,7 +351,7 @@ window.trcmComponentsReady.then(async function () {
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
-        '<td>' + escapeHtml(formatActivity(visit.activity_type)) + '</td>' +
+        '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
         '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
