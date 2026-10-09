@@ -111,7 +111,9 @@ window.trcmComponentsReady.then(async function () {
   const canQueueUpdate=window.trcmPermissions.can("queue_parking","update");
   const canStartLoading=window.trcmPermissions.can("start_loading","update");
   const canStartFromQueue=canStartLoading;
-  const isGateSecurity=String(session.user.role||"") === "gatesec";
+  const currentRole=String(session.user.role||"").toLowerCase();
+  const isAdmin=currentRole==="admin";
+  const isGateSecurity=currentRole==="gatesec";
   const canGateBypass=canStartLoading && isGateSecurity;
   const table=document.getElementById("queue-table");
   const resultCount=document.getElementById("result-count");
@@ -145,13 +147,13 @@ window.trcmComponentsReady.then(async function () {
     table.innerHTML=filtered.map(function(v){
       const card=v.cards&&v.cards.card_number?v.cards.card_number:"—",client=v.clients&&v.clients.name?v.clients.name:"—";
       const isQueued=v.process_status==="queue";
-      const canParkThisVisit=isGateSecurity && canQueueUpdate && v.process_status==="wh_in";
+      const canParkThisVisit=(isGateSecurity || isAdmin) && canQueueUpdate && v.process_status==="wh_in";
       const queueButton=isQueued
         ? '<button type="button" class="btn btn-light border btn-sm" disabled><i class="bi bi-p-square me-1"></i>Sudah Antri</button>'
         : v.process_status==="wh_in"
           ? canParkThisVisit
             ? '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
-            : '<button type="button" class="btn btn-light border btn-sm" disabled title="Hanya Gate Security yang dapat mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
+            : '<button type="button" class="btn btn-light border btn-sm" disabled title="Hanya Gate Security atau Admin yang dapat mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
           : '';
       const canStartThisVisit=canStartFromQueue && (isQueued || canGateBypass);
       const startButton=canStartThisVisit
@@ -185,7 +187,7 @@ window.trcmComponentsReady.then(async function () {
     gateSelect.value="";populateLines("");sealNumber.value=v.seal_number||"";loadingNotes.value=v.notes||"";form.classList.remove("was-validated");modal.show();
   }
   async function parkVisit(visit){
-    if(!visit||!canQueueUpdate)return;
+    if(!visit||!canQueueUpdate||(!isGateSecurity&&!isAdmin))return;
     const card=visit.cards&&visit.cards.card_number?visit.cards.card_number:"—";
     try{
       const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(visit.id)+"&process_status=eq.wh_in&wh_out_at=is.null",{
