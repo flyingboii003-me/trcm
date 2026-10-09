@@ -23,7 +23,7 @@
   <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
   <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
-    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan (Gudang / Kota)</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="7" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
+    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan (Gudang / Kota)</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="8" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
     <div class="pagination-wrap">
       <div class="pagination-summary" id="pagination-summary"></div>
       <nav aria-label="Paginasi riwayat">
@@ -673,7 +673,7 @@ function renderStats() {}
 
 async function loadVisits() {
   truckTable.innerHTML =
-    '<tr><td colspan="7" class="table-state">Memuat data truk...</td></tr>';
+    '<tr><td colspan="8" class="table-state">Memuat data truk...</td></tr>';
   resultCount.textContent = "Memuat data...";
   refreshButton.disabled = true;
 
@@ -681,6 +681,7 @@ async function loadVisits() {
     const select = [
       "id",
       "plate_number",
+      "destination_city",
       "container_num",
       "activity_type",
       "vendor",
@@ -745,7 +746,7 @@ async function loadVisits() {
   } catch (error) {
     console.error("TRCM dashboard:", error);
     truckTable.innerHTML =
-      '<tr><td colspan="7" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
+      '<tr><td colspan="8" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
     resultCount.textContent = "Gagal memuat data";
   } finally {
     refreshButton.disabled = false;
