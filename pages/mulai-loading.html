@@ -360,7 +360,7 @@ window.trcmComponentsReady.then(async function () {
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
-        '<td>' + escapeHtml(formatDestination(visit.activity_type)) + '</td>' +
+        '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
         '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
@@ -404,7 +404,7 @@ window.trcmComponentsReady.then(async function () {
 
     try {
       const select = [
-        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number",
+        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number","destination_city",
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
@@ -436,7 +436,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("selected-visit-summary").textContent = card + " · " + (visit.plate_number || "—") + " · " + client;
     document.getElementById("detail-card").textContent = card;
     document.getElementById("detail-plate").textContent = visit.plate_number || "—";
-    document.getElementById("detail-destination").textContent = formatDestination(visit.activity_type);
+    document.getElementById("detail-destination").textContent = visit.destination_city || "—";
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
     lineSelect.disabled = true;
