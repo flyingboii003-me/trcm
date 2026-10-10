@@ -322,9 +322,7 @@
     }
 
     const user = session && session.user;
-    const fullName = user && (user.full_name || user.fullName || user.name);
-    const username = user && (user.username || user.auth_email);
-    const displayName = fullName || username || "Akun";
+    const displayName = (user && user.full_name && user.full_name.trim()) || "Akun";
 
     const accountName = document.getElementById("account-name");
     const accountMenuName = document.getElementById("account-menu-name");
