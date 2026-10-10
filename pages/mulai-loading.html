@@ -642,7 +642,7 @@ window.trcmComponentsReady.then(async function () {
     searchCard.value = "";
     renderTable();
   });
-  refreshButton.addEventListener("click", loadVisits);
+  refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
   takeLoadingPhoto.addEventListener("click", function () { loadingCameraInput.click(); });
   chooseLoadingPhotos.addEventListener("click", function () { loadingGalleryInput.click(); });
   loadingCameraInput.addEventListener("change", async function () {
