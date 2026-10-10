@@ -378,6 +378,7 @@ window.trcmComponentsReady.then(async function () {
     });
     if (!available.length) {
       cardInput.value = "";
+      cardInput.dataset.cardId = "";
       cardInput.setCustomValidity("Tidak ada kartu aktif yang tersedia untuk hari ini.");
       setAlert("Tidak ada nomor kartu aktif yang belum digunakan hari ini.", "error");
       return;
@@ -386,6 +387,7 @@ window.trcmComponentsReady.then(async function () {
     cardInput.value = selected.card_number;
     cardInput.dataset.cardId = selected.id;
     cardInput.setCustomValidity("");
+    clearAlert();
   }
 
   async function loadMasterData() {
