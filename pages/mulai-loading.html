@@ -362,7 +362,7 @@ window.trcmComponentsReady.then(async function () {
       const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
       const isParked = visit.process_status === "queue";
-      const action = canStart ? '<button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>' : '<button type="button" class="btn btn-primary btn-sm" disabled title="Akun tidak memiliki izin untuk memulai loading"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>';
+      const action = canStart ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>' : '<button type="button" class="btn btn-warning btn-sm" disabled title="Akun tidak memiliki izin untuk memulai loading"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>';
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
