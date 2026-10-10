@@ -24,7 +24,7 @@
             <h1 class="page-title">Antri / Parkir</h1>
             <p class="page-subtitle">Pindahkan armada yang sudah WH In ke antrean atau area parkir sebelum dipanggil Checker.</p>
           </div>
-          <button class="btn btn-date-picker" id="refresh-button" type="button"><i class="bi bi-arrow-clockwise"></i><span>Perbarui</span></button>
+          <button class="btn btn-date-picker" id="page-refresh-button" type="button"><i class="bi bi-arrow-clockwise"></i><span>Perbarui</span></button>
         </div>
 
         <section class="card content-card">
@@ -119,7 +119,7 @@ window.trcmComponentsReady.then(async function () {
   const resultCount=document.getElementById("result-count");
   const searchCard=document.getElementById("search-card");
   const resetSearch=document.getElementById("reset-search");
-  const refreshButton=document.getElementById("refresh-button");
+  const refreshButton=document.getElementById("page-refresh-button");
   const form=document.getElementById("start-loading-form");
   const modal=new bootstrap.Modal(document.getElementById("start-loading-modal"));
   const gateSelect=document.getElementById("gate-select");
@@ -258,6 +258,7 @@ window.trcmComponentsReady.then(async function () {
     const visit=visits.find(function(item){return item.id===startButton.dataset.visitId;});
     if(visit)openStartModal(visit);
   });
+  window.trcmRegisterRefresh(loadVisits);
   await Promise.all([loadReferenceData(),loadVisits()]);
 });
 </script>
