@@ -244,7 +244,7 @@ window.trcmComponentsReady.then(async function () {
   gateSelect.addEventListener("change",function(){populateLines(gateSelect.value);});
   searchCard.addEventListener("input",renderTable);
   resetSearch.addEventListener("click",function(){searchCard.value="";renderTable();});
-  refreshButton.addEventListener("click",loadVisits);
+  refreshButton.addEventListener("click",function(){window.trcmRunRefresh(refreshButton,loadVisits);});
   form.addEventListener("submit",saveStart);
   table.addEventListener("click",function(event){
     const parkButton=event.target.closest(".park-button");
