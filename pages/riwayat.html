@@ -900,7 +900,7 @@ editForm.addEventListener("submit", async function (event) {
   }
 });
 
-refreshButton.addEventListener("click", loadVisits);
+if (refreshButton) refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
 
 
 
