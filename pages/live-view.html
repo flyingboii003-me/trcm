@@ -81,6 +81,12 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 [hidden]{display:none!important}
 @media(max-width:1100px){.panels{grid-template-columns:1fr}.counters{grid-template-columns:repeat(4,minmax(0,1fr))}.truck-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){body{padding:14px}.toolbar{align-items:stretch}.toolbar-actions{width:100%}.toolbar-button{flex:1}.client-filter{width:100%;align-items:stretch;flex-direction:column;gap:6px}.client-filter select{width:100%}.live-header{align-items:flex-start;gap:12px}.brand{gap:10px}.brand-mark{width:42px;height:42px}.eyebrow{font-size:.65rem}h1{font-size:1.5rem}.clock-time{font-size:1.45rem}.clock-date{font-size:.75rem}.connection{font-size:.65rem}.panel-head{padding:16px}.counters{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 12px 0}.truck-list{display:flex;padding:12px}.truck-row{padding:12px;grid-template-columns:minmax(0,1fr)}.truck-side{align-items:flex-start;text-align:left;flex-direction:row;flex-wrap:wrap}.total{font-size:1.5rem;min-width:60px;padding:10px}.footer{flex-direction:column}}
+/* Final status badge palette: keep these rules after legacy overrides. */
+.status[data-status="registered"],
+.status[data-status="wh_in"]{background:#EAF4FF;border-color:#93C5FD;color:#005BA8}
+.status[data-status="queue"]{background:#FEF3C7;border-color:#FACC15;color:#92400E}
+.status[data-status="started"]{background:#FFEDD5;border-color:#FB923C;color:#9A3412}
+.status[data-status="completed"]{background:#DCFCE7;border-color:#86EFAC;color:#166534}
 </style>
 </head>
 <body>
