@@ -174,7 +174,7 @@ window.trcmComponentsReady.then(async function () {
   }
 
   const currentRole = String(session.user.role || "").toLowerCase();
-  const canStart = (currentRole === "gate security" || currentRole === "admin" || currentRole === "administrator") && window.trcmPermissions.can("start_loading", "update");
+  const canStart = (currentRole === "gatesec" || currentRole === "gate_security" || currentRole === "gate security" || currentRole === "admin" || currentRole === "administrator") && window.trcmPermissions.can("start_loading", "update");
   const table = document.getElementById("loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
@@ -649,7 +649,7 @@ window.trcmComponentsReady.then(async function () {
     if (visit) openStartModal(visit);
   });
 
-  if (!canStart) {
+  if (!window.trcmPermissions.can("start_loading", "view") && currentRole !== "admin" && currentRole !== "administrator") {
     await Swal.fire({
       icon: "error",
       title: "Akses terbatas",
