@@ -325,6 +325,7 @@ async function loadDashboard() {
     console.error("TRCM dashboard:",error);
   }
 }
+window.trcmRegisterRefresh(loadDashboard);
 loadDashboard();
 });
 </script>
