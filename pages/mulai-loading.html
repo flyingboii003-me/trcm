@@ -106,6 +106,8 @@
                   <span class="small text-muted d-block">Tujuan</span>
                   <strong id="detail-destination">—</strong>
                 </div>
+                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker mulai loading</span><strong id="detail-start-actor">—</strong></div>
+                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker selesai loading</span><strong id="detail-finish-actor">—</strong></div>
               </div>
             </div>
           </div>
@@ -429,6 +431,30 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
+
+  async function loadVisitActors(visitId) {
+    const start = document.getElementById("detail-start-actor");
+    const finish = document.getElementById("detail-finish-actor");
+    if (start) start.textContent = "Memuat...";
+    if (finish) finish.textContent = "Memuat...";
+    try {
+      const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_visit_event_actors", {
+        method: "POST",
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_visit_id: visitId })
+      });
+      const rows = await response.json().catch(function () { return []; });
+      if (!response.ok || !Array.isArray(rows)) throw new Error("Atribusi aktivitas belum tersedia.");
+      const started = rows.filter(function (row) { return row.status === "started"; }).slice(-1)[0];
+      const completed = rows.filter(function (row) { return row.status === "completed"; }).slice(-1)[0];
+      if (start) start.textContent = started ? started.actor_display_name + " · " + new Date(started.created_at).toLocaleString("id-ID") : "Belum tercatat";
+      if (finish) finish.textContent = completed ? completed.actor_display_name + " · " + new Date(completed.created_at).toLocaleString("id-ID") : "Belum tercatat";
+    } catch (error) {
+      if (start) start.textContent = "Tidak tersedia";
+      if (finish) finish.textContent = "Tidak tersedia";
+      console.warn("TRCM visit actors:", error);
+    }
+  }
   function openStartModal(visit) {
     selectedVisit = visit;
     const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
@@ -445,6 +471,7 @@ window.trcmComponentsReady.then(async function () {
     resetLoadingPhoto();
     form.classList.remove("was-validated");
     modal.show();
+    loadVisitActors(visit.id);
   }
 
   async function saveStart(event) {
