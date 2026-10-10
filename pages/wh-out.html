@@ -322,7 +322,7 @@ window.trcmComponentsReady.then(async function () {
     searchCard.value = "";
     renderTable();
   });
-  refreshButton.addEventListener("click", loadVisits);
+  refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
 
   table.addEventListener("click", function (event) {
     const button = event.target.closest(".wh-out-button");
