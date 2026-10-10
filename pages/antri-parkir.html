@@ -11,6 +11,27 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
+<style>
+/* Antri/Parkir table polish — Spark Admin-inspired compact, responsive data table */
+.queue-table-shell{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.queue-table-shell .trcm-table{min-width:900px;table-layout:auto}
+.queue-table-shell .trcm-table th{padding:1rem 1.1rem;white-space:nowrap;vertical-align:middle}
+.queue-table-shell .trcm-table td{padding:.9rem 1.1rem;vertical-align:middle}
+.queue-table-shell .trcm-table th:last-child,.queue-table-shell .trcm-table td:last-child{width:1%;min-width:155px;text-align:right!important}
+.queue-table-shell .trcm-table .action-cell{display:table-cell!important;white-space:normal}
+.queue-table-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.45rem;min-width:132px}
+.queue-table-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-height:34px;white-space:nowrap;border-radius:.55rem;font-size:.78rem;font-weight:600;padding:.42rem .65rem}
+.queue-table-shell .trcm-table tbody tr:last-child td{border-bottom:0}
+.queue-table-shell .trcm-table tbody tr:hover td{background:#f8fbff}
+@media(max-width:767.98px){
+ .queue-table-shell{border-top:1px solid var(--border,#e9efef)}
+ .queue-table-shell .trcm-table{min-width:860px}
+ .queue-table-shell .trcm-table th{padding:.8rem .85rem;font-size:.68rem}
+ .queue-table-shell .trcm-table td{padding:.8rem .85rem;font-size:.82rem}
+ .queue-table-actions{gap:.4rem}
+ .queue-table-actions .btn{min-height:36px}
+}
+</style>
 </head>
 <body class="trcm-app" data-page-resource="queue_parking">
 <div class="app-layout">
@@ -49,7 +70,7 @@
                 </div>
               </div>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive queue-table-shell">
               <table class="table table-hover align-middle trcm-table mb-0">
                 <thead>
                   <tr>
@@ -159,7 +180,7 @@ window.trcmComponentsReady.then(async function () {
       const startButton=canStartThisVisit
         ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
         : '';
-      return '<tr><td><span class="table-card-number">'+escapeHtml(card)+'</span></td><td class="font-monospace fw-semibold">'+escapeHtml(v.plate_number||"—")+'</td><td>'+escapeHtml(client)+'</td><td>'+escapeHtml(activityLabel(v.activity_type))+'</td><td><span class="font-monospace">'+escapeHtml(formatDateTime(v.wh_in_at))+'</span></td><td>'+window.trcmStatusBadge(v.process_status)+'</td><td class="action-cell d-flex flex-wrap gap-2">'+queueButton+startButton+'</td></tr>';
+      return '<tr><td><span class="table-card-number">'+escapeHtml(card)+'</span></td><td class="font-monospace fw-semibold">'+escapeHtml(v.plate_number||"—")+'</td><td>'+escapeHtml(client)+'</td><td>'+escapeHtml(activityLabel(v.activity_type))+'</td><td><span class="font-monospace">'+escapeHtml(formatDateTime(v.wh_in_at))+'</span></td><td>'+window.trcmStatusBadge(v.process_status)+'</td><td class="action-cell"><div class="queue-table-actions">'+queueButton+startButton+'</div></td></tr>';
     }).join("");;
   }
   function populateGates(){gateSelect.innerHTML='<option value="">Pilih gerbang</option>'+gates.map(g=>'<option value="'+escapeHtml(g.id)+'">Gate '+escapeHtml(g.gate_number)+'</option>').join("");}
