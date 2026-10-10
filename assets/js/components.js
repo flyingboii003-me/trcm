@@ -257,7 +257,7 @@
   function syncCollapsibleMenuState() {
     const key = currentPageKey();
     const menus = [
-      { key: "kunjungan-armada", children: ["wh-in", "antri-parkir", "wh-out", "riwayat"] },
+      { key: "kunjungan-armada", children: ["wh-in", "antri-parkir", "wh-out"] },
       { key: "checker", children: ["mulai-loading", "selesai-loading"] }
     ];
 
