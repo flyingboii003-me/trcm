@@ -24,7 +24,7 @@
             <h1 class="page-title">Mulai Loading</h1>
             <p class="page-subtitle">Pilih truck yang sudah Antri / Parkir untuk memulai proses loading.</p>
           </div>
-          <button class="btn btn-date-picker" id="refresh-button" type="button">
+          <button class="btn btn-date-picker" id="page-refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
           </button>
         </div>
@@ -179,7 +179,7 @@ window.trcmComponentsReady.then(async function () {
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
   const resetSearch = document.getElementById("reset-search");
-  const refreshButton = document.getElementById("refresh-button");
+  const refreshButton = document.getElementById("page-refresh-button");
   const gateSelect = document.getElementById("gate-select");
   const lineSelect = document.getElementById("line-select");
   const sealNumber = document.getElementById("seal-number");
@@ -659,6 +659,7 @@ window.trcmComponentsReady.then(async function () {
     });
   }
 
+  window.trcmRegisterRefresh(loadVisits);
   await Promise.all([loadReferenceData(), loadVisits()]);
 });
 </script>
