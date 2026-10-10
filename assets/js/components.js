@@ -9,6 +9,7 @@
   let pageRefreshCallback = null;
   let realtimeClient = null;
   let realtimeDebounce = null;
+  let refreshFallback = null;
 
   window.trcmRegisterRefresh = function (callback) {
     pageRefreshCallback = typeof callback === "function" ? callback : null;
@@ -28,6 +29,11 @@
       });
     }
     setupPageRealtime();
+    if (!refreshFallback) refreshFallback = setInterval(function () {
+      if (typeof pageRefreshCallback === "function" && document.visibilityState === "visible") {
+        Promise.resolve(pageRefreshCallback()).catch(function (error) { console.error("TRCM fallback refresh:", error); });
+      }
+    }, 60000);
   };
 
   function setupPageRealtime() {
@@ -64,6 +70,7 @@
 
   function queueRealtimeRefresh() {
     if (realtimeDebounce) clearTimeout(realtimeDebounce);
+    if (refreshFallback) clearInterval(refreshFallback);
     realtimeDebounce = setTimeout(function () {
       if (typeof pageRefreshCallback === "function") Promise.resolve(pageRefreshCallback()).catch(function (error) { console.error("TRCM Realtime refresh:", error); });
     }, 350);
