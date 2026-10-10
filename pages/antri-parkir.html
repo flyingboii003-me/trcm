@@ -180,8 +180,8 @@ window.trcmComponentsReady.then(async function () {
             ? '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
             : '<button type="button" class="btn btn-light border btn-sm" disabled title="Hanya Gate Security atau Admin yang dapat mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
           : '';
-      const canStartThisVisit=canStartFromQueue && (isQueued || canGateBypass);
-      const startButton=isQueued
+      const canStartThisVisit=canStartFromQueue && (isQueued || v.process_status==="wh_in");
+      const startButton=(isQueued || v.process_status==="wh_in")
         ? (canStartThisVisit
           ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
           : '<button type="button" class="btn btn-warning btn-sm" disabled title="Akun tidak memiliki izin untuk memulai loading"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>')
