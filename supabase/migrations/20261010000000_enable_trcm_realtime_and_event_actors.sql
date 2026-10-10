@@ -67,3 +67,35 @@ $function$;
 REVOKE ALL ON FUNCTION public.get_visit_event_actors(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.get_visit_event_actors(uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.get_visit_event_actors(uuid) TO authenticated;
+
+
+-- Allow every authenticated user to read only their own profile, independent of
+-- the administrative user-role permission used by the user-management screen.
+CREATE OR REPLACE FUNCTION public.get_my_profile()
+RETURNS TABLE (
+  id uuid,
+  username text,
+  full_name text,
+  auth_email text,
+  role text
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Authentication required' USING ERRCODE = '42501';
+  END IF;
+
+  RETURN QUERY
+  SELECT u.id, u.username, u.full_name, u.auth_email, u.role::text
+  FROM public.users AS u
+  WHERE u.id = auth.uid()
+  LIMIT 1;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.get_my_profile() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_my_profile() FROM anon;
+GRANT EXECUTE ON FUNCTION public.get_my_profile() TO authenticated;
