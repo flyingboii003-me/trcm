@@ -39,21 +39,16 @@
           <div class="card-body p-0">
             <div class="p-3 p-lg-4 border-bottom">
               <div class="row g-2">
-                <div class="col-12 col-md-5">
+                <div class="col-12 col-md-8">
                   <label class="visually-hidden" for="search-card">Cari nomor kartu</label>
                   <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu...">
                   </div>
                 </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-4">
                   <label class="form-label small mb-1" for="client-filter">Filter klien</label>
                   <select class="form-select" id="client-filter"><option value="all">Semua Klien</option></select>
-                </div>
-                <div class="col-12 col-md-4">
-                  <button class="btn btn-light border w-100" id="reset-search" type="button">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                  </button>
                 </div>
               </div>
             </div>
@@ -185,7 +180,6 @@ window.trcmComponentsReady.then(async function () {
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
   const clientFilter = document.getElementById("client-filter");
-  const resetSearch = document.getElementById("reset-search");
   const refreshButton = document.getElementById("page-refresh-button");
   const gateSelect = document.getElementById("gate-select");
   const lineSelect = document.getElementById("line-select");
@@ -368,7 +362,7 @@ window.trcmComponentsReady.then(async function () {
       const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
       const isParked = visit.process_status === "queue";
-      const action = canStart ? '<button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>' : '<span class="text-muted small">Lihat saja</span>';
+      const action = canStart ? '<button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>' : '';
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
@@ -654,11 +648,6 @@ window.trcmComponentsReady.then(async function () {
   });
   searchCard.addEventListener("input", renderTable);
   clientFilter.addEventListener("change", renderTable);
-  resetSearch.addEventListener("click", function () {
-    searchCard.value = "";
-    clientFilter.value = "all";
-    renderTable();
-  });
   refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
   takeLoadingPhoto.addEventListener("click", function () { loadingCameraInput.click(); });
   chooseLoadingPhotos.addEventListener("click", function () { loadingGalleryInput.click(); });
