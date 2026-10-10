@@ -313,24 +313,49 @@
   }
 
   function setAccountNames() {
-    let session = null;
-
-    try {
-      session = JSON.parse(sessionStorage.getItem("trcm_session") || "null");
-    } catch {
-      session = null;
-    }
+    const session = (() => {
+      try {
+        return JSON.parse(sessionStorage.getItem("trcm_session") || "null");
+      } catch {
+        return null;
+      }
+    })();
 
     const user = session && session.user;
-    const displayName = (user && user.full_name && user.full_name.trim()) || "Akun";
-
     const accountName = document.getElementById("account-name");
     const accountMenuName = document.getElementById("account-menu-name");
     const sidebarAccountName = document.getElementById("sidebar-account-name");
 
-    if (accountName) accountName.textContent = displayName;
-    if (accountMenuName) accountMenuName.textContent = "Halo, " + displayName;
-    if (sidebarAccountName) sidebarAccountName.textContent = displayName;
+    function applyDisplayName(name) {
+      const displayName = (typeof name === "string" && name.trim()) || "Akun";
+      if (accountName) accountName.textContent = displayName;
+      if (accountMenuName) accountMenuName.textContent = "Halo, " + displayName;
+      if (sidebarAccountName) sidebarAccountName.textContent = displayName;
+    }
+
+    applyDisplayName(user && user.full_name);
+
+    if (!session || !session.access_token) return;
+
+    fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_profile", {
+      method: "POST",
+      headers: {
+        "apikey": "sb_publishable_ERlBrySRotVM5JfLA1oukQ_Cg0gmgIp",
+        "Authorization": "Bearer " + session.access_token,
+        "Content-Type": "application/json"
+      },
+      body: "{}"
+    }).then(function (response) {
+      if (!response.ok) throw new Error("Profil pengguna gagal dimuat.");
+      return response.json();
+    }).then(function (profile) {
+      const row = Array.isArray(profile) ? profile[0] : profile;
+      if (row && typeof row.full_name === "string" && row.full_name.trim()) {
+        applyDisplayName(row.full_name);
+      }
+    }).catch(function (error) {
+      console.warn("TRCM: nama lengkap dari profil tidak dapat dimuat.", error);
+    });
   }
 
   function setupMobileSidebar() {
