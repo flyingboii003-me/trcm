@@ -12,49 +12,36 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
 <style>
-/* Antri/Parkir table polish — Spark Admin-inspired compact, responsive data table */
-.queue-table-shell{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.queue-table-shell .trcm-table{min-width:900px;table-layout:auto}
-.queue-table-shell .trcm-table th{padding:1rem 1.1rem;white-space:nowrap;vertical-align:middle}
-.queue-table-shell .trcm-table td{padding:.9rem 1.1rem;vertical-align:middle}
-.queue-table-shell .trcm-table th:last-child,.queue-table-shell .trcm-table td:last-child{width:1%;min-width:155px;text-align:right!important}
-.queue-table-shell .trcm-table .action-cell{display:table-cell!important;white-space:normal}
-.queue-table-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.45rem;min-width:132px}
-.queue-table-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-height:34px;white-space:nowrap;border-radius:.55rem;font-size:.78rem;font-weight:600;padding:.42rem .65rem}
-.queue-table-shell .trcm-table tbody tr:last-child td{border-bottom:0}
-.queue-table-shell .trcm-table tbody tr:hover td{background:#f8fbff}
-@media(max-width:767.98px){
- .queue-table-shell{border-top:1px solid var(--border,#e9efef)}
- .queue-table-shell .trcm-table{min-width:860px}
- .queue-table-shell .trcm-table th{padding:.8rem .85rem;font-size:.68rem}
- .queue-table-shell .trcm-table td{padding:.8rem .85rem;font-size:.82rem}
- .queue-table-actions{gap:.4rem}
- .queue-table-actions .btn{min-height:36px}
-}
-</style>
-<style>
-/* Consistent, responsive table layout for operational loading pages */
-.operational-table-shell{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--border,#e9efef)}
-.operational-table-shell .trcm-table{width:100%;min-width:980px;table-layout:auto;margin:0}
-.operational-table-shell .trcm-table thead th{padding:.9rem 1rem;background:#f8fafb;color:#667781;border-bottom:1px solid #e8edf0;font-size:.69rem;font-weight:800;letter-spacing:.045em;text-transform:uppercase;white-space:nowrap;vertical-align:middle}
-.operational-table-shell .trcm-table tbody td{padding:.85rem 1rem;border-bottom:1px solid #edf1f3;color:#273640;font-size:.8rem;line-height:1.45;vertical-align:middle}
+/* Tabel operasional mengikuti pola tabel Riwayat TRCM */
+.operational-table-shell{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border,#E9EFEF);border-radius:var(--radius-xl,18px);background:var(--card-bg,#fff)}
+.operational-table-shell .trcm-table{width:100%;min-width:0;table-layout:auto;margin:0}
+.operational-table-shell .trcm-table th{padding:.9rem 1rem;background:#F8FAF9;color:var(--text-muted,#6C7E75);border-bottom:1px solid rgba(11,19,15,.06);font-size:.75rem;font-weight:700;letter-spacing:.025em;text-transform:none;white-space:nowrap;vertical-align:middle}
+.operational-table-shell .trcm-table td{padding:.9rem 1rem;border-bottom:1px solid rgba(11,19,15,.05);color:var(--text-main,#0B130F);font-size:.82rem;line-height:1.45;vertical-align:middle;white-space:normal}
+.operational-table-shell .trcm-table tbody tr{transition:background-color .2s ease}
+.operational-table-shell .trcm-table tbody tr:hover td{background:rgba(0,110,205,.025)}
 .operational-table-shell .trcm-table tbody tr:last-child td{border-bottom:0}
-.operational-table-shell .trcm-table tbody tr:hover td{background:#f7fbfe}
 .operational-table-shell .trcm-table th:first-child,.operational-table-shell .trcm-table td:first-child{padding-left:1.25rem}
-.operational-table-shell .trcm-table th.action-column,.operational-table-shell .trcm-table td.action-cell{width:1%;min-width:150px;text-align:right;white-space:normal}
-.operational-table-shell .trcm-table td.action-cell>.btn,.operational-table-shell .trcm-table td.action-cell>.queue-table-actions{margin-left:auto}
-.operational-table-shell .trcm-table .action-cell{vertical-align:middle}
-.operational-table-shell .trcm-table .action-cell>.btn{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;min-height:36px;padding:.45rem .7rem;border-radius:.6rem;font-size:.74rem;font-weight:700;line-height:1.2;white-space:nowrap}
-.operational-table-shell .trcm-table .queue-table-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.4rem;min-width:140px}
-.operational-table-shell .trcm-table .queue-table-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:.4rem .6rem;border-radius:.55rem;font-size:.72rem;font-weight:700;line-height:1.2;white-space:nowrap}
-.operational-table-shell .table-card-number{white-space:nowrap}
-.operational-table-shell .table-state{padding:2rem 1rem!important;text-align:center;color:var(--text-muted,#6c7e75)}
+.operational-table-shell .trcm-table th.action-column,.operational-table-shell .trcm-table td.action-cell{width:1%;min-width:155px;text-align:right!important;white-space:normal}
+.operational-table-shell .trcm-table td.action-cell{display:table-cell!important;vertical-align:middle}
+.operational-table-shell .trcm-table .action-cell>.btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;min-height:36px;padding:.45rem .7rem;border-radius:var(--radius-md,10px);font-size:.75rem;font-weight:700;line-height:1.2;white-space:nowrap}
+.operational-table-shell .trcm-table .queue-table-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.4rem;min-width:0}
+.operational-table-shell .trcm-table .queue-table-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:.42rem .65rem;border-radius:var(--radius-md,10px);font-size:.74rem;font-weight:700;line-height:1.2;white-space:nowrap}
+.operational-table-shell .trcm-table .table-card-number,.operational-table-shell .trcm-table .font-monospace{white-space:nowrap}
+.operational-table-shell .table-state{padding:2.5rem 1rem!important;text-align:center;color:var(--text-muted,#6C7E75)}
+@media(min-width:1200px){
+ .operational-table-shell .trcm-table{table-layout:fixed}
+ .operational-table-shell .trcm-table th:not(.action-column),.operational-table-shell .trcm-table td:not(.action-cell){overflow-wrap:anywhere}
+ .operational-table-shell .trcm-table th.action-column,.operational-table-shell .trcm-table td.action-cell{width:190px}
+}
+@media(max-width:991.98px){
+ .operational-table-shell .trcm-table{min-width:900px;table-layout:auto}
+ .operational-table-shell .trcm-table th,.operational-table-shell .trcm-table td{padding:.8rem .85rem}
+ .operational-table-shell .trcm-table th:first-child,.operational-table-shell .trcm-table td:first-child{padding-left:.9rem}
+}
 @media(max-width:767.98px){
  .operational-table-shell .trcm-table{min-width:940px}
- .operational-table-shell .trcm-table thead th{padding:.75rem .8rem;font-size:.65rem}
- .operational-table-shell .trcm-table tbody td{padding:.75rem .8rem;font-size:.77rem}
- .operational-table-shell .trcm-table th:first-child,.operational-table-shell .trcm-table td:first-child{padding-left:.9rem}
- .operational-table-shell .trcm-table .action-cell>.btn{min-height:36px}
+ .operational-table-shell .trcm-table th{font-size:.7rem}
+ .operational-table-shell .trcm-table td{font-size:.78rem}
 }
 </style>
 </head>
