@@ -754,7 +754,7 @@
     currentPage = 1;
     renderTable();
   });
-  elements.refresh.addEventListener("click", loadData);
+  elements.refresh.addEventListener("click", function () { window.trcmRunRefresh(elements.refresh, loadData); });
   elements.pagePrev.addEventListener("click", function () {
     if (currentPage > 1) {
       currentPage -= 1;
