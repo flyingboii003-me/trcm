@@ -420,7 +420,7 @@ window.trcmComponentsReady.then(async function () {
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
-        "&or=(process_status.in.(registered,queue,wh_in,parked),process_status.is.null)&wh_out_at=is.null&order=registered_at.asc";
+        "&or=(process_status.in.(registered,queue,wh_in),process_status.is.null)&wh_out_at=is.null&order=registered_at.asc";
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
