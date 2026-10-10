@@ -46,7 +46,8 @@ loginForm.addEventListener("submit",async event=>{
     if(!response.ok)throw new Error(data.error||"Nama pengguna atau kata sandi salah.");
     if(!data.access_token||!data.refresh_token||!data.user)throw new Error("Respons autentikasi dari server tidak valid.");
     sessionStorage.setItem("trcm_session",JSON.stringify(data));
-    window.location.href="pages/dashboard.html";
+    const role=String(data.user.role_key||data.user.role||"").toLowerCase();
+    window.location.href=(role==="gatesec"||role==="gate_security"||role==="gate security")?"pages/registrasi-armada.html?view=wh-in":(role==="checker"?"pages/mulai-loading.html":"pages/dashboard.html");
   }catch(error){
     showError("Gagal masuk",error.message||"Periksa nama pengguna dan kata sandi, lalu coba lagi.");
   }finally{

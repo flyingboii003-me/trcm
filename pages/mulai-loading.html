@@ -22,7 +22,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Mulai Loading</h1>
-            <p class="page-subtitle">Daftar seluruh truck Terdaftar dan Parkir. Mulai loading hanya tersedia setelah Gate Security menetapkan status Antri/Parkir.</p>
+            <p class="page-subtitle">Daftar truck berstatus Terdaftar atau Antri/Parkir. Checker dapat langsung memulai proses dari status Terdaftar maupun Antri/Parkir.</p>
           </div>
           <button class="btn btn-date-picker" id="page-refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
@@ -354,7 +354,7 @@ window.trcmComponentsReady.then(async function () {
     resultCount.textContent = filtered.length + " truck terdaftar / parkir";
 
     if (!filtered.length) {
-      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck berstatus Terdaftar atau Parkir.</td></tr>';
+      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck berstatus Terdaftar atau Antri/Parkir.</td></tr>';
       return;
     }
 
@@ -414,7 +414,7 @@ window.trcmComponentsReady.then(async function () {
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
-        "&process_status=eq.queue&wh_out_at=is.null&order=wh_in_at.asc";
+        "&process_status=in.(registered,queue)&wh_out_at=is.null&order=wh_in_at.asc";
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
