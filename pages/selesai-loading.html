@@ -24,7 +24,7 @@
             <h1 class="page-title">Selesai Loading</h1>
             <p class="page-subtitle">Pilih truck yang sedang dalam proses loading untuk menandai proses selesai.</p>
           </div>
-          <button class="btn btn-date-picker" id="refresh-button" type="button">
+          <button class="btn btn-date-picker" id="page-refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
           </button>
         </div>
@@ -39,17 +39,12 @@
           <div class="card-body p-0">
             <div class="p-3 p-lg-4 border-bottom">
               <div class="row g-2">
-                <div class="col-12 col-md-8">
+                <div class="col-12">
                   <label class="visually-hidden" for="search-card">Cari nomor kartu</label>
                   <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu...">
                   </div>
-                </div>
-                <div class="col-12 col-md-4">
-                  <button class="btn btn-light border w-100" id="reset-search" type="button">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                  </button>
                 </div>
               </div>
             </div>
@@ -122,6 +117,8 @@
                   <span class="small text-muted d-block">Tujuan (Gudang / Kota)</span>
                   <strong id="detail-destination">—</strong>
                 </div>
+                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker mulai loading</span><strong id="detail-start-actor">—</strong></div>
+                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker selesai loading</span><strong id="detail-finish-actor">—</strong></div>
                 <div class="col-12">
                   <label class="form-label">Foto Loading <span class="text-danger">*</span></label>
                   <div class="photo-picker-actions">
@@ -174,8 +171,7 @@ window.trcmComponentsReady.then(async function () {
   const table = document.getElementById("finish-loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
-  const resetSearch = document.getElementById("reset-search");
-  const refreshButton = document.getElementById("refresh-button");
+  const refreshButton = document.getElementById("page-refresh-button");
   const finishNotes = document.getElementById("finish-notes");
   const takeLoadingPhoto = document.getElementById("take-loading-photo");
   const chooseLoadingPhotos = document.getElementById("choose-loading-photos");
@@ -393,6 +389,30 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
+
+  async function loadVisitActors(visitId) {
+    const start = document.getElementById("detail-start-actor");
+    const finish = document.getElementById("detail-finish-actor");
+    if (start) start.textContent = "Memuat...";
+    if (finish) finish.textContent = "Memuat...";
+    try {
+      const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_visit_event_actors", {
+        method: "POST",
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_visit_id: visitId })
+      });
+      const rows = await response.json().catch(function () { return []; });
+      if (!response.ok || !Array.isArray(rows)) throw new Error("Atribusi aktivitas belum tersedia.");
+      const started = rows.filter(function (row) { return row.status === "started"; }).slice(-1)[0];
+      const completed = rows.filter(function (row) { return row.status === "completed"; }).slice(-1)[0];
+      if (start) start.textContent = started ? started.actor_display_name + " · " + new Date(started.created_at).toLocaleString("id-ID") : "Belum tercatat";
+      if (finish) finish.textContent = completed ? completed.actor_display_name + " · " + new Date(completed.created_at).toLocaleString("id-ID") : "Belum tercatat";
+    } catch (error) {
+      if (start) start.textContent = "Tidak tersedia";
+      if (finish) finish.textContent = "Tidak tersedia";
+      console.warn("TRCM visit actors:", error);
+    }
+  }
   function openFinishModal(visit) {
     selectedVisit = visit;
     const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
@@ -409,6 +429,7 @@ window.trcmComponentsReady.then(async function () {
     resetLoadingPhoto();
     form.classList.remove("was-validated");
     modal.show();
+    loadVisitActors(visit.id);
   }
 
   async function saveFinish(event) {
@@ -444,7 +465,8 @@ window.trcmComponentsReady.then(async function () {
           body: JSON.stringify({
             visit_id: selectedVisit.id,
             photo_type: "loading_completion",
-            file_location: objectPath
+            file_location: objectPath,
+            uploaded_by: session.user.id
           })
         });
         if (Array.isArray(rows) && rows[0] && rows[0].id) photoRecordIds.push(rows[0].id);
@@ -567,6 +589,8 @@ window.trcmComponentsReady.then(async function () {
     });
   }
 
+  if (refreshButton) refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
+  window.trcmRegisterRefresh(loadVisits);
   await loadVisits();
 });
 </script>

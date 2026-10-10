@@ -22,9 +22,9 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Mulai Loading</h1>
-            <p class="page-subtitle">Pilih truck yang sudah Antri / Parkir untuk memulai proses loading.</p>
+            <p class="page-subtitle">Daftar seluruh truck Terdaftar dan Parkir. Mulai loading hanya tersedia setelah Gate Security menetapkan status Antri/Parkir.</p>
           </div>
-          <button class="btn btn-date-picker" id="refresh-button" type="button">
+          <button class="btn btn-date-picker" id="page-refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
           </button>
         </div>
@@ -47,9 +47,8 @@
                   </div>
                 </div>
                 <div class="col-12 col-md-4">
-                  <button class="btn btn-light border w-100" id="reset-search" type="button">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                  </button>
+                  <label class="visually-hidden" for="client-filter">Filter klien</label>
+                  <select class="form-select" id="client-filter"><option value="all">Semua Klien</option></select>
                 </div>
               </div>
             </div>
@@ -106,6 +105,8 @@
                   <span class="small text-muted d-block">Tujuan</span>
                   <strong id="detail-destination">—</strong>
                 </div>
+                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker mulai loading</span><strong id="detail-start-actor">—</strong></div>
+                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker selesai loading</span><strong id="detail-finish-actor">—</strong></div>
               </div>
             </div>
           </div>
@@ -174,12 +175,12 @@ window.trcmComponentsReady.then(async function () {
   }
 
   const currentRole = String(session.user.role || "").toLowerCase();
-  const canStart = (currentRole === "gatesec" || currentRole === "gate_security" || currentRole === "gate security" || currentRole === "admin" || currentRole === "administrator") && window.trcmPermissions.can("start_loading", "update");
+  const canStart = (currentRole === "checker" || currentRole === "gatesec" || currentRole === "gate_security" || currentRole === "gate security" || currentRole === "admin" || currentRole === "administrator") && window.trcmPermissions.can("start_loading", "update");
   const table = document.getElementById("loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
-  const resetSearch = document.getElementById("reset-search");
-  const refreshButton = document.getElementById("refresh-button");
+  const clientFilter = document.getElementById("client-filter");
+  const refreshButton = document.getElementById("page-refresh-button");
   const gateSelect = document.getElementById("gate-select");
   const lineSelect = document.getElementById("line-select");
   const sealNumber = document.getElementById("seal-number");
@@ -342,21 +343,26 @@ window.trcmComponentsReady.then(async function () {
 
   function renderTable() {
     const needle = searchCard.value.trim().toLowerCase();
+    const selectedClient = clientFilter.value;
     const filtered = visits.filter(function (visit) {
       const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "";
-      return !needle || card.toLowerCase().includes(needle);
+      const client = visit.clients && visit.clients.name ? visit.clients.name : "";
+      return (!needle || card.toLowerCase().includes(needle)) &&
+        (selectedClient === "all" || client === selectedClient);
     });
 
-    resultCount.textContent = filtered.length + " truck menunggu Mulai Loading";
+    resultCount.textContent = filtered.length + " truck terdaftar / parkir";
 
     if (!filtered.length) {
-      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck yang menunggu Mulai Loading.</td></tr>';
+      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck berstatus Terdaftar atau Parkir.</td></tr>';
       return;
     }
 
     table.innerHTML = filtered.map(function (visit) {
       const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      const isParked = visit.process_status === "queue";
+      const action = canStart ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>' : '<button type="button" class="btn btn-warning btn-sm" disabled title="Akun tidak memiliki izin untuk memulai loading"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>';
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
@@ -365,7 +371,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(client) + '</td>' +
         '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
-        '<td class="action-cell">' + (canStart ? '<button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>' : '<span class="text-muted small">Lihat saja</span>') + '</td>' +
+        '<td class="action-cell">' + action + '</td>' +
       '</tr>';
     }).join("");
   }
@@ -412,6 +418,10 @@ window.trcmComponentsReady.then(async function () {
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
+      const selected = clientFilter.value;
+      const clients = Array.from(new Set(visits.map(function (visit) { return visit.clients && visit.clients.name ? visit.clients.name : ""; }).filter(Boolean))).sort(function (a,b) { return a.localeCompare(b); });
+      clientFilter.innerHTML = '<option value="all">Semua Klien</option>' + clients.map(function (name) { return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>'; }).join("");
+      clientFilter.value = clients.includes(selected) ? selected : "all";
       renderTable();
     } catch (error) {
       console.error("TRCM Mulai Loading:", error);
@@ -429,6 +439,30 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
+
+  async function loadVisitActors(visitId) {
+    const start = document.getElementById("detail-start-actor");
+    const finish = document.getElementById("detail-finish-actor");
+    if (start) start.textContent = "Memuat...";
+    if (finish) finish.textContent = "Memuat...";
+    try {
+      const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_visit_event_actors", {
+        method: "POST",
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_visit_id: visitId })
+      });
+      const rows = await response.json().catch(function () { return []; });
+      if (!response.ok || !Array.isArray(rows)) throw new Error("Atribusi aktivitas belum tersedia.");
+      const started = rows.filter(function (row) { return row.status === "started"; }).slice(-1)[0];
+      const completed = rows.filter(function (row) { return row.status === "completed"; }).slice(-1)[0];
+      if (start) start.textContent = started ? started.actor_display_name + " · " + new Date(started.created_at).toLocaleString("id-ID") : "Belum tercatat";
+      if (finish) finish.textContent = completed ? completed.actor_display_name + " · " + new Date(completed.created_at).toLocaleString("id-ID") : "Belum tercatat";
+    } catch (error) {
+      if (start) start.textContent = "Tidak tersedia";
+      if (finish) finish.textContent = "Tidak tersedia";
+      console.warn("TRCM visit actors:", error);
+    }
+  }
   function openStartModal(visit) {
     selectedVisit = visit;
     const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
@@ -445,6 +479,7 @@ window.trcmComponentsReady.then(async function () {
     resetLoadingPhoto();
     form.classList.remove("was-validated");
     modal.show();
+    loadVisitActors(visit.id);
   }
 
   async function saveStart(event) {
@@ -488,7 +523,8 @@ window.trcmComponentsReady.then(async function () {
           body: JSON.stringify({
             visit_id: selectedVisit.id,
             photo_type: "loading_start",
-            file_location: objectPath
+            file_location: objectPath,
+            uploaded_by: session.user.id
           })
         });
         if (Array.isArray(rows) && rows[0] && rows[0].id) photoRecordIds.push(rows[0].id);
@@ -611,11 +647,8 @@ window.trcmComponentsReady.then(async function () {
     populateLines(gateSelect.value);
   });
   searchCard.addEventListener("input", renderTable);
-  resetSearch.addEventListener("click", function () {
-    searchCard.value = "";
-    renderTable();
-  });
-  refreshButton.addEventListener("click", loadVisits);
+  clientFilter.addEventListener("change", renderTable);
+  refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
   takeLoadingPhoto.addEventListener("click", function () { loadingCameraInput.click(); });
   chooseLoadingPhotos.addEventListener("click", function () { loadingGalleryInput.click(); });
   loadingCameraInput.addEventListener("change", async function () {
@@ -653,12 +686,13 @@ window.trcmComponentsReady.then(async function () {
     await Swal.fire({
       icon: "error",
       title: "Akses terbatas",
-      text: "Aksi Mulai Loading hanya dapat digunakan oleh Gate Security atau Admin.",
+      text: "Akun ini tidak memiliki izin untuk melihat halaman Mulai Loading.",
       confirmButtonText: "Tutup",
       confirmButtonColor: "#0066B3"
     });
   }
 
+  window.trcmRegisterRefresh(loadVisits);
   await Promise.all([loadReferenceData(), loadVisits()]);
 });
 </script>

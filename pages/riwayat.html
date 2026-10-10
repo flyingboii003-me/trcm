@@ -110,13 +110,13 @@ const editModal = new bootstrap.Modal(editModalElement);
 const editForm = document.getElementById("visit-edit-form");
 const editAlert = document.getElementById("visit-edit-alert");
 const editSaveButton = document.getElementById("edit-save-button");
-const canManageVisits = trcmSession.user && (trcmSession.user.role === "gatesec" || trcmSession.user.role === "admin");
+const canManageVisits = Boolean(trcmSession.user && (trcmSession.user.role === "gatesec" || trcmSession.user.role === "admin") && window.trcmPermissions && window.trcmPermissions.can("history", "update"));
 const filterClient = document.getElementById("filter-client");
 const filterPlate = document.getElementById("filter-plate");
 const filterCard = document.getElementById("filter-card");
 const filterDate = document.getElementById("filter-date");
 const resetFilter = document.getElementById("reset-filter");
-const refreshButton = document.getElementById("refresh-button");
+const refreshButton = document.getElementById("page-refresh-button");
 const exportButton = document.getElementById("export-button");
 
 let visits = [];
@@ -420,7 +420,7 @@ async function openVisitModal(visitId) {
       "clients(name)",
       "gates(gate_number)",
       "line_numbers(line_number)",
-      "photos(id,photo_type,file_location,created_at)"
+      "photos(id,photo_type,file_location,created_at,uploaded_by,uploaded_by_user:users!photos_uploaded_by_fkey(username,full_name))"
     ].join(",");
 
     const url = SUPABASE_URL +
@@ -458,6 +458,22 @@ async function openVisitModal(visitId) {
     const client = (visit.clients && visit.clients.name) || "—";
     const gate = visit.gates && visit.gates.gate_number;
     const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
+    let activityActors = [];
+    try {
+      const actorResponse = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_visit_event_actors", {
+        method: "POST",
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + trcmSession.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_visit_id: visit.id })
+      });
+      const actorRows = await actorResponse.json().catch(function () { return []; });
+      if (actorResponse.ok && Array.isArray(actorRows)) activityActors = actorRows;
+    } catch (actorError) { console.warn("TRCM visit actors:", actorError); }
+    const actorHtml = activityActors.length
+      ? '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Aktivitas</th><th>Checker / pengguna</th><th>Waktu</th></tr></thead><tbody>' + activityActors.map(function (row) {
+          const labels = { wh_in: "WH In", registered: "Terdaftar", parked: "Antri/Parkir", processing: "Proses", started: "Mulai Loading", completed: "Selesai Loading", wh_out: "WH Out", cancelled: "Dibatalkan" };
+          return '<tr><td>' + escapeHtml(labels[row.status] || row.status || "—") + '</td><td>' + escapeHtml(row.actor_display_name || "Pengguna") + '</td><td>' + escapeHtml(formatDateTime(row.created_at)) + '</td></tr>';
+        }).join("") + '</tbody></table></div>'
+      : '<div class="modal-empty">Belum ada data atribusi aktivitas.</div>';
 
     visitModalTitle.textContent = visit.plate_number || "Detail visit";
     visitModalSubtitle.textContent =
@@ -560,15 +576,16 @@ async function openVisitModal(visitId) {
       ? '<div class="photo-grid">' + photoResults.map(function (item) {
           const photo = item.photo;
           const label = photoTypeLabel(photo.photo_type);
+          const photoActor = photo.uploaded_by_user ? (photo.uploaded_by_user.full_name || photo.uploaded_by_user.username) : "Tidak tercatat";
           if (!item.url) {
-            return '<div class="photo-item"><span class="photo-type">' + escapeHtml(label) + '</span><span class="photo-location">Foto tidak dapat dibuka.</span><span class="event-meta">' + escapeHtml(formatDateTime(photo.created_at)) + '</span></div>';
+            return '<div class="photo-item"><span class="photo-type">' + escapeHtml(label) + '</span><span class="photo-location">Foto tidak dapat dibuka.</span><span class="event-meta">' + escapeHtml("Uploader: " + photoActor + " · " + formatDateTime(photo.created_at)) + '</span></div>';
           }
           return '<div class="photo-item">' +
             '<a class="photo-thumb-button" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" title="Buka foto ukuran penuh">' +
               '<img src="' + escapeHtml(item.url) + '" alt="' + escapeHtml(label) + '" loading="lazy">' +
             '</a>' +
             '<span class="photo-type">' + escapeHtml(label) + '</span>' +
-            '<span class="photo-item-meta">' + escapeHtml(formatDateTime(photo.created_at)) + '</span>' +
+            '<span class="photo-item-meta">' + escapeHtml("Uploader: " + photoActor + " · " + formatDateTime(photo.created_at)) + '</span>' +
           '</div>';
         }).join("") + '</div>'
       : '<div class="modal-empty">Belum ada foto yang tercatat untuk visit ini.</div>';
@@ -580,6 +597,7 @@ async function openVisitModal(visitId) {
         documents + "</div></section>" +
       '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
         times + "</div></section>" +
+      '<section class="detail-section"><h3>Aktivitas dan Checker</h3>' + actorHtml + "</section>" +
       '<section class="detail-section"><h3>Foto visit</h3><div class="photo-list">' +
         photoHtml + "</div></section>";
   } catch (error) {
@@ -675,7 +693,7 @@ async function loadVisits() {
   truckTable.innerHTML =
     '<tr><td colspan="8" class="table-state">Memuat data truk...</td></tr>';
   resultCount.textContent = "Memuat data...";
-  refreshButton.disabled = true;
+  if (refreshButton) refreshButton.disabled = true;
 
   try {
     const select = [
@@ -749,7 +767,7 @@ async function loadVisits() {
       '<tr><td colspan="8" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
     resultCount.textContent = "Gagal memuat data";
   } finally {
-    refreshButton.disabled = false;
+    if (refreshButton) refreshButton.disabled = false;
   }
 }
 
@@ -883,7 +901,7 @@ editForm.addEventListener("submit", async function (event) {
   }
 });
 
-refreshButton.addEventListener("click", loadVisits);
+if (refreshButton) refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
 
 
 
@@ -957,6 +975,7 @@ exportButton.addEventListener("click", function () {
   exportButton.classList.remove("is-exporting");
 });
 
+window.trcmRegisterRefresh(loadVisits);
 loadVisits();
 });
 </script>

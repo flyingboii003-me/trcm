@@ -24,7 +24,7 @@
             <h1 class="page-title">WH Out</h1>
             <p class="page-subtitle">Pilih armada yang sudah selesai proses untuk menyelesaikan keberangkatan dari gudang.</p>
           </div>
-          <button class="btn btn-date-picker" id="refresh-button" type="button">
+          <button class="btn btn-date-picker" id="page-refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
           </button>
         </div>
@@ -100,7 +100,7 @@ window.trcmComponentsReady.then(async function () {
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
   const resetSearch = document.getElementById("reset-search");
-  const refreshButton = document.getElementById("refresh-button");
+  const refreshButton = document.getElementById("page-refresh-button");
 
   let visits = [];
 
@@ -322,7 +322,7 @@ window.trcmComponentsReady.then(async function () {
     searchCard.value = "";
     renderTable();
   });
-  refreshButton.addEventListener("click", loadVisits);
+  refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
 
   table.addEventListener("click", function (event) {
     const button = event.target.closest(".wh-out-button");
@@ -341,6 +341,7 @@ window.trcmComponentsReady.then(async function () {
     });
   }
 
+  window.trcmRegisterRefresh(loadVisits);
   await loadVisits();
 });
 </script>
