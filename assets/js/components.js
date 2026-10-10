@@ -11,29 +11,33 @@
   let realtimeDebounce = null;
   let refreshFallback = null;
 
+  window.trcmRunRefresh = async function (button, callback) {
+    if (!button || button.disabled || typeof callback !== "function") return;
+    const originalContent = button.innerHTML;
+    const originalLabel = button.getAttribute("aria-label") || button.getAttribute("title") || "Perbarui data";
+    button.disabled = true;
+    button.setAttribute("aria-label", "Memuat...");
+    button.title = "Memuat...";
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>';
+    try {
+      await callback();
+    } catch (error) {
+      console.error("TRCM refresh:", error);
+    } finally {
+      button.innerHTML = originalContent;
+      button.disabled = false;
+      button.setAttribute("aria-label", originalLabel);
+      button.title = originalLabel;
+    }
+  };
+
   window.trcmRegisterRefresh = function (callback) {
     pageRefreshCallback = typeof callback === "function" ? callback : null;
     const headerButton = document.getElementById("header-refresh-button");
     if (headerButton && !headerButton.dataset.bound) {
       headerButton.dataset.bound = "true";
-      headerButton.addEventListener("click", async function () {
-        if (!pageRefreshCallback || headerButton.disabled) return;
-        const originalContent = headerButton.innerHTML;
-        const originalLabel = headerButton.getAttribute("aria-label") || "Perbarui data";
-        headerButton.disabled = true;
-        headerButton.setAttribute("aria-label", "Memuat...");
-        headerButton.title = "Memuat...";
-        headerButton.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>';
-        try {
-          await pageRefreshCallback();
-        } catch (error) {
-          console.error("TRCM refresh:", error);
-        } finally {
-          headerButton.innerHTML = originalContent;
-          headerButton.disabled = false;
-          headerButton.setAttribute("aria-label", originalLabel);
-          headerButton.title = originalLabel;
-        }
+      headerButton.addEventListener("click", function () {
+        window.trcmRunRefresh(headerButton, function () { return pageRefreshCallback(); });
       });
     }
     setupPageRealtime();
