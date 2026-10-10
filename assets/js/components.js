@@ -100,6 +100,7 @@
     if (page === "checker.html") return "checker";
     if (page === "master-data.html") return "master-data";
     if (page === "user-role.html") return "user-role";
+    if (page === "profil.html") return "profil";
 
     return "";
   }
@@ -285,7 +286,8 @@
       "wh-in": "WH In",
       "wh-out": "WH Out",
       "master-data": "Master Data",
-      "user-role": "User & Role"
+      "user-role": "User & Role",
+      profil: "Profil Pengguna"
     };
 
     const key = currentPageKey();
