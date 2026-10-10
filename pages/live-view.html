@@ -125,7 +125,12 @@ function renderPanel(type){
    const status=statusOf(v),card=v.cards&&v.cards.card_number?v.cards.card_number:"Tanpa kartu";
    const vendor=v.vendor||"Vendor belum diisi";
    const client=v.clients&&v.clients.name?v.clients.name:"Klien belum diisi";
-   return '<article class="truck-row" data-status="'+esc(status)+'"><div class="truck-main"><div class="plate">'+esc(v.plate_number||"Plat belum diisi")+'</div><div class="truck-meta">'+esc(card)+' · '+esc(vendor)+'<br>'+esc(client)+' · '+esc(formatTime(v))+'</div></div><div class="truck-side"><span class="status" data-status="'+esc(status)+'">'+esc(labels[status]||"Terdaftar")+'</span><span class="duration">'+esc(formatDuration(v))+'</span></div></article>';
+   const gate=v.gates&&v.gates.gate_number?" · Gate "+v.gates.gate_number:"";
+   const line=v.line_numbers&&v.line_numbers.line_number?" · Line "+v.line_numbers.line_number:"";
+   const driver=v.driver_name||"Pengemudi belum diisi";
+   const shipment=v.shipment_number?" · Shipment "+v.shipment_number:"";
+   const destination=v.destination_city?" · Tujuan "+v.destination_city:"";
+   return '<article class="truck-row" data-status="'+esc(status)+'"><div class="truck-main"><div class="plate">'+esc(v.plate_number||"Plat belum diisi")+'</div><div class="truck-meta">'+esc(card)+' · '+esc(vendor)+' · '+esc(driver)+'<br>'+esc(client)+esc(gate)+esc(line)+esc(shipment)+esc(destination)+' · '+esc(formatTime(v))+'</div></div><div class="truck-side"><span class="status" data-status="'+esc(status)+'">'+esc(labels[status]||"Terdaftar")+'</span><span class="duration">'+esc(formatDuration(v))+'</span></div></article>';
  }).join("");
  if(rows.length>16)list.insertAdjacentHTML("beforeend",'<div class="truck-meta">Menampilkan 16 dari '+rows.length+' armada aktif.</div>');
 }
