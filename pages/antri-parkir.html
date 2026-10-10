@@ -180,8 +180,8 @@ window.trcmComponentsReady.then(async function () {
             ? '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
             : '<button type="button" class="btn btn-light border btn-sm" disabled title="Hanya Gate Security atau Admin yang dapat mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
           : '';
-      const canStartThisVisit=canStartFromQueue && (isQueued || v.process_status==="wh_in");
-      const startButton=(isQueued || v.process_status==="wh_in")
+      const canStartThisVisit=canStartFromQueue && (isQueued || v.process_status==="wh_in" || v.process_status==="registered");
+      const startButton=(isQueued || v.process_status==="wh_in" || v.process_status==="registered")
         ? (canStartThisVisit
           ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
           : '<button type="button" class="btn btn-warning btn-sm" disabled title="Akun tidak memiliki izin untuk memulai loading"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>')
@@ -199,7 +199,7 @@ window.trcmComponentsReady.then(async function () {
     table.innerHTML='<tr><td colspan="7" class="table-state">Memuat data armada...</td></tr>';resultCount.textContent="Memuat data...";refreshButton.disabled=true;
     try{
       const select=["id","plate_number","driver_name","vendor","activity_type","wh_in_at","registered_at","process_status","seal_number","notes","cards(card_number)","clients(name)"].join(",");
-      const path="/rest/v1/visits?select="+encodeURIComponent(select)+"&process_status=in.(wh_in,queue)&wh_out_at=is.null&order=wh_in_at.asc";
+      const path="/rest/v1/visits?select="+encodeURIComponent(select)+"&process_status=in.(registered,wh_in,queue)&wh_out_at=is.null&order=wh_in_at.asc";
       const data=await request(path);if(!Array.isArray(data))throw new Error("Respons data Antri / Parkir tidak valid.");visits=data;const selected=clientFilter.value;const clients=Array.from(new Set(visits.map(v=>v.clients&&v.clients.name?v.clients.name:"").filter(Boolean))).sort((a,b)=>a.localeCompare(b));clientFilter.innerHTML='<option value="all">Semua Klien</option>'+clients.map(name=>'<option value="'+escapeHtml(name)+'">'+escapeHtml(name)+'</option>').join("");clientFilter.value=clients.includes(selected)?selected:"all";renderTable();
     }catch(error){console.error("TRCM Antri / Parkir:",error);table.innerHTML='<tr><td colspan="7" class="table-state error-state">Data antrean gagal dimuat. Silakan perbarui.</td></tr>';resultCount.textContent="Gagal memuat data";await Swal.fire({icon:"error",title:"Gagal memuat antrean",text:error.message||"Data armada tidak dapat dimuat.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});}
     finally{refreshButton.disabled=false;}
@@ -254,7 +254,7 @@ window.trcmComponentsReady.then(async function () {
     const selectedCard=selectedVisit.cards&&selectedVisit.cards.card_number?selectedVisit.cards.card_number:"—";
     try{
       const originalStatus=selectedVisit.process_status;
-      const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(selectedVisit.id)+"&process_status=in.(wh_in,queue)&wh_out_at=is.null",{method:"PATCH",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({gate_id:gateSelect.value,line_number_id:lineSelect.value,seal_number:sealNumber.value.trim()||null,notes:loadingNotes.value.trim()||null,process_status:"started",final_status:"processing",started_at:startedAt})});
+      const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(selectedVisit.id)+"&process_status=in.(registered,wh_in,queue)&wh_out_at=is.null",{method:"PATCH",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({gate_id:gateSelect.value,line_number_id:lineSelect.value,seal_number:sealNumber.value.trim()||null,notes:loadingNotes.value.trim()||null,process_status:"started",final_status:"processing",started_at:startedAt})});
       if(!Array.isArray(updated)||updated.length!==1)throw new Error("Armada sudah berubah status atau sudah diproses pengguna lain.");
       try{
         await request("/rest/v1/visit_events",{method:"POST",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({visit_id:selectedVisit.id,status:"started",user_id:session.user.id})});
