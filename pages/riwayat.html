@@ -692,7 +692,7 @@ async function loadVisits() {
   truckTable.innerHTML =
     '<tr><td colspan="8" class="table-state">Memuat data truk...</td></tr>';
   resultCount.textContent = "Memuat data...";
-  refreshButton.disabled = true;
+  if (refreshButton) refreshButton.disabled = true;
 
   try {
     const select = [
@@ -766,7 +766,7 @@ async function loadVisits() {
       '<tr><td colspan="8" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
     resultCount.textContent = "Gagal memuat data";
   } finally {
-    refreshButton.disabled = false;
+    if (refreshButton) refreshButton.disabled = false;
   }
 }
 
