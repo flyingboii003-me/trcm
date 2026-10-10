@@ -6,6 +6,73 @@
   const detailContainer = document.getElementById("visit-detail-container");
   const tableToolbarContainer = document.getElementById("table-toolbar-container");
   const permissionState = new Set();
+  let pageRefreshCallback = null;
+  let realtimeClient = null;
+  let realtimeDebounce = null;
+
+  window.trcmRegisterRefresh = function (callback) {
+    pageRefreshCallback = typeof callback === "function" ? callback : null;
+    const headerButton = document.getElementById("header-refresh-button");
+    if (headerButton && !headerButton.dataset.bound) {
+      headerButton.dataset.bound = "true";
+      headerButton.addEventListener("click", function () {
+        if (!pageRefreshCallback || headerButton.disabled) return;
+        headerButton.disabled = true;
+        headerButton.classList.add("is-refreshing");
+        Promise.resolve(pageRefreshCallback()).catch(function (error) {
+          console.error("TRCM refresh:", error);
+        }).finally(function () {
+          headerButton.disabled = false;
+          headerButton.classList.remove("is-refreshing");
+        });
+      });
+    }
+    setupPageRealtime();
+  };
+
+  function setupPageRealtime() {
+    if (realtimeClient || !pageRefreshCallback) return;
+    const session = (() => { try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { return null; } })();
+    if (!session || !session.access_token) return;
+    function connect() {
+      if (!window.supabase || !window.supabase.createClient) return;
+      realtimeClient = window.supabase.createClient("https://pcednpmjyfkuomfcmian.supabase.co", "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp");
+      realtimeClient.realtime.setAuth(session.access_token);
+      realtimeClient.channel("trcm-live-" + (window.location.pathname.split("/").pop() || "dashboard"))
+        .on("postgres_changes", { event: "*", schema: "public", table: "visits" }, queueRealtimeRefresh)
+        .on("postgres_changes", { event: "*", schema: "public", table: "visit_events" }, queueRealtimeRefresh)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "photos" }, queueRealtimeRefresh)
+        .subscribe(function (status, error) {
+          const headerButton = document.getElementById("header-refresh-button");
+          if (headerButton) {
+            headerButton.title = status === "SUBSCRIBED" ? "Perbarui data · Realtime aktif" : "Perbarui data · Realtime " + String(status || "tidak tersedia").toLowerCase();
+            headerButton.setAttribute("aria-label", headerButton.title);
+          }
+          if (error) console.warn("TRCM Realtime:", error.message || error);
+        });
+    }
+    if (window.supabase && window.supabase.createClient) connect();
+    else {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+      script.async = true;
+      script.onload = connect;
+      script.onerror = function () { console.warn("TRCM Realtime tidak tersedia; refresh manual tetap aktif."); };
+      document.head.appendChild(script);
+    }
+  }
+
+  function queueRealtimeRefresh() {
+    if (realtimeDebounce) clearTimeout(realtimeDebounce);
+    realtimeDebounce = setTimeout(function () {
+      if (typeof pageRefreshCallback === "function") Promise.resolve(pageRefreshCallback()).catch(function (error) { console.error("TRCM Realtime refresh:", error); });
+    }, 350);
+  }
+
+  window.addEventListener("beforeunload", function () {
+    if (realtimeClient) realtimeClient.removeAllChannels();
+    if (realtimeDebounce) clearTimeout(realtimeDebounce);
+  });
 
   if (!container) {
     window.trcmSidebarReady = Promise.resolve(false);
@@ -338,6 +405,17 @@
     setAccountNames();
     setupMobileSidebar();
     setupLogout();
+    const headerRefresh = document.getElementById("header-refresh-button");
+    if (headerRefresh && !headerRefresh.dataset.bound) {
+      headerRefresh.dataset.bound = "true";
+      headerRefresh.addEventListener("click", function () {
+        if (typeof pageRefreshCallback !== "function" || headerRefresh.disabled) return;
+        headerRefresh.disabled = true;
+        Promise.resolve(pageRefreshCallback()).catch(function (error) { console.error("TRCM refresh:", error); }).finally(function () { headerRefresh.disabled = false; });
+      });
+    }
+    const profileButton = document.getElementById("profile-open");
+    if (profileButton) profileButton.addEventListener("click", function () { window.location.href = "profil.html"; });
 
     try {
       const allowed = await loadMyMenuPermissions();
