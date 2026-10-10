@@ -113,6 +113,7 @@
     if (page === "master-data.html") return "master-data";
     if (page === "user-role.html") return "user-role";
     if (page === "profil.html") return "profil";
+    if (page === "live-view.html") return "live-view";
 
     return "";
   }
@@ -299,7 +300,8 @@
       "wh-out": "WH Out",
       "master-data": "Master Data",
       "user-role": "User & Role",
-      profil: "Profil Pengguna"
+      profil: "Profil Pengguna",
+      "live-view": "Live View"
     };
 
     const key = currentPageKey();
