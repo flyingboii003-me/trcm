@@ -175,7 +175,7 @@ window.trcmComponentsReady.then(async function () {
   }
 
   const currentRole = String(session.user.role || "").toLowerCase();
-  const canStart = (currentRole === "checker" || currentRole === "gatesec" || currentRole === "gate_security" || currentRole === "gate security" || currentRole === "admin" || currentRole === "administrator") && (currentRole === "checker" || window.trcmPermissions.can("start_loading", "update"));
+  const canStart = (currentRole === "checker" || currentRole === "gatesec" || currentRole === "gate_security" || currentRole === "gate security" || currentRole === "admin" || currentRole === "administrator") && window.trcmPermissions.can("start_loading", "update");
   const table = document.getElementById("loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
@@ -686,7 +686,7 @@ window.trcmComponentsReady.then(async function () {
     await Swal.fire({
       icon: "error",
       title: "Akses terbatas",
-      text: "Aksi Mulai Loading hanya dapat digunakan oleh Gate Security atau Admin.",
+      text: "Akun ini tidak memiliki izin untuk melihat halaman Mulai Loading.",
       confirmButtonText: "Tutup",
       confirmButtonColor: "#0066B3"
     });
