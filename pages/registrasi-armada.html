@@ -611,6 +611,7 @@ window.trcmComponentsReady.then(async function () {
 
   setupChecklist();
   syncKirState();
+  window.trcmRegisterRefresh(loadMasterData);
   try { await loadMasterData(); updateSummary(); } catch (error) { setAlert(error.message || "Master data gagal dimuat.", "error"); }
 });
 </script>
