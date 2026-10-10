@@ -69,7 +69,7 @@
                   </div>
                 </div>
                 <div class="col-12 col-md-4">
-                  <label class="form-label small mb-1" for="client-filter">Filter klien</label>
+                  <label class="visually-hidden" for="client-filter">Filter klien</label>
                   <select class="form-select" id="client-filter"><option value="all">Semua Klien</option></select>
                 </div>
               </div>
@@ -144,7 +144,6 @@ window.trcmComponentsReady.then(async function () {
   const resultCount=document.getElementById("result-count");
   const searchCard=document.getElementById("search-card");
   const clientFilter=document.getElementById("client-filter");
-  const resetSearch=document.getElementById("reset-search");
   const refreshButton=document.getElementById("page-refresh-button");
   const form=document.getElementById("start-loading-form");
   const modal=new bootstrap.Modal(document.getElementById("start-loading-modal"));
@@ -270,7 +269,6 @@ window.trcmComponentsReady.then(async function () {
   gateSelect.addEventListener("change",function(){populateLines(gateSelect.value);});
   searchCard.addEventListener("input",renderTable);
   clientFilter.addEventListener("change",renderTable);
-  resetSearch.addEventListener("click",function(){searchCard.value="";clientFilter.value="all";renderTable();});
   refreshButton.addEventListener("click",function(){window.trcmRunRefresh(refreshButton,loadVisits);});
   form.addEventListener("submit",saveStart);
   table.addEventListener("click",function(event){
