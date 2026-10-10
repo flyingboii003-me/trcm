@@ -595,7 +595,8 @@
         confirmButtonText: "Selesai",
         confirmButtonColor: "#006ECD"
       });
-      await loadData();
+      window.trcmRegisterRefresh(loadData);
+    await loadData();
     } catch (error) {
       showFormError(error.message || "Data gagal disimpan.");
     } finally {
