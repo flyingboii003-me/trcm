@@ -195,7 +195,7 @@
                     <div class="col-12 col-md-6"><label class="form-label" for="shipment-number">Nomor shipment</label><input class="form-control" id="shipment-number" maxlength="80"></div>
                     <div class="col-12"><label class="form-label" for="destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="destination-city" maxlength="100" placeholder="Contoh: Surabaya" required><div class="invalid-feedback">Tujuan (Gudang / Kota) wajib diisi.</div></div>
                     <div class="col-12"><label class="form-label" for="notes">Catatan</label><textarea class="form-control" id="notes" rows="4" maxlength="1000" placeholder="Catatan tambahan untuk visit"></textarea></div>
-<div class="col-12">
+                  <div class="col-12">
                     <label class="form-label" for="wh-in-photo-gallery">Foto saat WH In (opsional)</label>
                     <div class="photo-picker-actions">
                       <button class="btn btn-light border" type="button" id="wh-in-take-photo"><i class="bi bi-camera me-1"></i>Ambil foto</button>
@@ -602,7 +602,7 @@ window.trcmComponentsReady.then(async function () {
   whInCameraInput.addEventListener("change",()=>{const file=whInCameraInput.files&&whInCameraInput.files[0];if(!file){whInPhotoPreview.classList.add("d-none");return}const transfer=new DataTransfer();transfer.items.add(file);whInGalleryInput.files=transfer.files;whInPhotoPreview.src=URL.createObjectURL(file);whInPhotoPreview.classList.remove("d-none")});
   whInGalleryInput.addEventListener("change",()=>{const file=whInGalleryInput.files&&whInGalleryInput.files[0];if(file){whInPhotoPreview.src=URL.createObjectURL(file);whInPhotoPreview.classList.remove("d-none")}else whInPhotoPreview.classList.add("d-none")});
   resetButton.addEventListener("click", async function () {
-    form.reset(); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; vendorSearch.setCustomValidity(""); truckTypeValue.value = ""; truckTypeSearch.value = ""; syncKirState();
+    form.reset(); whInCameraInput.value = ""; whInGalleryInput.value = ""; whInPhotoPreview.removeAttribute("src"); whInPhotoPreview.classList.add("d-none"); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; vendorSearch.setCustomValidity(""); truckTypeValue.value = ""; truckTypeSearch.value = ""; syncKirState();
     try { await randomizeCard(); } catch (error) { setAlert(error.message, "error"); }
     updateSummary();
   });
