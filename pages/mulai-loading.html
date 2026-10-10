@@ -180,7 +180,7 @@ window.trcmComponentsReady.then(async function () {
   }
 
   const currentRole = String(session.user.role || "").toLowerCase();
-  const canStart = currentRole === "admin" || window.trcmPermissions.can("start_loading", "update");
+  const canStart = (currentRole === "gate security" || currentRole === "admin" || currentRole === "administrator") && window.trcmPermissions.can("start_loading", "update");
   const table = document.getElementById("loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
@@ -420,7 +420,7 @@ window.trcmComponentsReady.then(async function () {
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
-        "&or=(process_status.in.(registered,queue,wh_in),process_status.is.null)&wh_out_at=is.null&order=registered_at.asc";
+        "&process_status=eq.queue&wh_out_at=is.null&order=wh_in_at.asc";
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
@@ -697,7 +697,7 @@ window.trcmComponentsReady.then(async function () {
     await Swal.fire({
       icon: "error",
       title: "Akses terbatas",
-      text: "Menu Mulai Loading hanya dapat digunakan oleh Checker atau Admin.",
+      text: "Aksi Mulai Loading hanya dapat digunakan oleh Gate Security atau Admin.",
       confirmButtonText: "Tutup",
       confirmButtonColor: "#0066B3"
     });
