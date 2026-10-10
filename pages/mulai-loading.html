@@ -515,7 +515,8 @@ window.trcmComponentsReady.then(async function () {
           body: JSON.stringify({
             visit_id: selectedVisit.id,
             photo_type: "loading_start",
-            file_location: objectPath
+            file_location: objectPath,
+            uploaded_by: session.user.id
           })
         });
         if (Array.isArray(rows) && rows[0] && rows[0].id) photoRecordIds.push(rows[0].id);
