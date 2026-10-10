@@ -594,7 +594,6 @@ window.trcmComponentsReady.then(async function () {
     });
   }
 
-  const refreshButton = document.getElementById("page-refresh-button");
   if (refreshButton) refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
   window.trcmRegisterRefresh(loadVisits);
   await loadVisits();
