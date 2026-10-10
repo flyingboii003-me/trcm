@@ -321,18 +321,18 @@
       session = null;
     }
 
-    const username =
-      session &&
-      session.user &&
-      (session.user.username || session.user.auth_email);
+    const user = session && session.user;
+    const fullName = user && (user.full_name || user.fullName || user.name);
+    const username = user && (user.username || user.auth_email);
+    const displayName = fullName || username || "Akun";
 
-    const displayName = username || "Akun";
+    const accountName = document.getElementById("account-name");
+    const accountMenuName = document.getElementById("account-menu-name");
+    const sidebarAccountName = document.getElementById("sidebar-account-name");
 
-    document
-      .querySelectorAll("#account-name, #account-menu-name, #sidebar-account-name")
-      .forEach(function (element) {
-        element.textContent = displayName;
-      });
+    if (accountName) accountName.textContent = displayName;
+    if (accountMenuName) accountMenuName.textContent = "Halo, " + displayName;
+    if (sidebarAccountName) sidebarAccountName.textContent = displayName;
   }
 
   function setupMobileSidebar() {
