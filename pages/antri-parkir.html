@@ -15,22 +15,24 @@
 
 
 <style>
-/* Penyesuaian tabel operasional; ukuran kolom mengikuti isi seperti tabel Riwayat. */
-.operational-table-shell{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.operational-table-shell .trcm-table{width:100%;min-width:980px;table-layout:auto;margin:0}
-.operational-table-shell .trcm-table th{padding:1rem 1.1rem;white-space:nowrap;vertical-align:middle}
-.operational-table-shell .trcm-table td{padding:.9rem 1.1rem;vertical-align:middle}
-.operational-table-shell .trcm-table th.action-column,.operational-table-shell .trcm-table td.action-cell{width:1%;min-width:155px;text-align:right;white-space:normal}
-.operational-table-shell .trcm-table td.action-cell{display:table-cell!important}
-.operational-table-shell .trcm-table .action-cell>.btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;white-space:nowrap}
-.operational-table-shell .trcm-table .queue-table-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.4rem;min-width:140px}
-.operational-table-shell .trcm-table .queue-table-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-height:36px;white-space:nowrap}
-.operational-table-shell .trcm-table tbody tr:last-child td{border-bottom:0}
-.operational-table-shell .table-state{padding:2rem 1rem!important;text-align:center}
+/* Antri/Parkir table polish — Spark Admin-inspired compact, responsive data table */
+.queue-table-shell{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.queue-table-shell .trcm-table{min-width:900px;table-layout:auto}
+.queue-table-shell .trcm-table th{padding:1rem 1.1rem;white-space:nowrap;vertical-align:middle}
+.queue-table-shell .trcm-table td{padding:.9rem 1.1rem;vertical-align:middle}
+.queue-table-shell .trcm-table th:last-child,.queue-table-shell .trcm-table td:last-child{width:1%;min-width:155px;text-align:right!important}
+.queue-table-shell .trcm-table .action-cell{display:table-cell!important;white-space:normal}
+.queue-table-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.45rem;min-width:132px}
+.queue-table-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-height:34px;white-space:nowrap;border-radius:.55rem;font-size:.78rem;font-weight:600;padding:.42rem .65rem}
+.queue-table-shell .trcm-table tbody tr:last-child td{border-bottom:0}
+.queue-table-shell .trcm-table tbody tr:hover td{background:#f8fbff}
 @media(max-width:767.98px){
- .operational-table-shell .trcm-table{min-width:940px}
- .operational-table-shell .trcm-table th,.operational-table-shell .trcm-table td{padding:.8rem .85rem}
- .operational-table-shell .trcm-table th:first-child,.operational-table-shell .trcm-table td:first-child{padding-left:.9rem}
+ .queue-table-shell{border-top:1px solid var(--border,#e9efef)}
+ .queue-table-shell .trcm-table{min-width:860px}
+ .queue-table-shell .trcm-table th{padding:.8rem .85rem;font-size:.68rem}
+ .queue-table-shell .trcm-table td{padding:.8rem .85rem;font-size:.82rem}
+ .queue-table-actions{gap:.4rem}
+ .queue-table-actions .btn{min-height:36px}
 }
 </style>
 </head>
@@ -75,7 +77,7 @@
                 </div>
               </div>
             </div>
-            <div class="table-responsive queue-table-shell operational-table-shell">
+            <div class="table-responsive queue-table-shell">
               <table class="table table-hover align-middle trcm-table mb-0">
                 <thead>
                   <tr>
