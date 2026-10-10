@@ -181,8 +181,10 @@ window.trcmComponentsReady.then(async function () {
             : '<button type="button" class="btn btn-light border btn-sm" disabled title="Hanya Gate Security atau Admin yang dapat mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
           : '';
       const canStartThisVisit=canStartFromQueue && (isQueued || canGateBypass);
-      const startButton=canStartThisVisit
-        ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
+      const startButton=isQueued
+        ? (canStartThisVisit
+          ? '<button type="button" class="btn btn-warning btn-sm start-loading-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
+          : '<button type="button" class="btn btn-warning btn-sm" disabled title="Akun tidak memiliki izin untuk memulai loading"><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>')
         : '';
       return '<tr><td><span class="table-card-number">'+escapeHtml(card)+'</span></td><td><span class="font-monospace fw-semibold d-block">'+escapeHtml(v.plate_number||"—")+'</span><span class="small text-muted">'+escapeHtml(v.driver_name||"—")+' / '+escapeHtml(v.vendor||"—")+'</span></td><td>'+escapeHtml(client)+'</td><td>'+escapeHtml(activityLabel(v.activity_type))+'</td><td><span class="font-monospace">'+escapeHtml(formatDateTime(v.wh_in_at))+'</span></td><td>'+window.trcmStatusBadge(v.process_status)+'</td><td class="action-cell"><div class="queue-table-actions">'+queueButton+startButton+'</div></td></tr>';
     }).join("");;
