@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="TRCM Live View — pemantauan armada Inbound dan Outbound">
-<title>Live View — TRCM</title>
+<title>Live Dashboard — TRCM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -27,6 +27,7 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 .connection{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-size:.82rem;margin-top:10px}
 .connection-dot{width:10px;height:10px;border-radius:50%;background:var(--orange);display:inline-block}
 .connection.is-live .connection-dot{background:var(--green)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-6px 0 24px;flex-wrap:wrap}.toolbar-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.filter-label{font-size:.85rem;font-weight:700;color:var(--muted)}.client-filter{min-width:220px;min-height:44px;padding:10px 38px 10px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font:600 .9rem "Plus Jakarta Sans",sans-serif}.tool-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font:700 .88rem "Plus Jakarta Sans",sans-serif;text-decoration:none;cursor:pointer}.tool-button.primary{background:var(--blue);border-color:var(--blue);color:#fff}.tool-button:focus-visible,.client-filter:focus-visible{outline:3px solid #006ECD55;outline-offset:2px}.status[data-status="registered"]{background:#F1F5FA;border-color:#C8D3E3;color:#55627A}.status[data-status="queue"]{background:#E9EDF4;border-color:#C8D3E3;color:#33445E}.status[data-status="started"]{background:var(--orange-soft);border-color:#E6B56B;color:#874700}.status[data-status="completed"]{background:#EAF3FC;border-color:#A9CDEB;color:#005BA8}
 .panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
 .panel{min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden}
 .panel-head{padding:22px 24px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -69,11 +70,12 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 <main class="live-shell" aria-label="Pemantauan armada secara langsung">
 <header class="live-header">
   <div class="brand">
-    <div class="brand-mark"><img src="../assets/cj-logo.png" alt="CJ Logistics"></div>
-    <div><div class="eyebrow">TRCM · CJ Logistics</div><h1>Live View Armada</h1></div>
+    <div class="brand-mark"><img src="../assets/cj-logo.svg" alt="CJ Logistics"></div>
+    <div><div class="eyebrow">TRCM · CJ Logistics</div><h1>Live Dashboard</h1></div>
   </div>
   <div class="clock"><div id="clock-time" class="clock-time">--:--:--</div><div id="clock-date" class="clock-date">Memuat waktu...</div><div id="connection" class="connection"><span class="connection-dot"></span><span id="connection-label">Menghubungkan data</span></div></div>
 </header>
+<div class="toolbar" aria-label="Kontrol Live Dashboard"><div class="toolbar-group"><label class="filter-label" for="client-filter">Klien</label><select id="client-filter" class="client-filter"><option value="all">Semua Klien</option><option value="Modena">Modena</option><option value="Kimberly Clark">Kimberly Clark</option><option value="Henkel">Henkel</option></select></div><div class="toolbar-group"><a class="tool-button" href="dashboard.html"><i class="bi bi-arrow-left" aria-hidden="true"></i>Kembali ke Dashboard</a><button class="tool-button primary" id="fullscreen-button" type="button" aria-label="Aktifkan tampilan layar penuh"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>Layar penuh</span></button></div></div>
 <div id="page-state" class="state" role="status"><i class="bi bi-arrow-repeat"></i>Memuat data armada...</div>
 <div id="live-panels" class="panels" hidden>
   <section class="panel" aria-labelledby="inbound-title">
@@ -97,7 +99,7 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
     <div class="truck-list" id="outbound-list"></div>
   </section>
 </div>
-<footer class="footer"><span>TRCM · Pemantauan baca-saja</span><span id="updated-at">Pembaruan terakhir: —</span></footer>
+<footer class="footer"><span id="updated-at">Pembaruan terakhir: —</span></footer>
 </main>
 <script>
 (function(){
@@ -108,6 +110,8 @@ const session=(()=>{try{return JSON.parse(sessionStorage.getItem("trcm_session")
 const pageState=document.getElementById("page-state"),panels=document.getElementById("live-panels");
 const connection=document.getElementById("connection"),connectionLabel=document.getElementById("connection-label");
 let visits=[],realtimeClient=null,realtimeTimer=null,clockTimer=null,fallbackTimer=null;
+const clientFilter=document.getElementById("client-filter");
+const fullscreenButton=document.getElementById("fullscreen-button");
 const labels={registered:"Terdaftar",wh_in:"Terdaftar",queue:"Parkir",started:"Sedang proses",completed:"Selesai"};
 function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function statusOf(v){return labels[v.process_status]?v.process_status:"registered";}
@@ -115,12 +119,13 @@ function activityOf(v){return v.activity_type==="inbound"?"Inbound":"Outbound";}
 function formatDuration(v){const start=v.wh_in_at||v.registered_at||v.created_at;if(!start)return"—";const mins=Math.max(0,Math.floor((Date.now()-new Date(start).getTime())/60000));return Math.floor(mins/60)+"j "+String(mins%60).padStart(2,"0")+"m";}
 function formatTime(v){const value=v.started_at||v.registered_at||v.wh_in_at;if(!value)return"Jam masuk belum tersedia";return"Masuk "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(new Date(value));}
 function renderPanel(type){
- const rows=visits.filter(v=>v.activity_type===type&& !v.wh_out_at).sort((a,b)=>new Date(a.wh_in_at||a.registered_at||a.created_at||0)-new Date(b.wh_in_at||b.registered_at||b.created_at||0));
+ const selectedClient=clientFilter.value;
+ const rows=visits.filter(v=>v.activity_type===type&&!v.wh_out_at&&(selectedClient==="all"||(v.clients&&v.clients.name===selectedClient))).sort((a,b)=>new Date(a.wh_in_at||a.registered_at||a.created_at||0)-new Date(b.wh_in_at||b.registered_at||b.created_at||0));
  const prefix=type==="inbound"?"inbound":"outbound";
  document.getElementById(prefix+"-total").textContent=String(rows.length);
  ["registered","queue","started","completed"].forEach(status=>{document.getElementById(prefix+"-"+status).textContent=String(rows.filter(v=>statusOf(v)===status||(status==="registered"&&statusOf(v)==="wh_in")).length);});
  const list=document.getElementById(prefix+"-list");
- if(!rows.length){list.innerHTML='<div class="state"><i class="bi bi-truck"></i>Tidak ada armada aktif untuk '+(type==="inbound"?"Inbound":"Outbound")+'.</div>';return;}
+ if(!rows.length){list.innerHTML='<div class="state"><i class="bi bi-truck"></i>Tidak ada armada aktif untuk '+(type==="inbound"?"Inbound":"Outbound")+(selectedClient==="all"?"":" pada klien "+esc(selectedClient))+'.</div>';return;}
  list.innerHTML=rows.slice(0,16).map(v=>{
    const status=statusOf(v),card=v.cards&&v.cards.card_number?v.cards.card_number:"Tanpa kartu";
    const vendor=v.vendor||"Vendor belum diisi";
@@ -140,6 +145,9 @@ async function loadVisits(){try{const select="id,plate_number,driver_name,activi
 async function checkPermission(){if(!session||!session.access_token||!session.user){location.replace("../index.html");return false;}const rows=await request("/rest/v1/rpc/get_my_permissions",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:"{}"});if(!Array.isArray(rows)||!rows.some(r=>r.resource_key==="live_view"&&r.permission_key==="view")){pageState.innerHTML='<i class="bi bi-shield-lock"></i>Akses Live View tidak tersedia untuk akun ini.';pageState.setAttribute("role","alert");return false;}return true;}
 function updateClock(){const now=new Date();document.getElementById("clock-time").textContent=new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);document.getElementById("clock-date").textContent=new Intl.DateTimeFormat("id-ID",{weekday:"long",day:"2-digit",month:"long",year:"numeric"}).format(now);}
 function connectRealtime(){const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";script.async=true;script.onload=function(){if(!window.supabase||!window.supabase.createClient)return;realtimeClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);realtimeClient.realtime.setAuth(session.access_token);realtimeClient.channel("trcm-live-view").on("postgres_changes",{event:"*",schema:"public",table:"visits"},function(){if(realtimeTimer)clearTimeout(realtimeTimer);realtimeTimer=setTimeout(loadVisits,400);}).subscribe(function(status){const live=status==="SUBSCRIBED";connection.classList.toggle("is-live",live);connectionLabel.textContent=live?"Realtime aktif":"Realtime "+String(status||"tidak tersedia").toLowerCase();});};script.onerror=function(){connectionLabel.textContent="Refresh berkala aktif";};document.head.appendChild(script);}
+clientFilter.addEventListener("change",render);
+fullscreenButton.addEventListener("click",async function(){try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();}else{await document.exitFullscreen();}}catch(error){console.error("TRCM Live Dashboard fullscreen:",error);}});
+document.addEventListener("fullscreenchange",function(){const active=Boolean(document.fullscreenElement);fullscreenButton.innerHTML=active?'<i class="bi bi-fullscreen-exit" aria-hidden="true"></i><span>Keluar layar penuh</span>':'<i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>Layar penuh</span>';fullscreenButton.setAttribute("aria-label",active?"Keluar dari layar penuh":"Aktifkan tampilan layar penuh");});
 (async function init(){updateClock();clockTimer=setInterval(updateClock,1000);if(!session||!session.access_token||!session.user){location.replace("../index.html");return;}try{if(!await checkPermission())return;await loadVisits();connectRealtime();fallbackTimer=setInterval(loadVisits,60000);}catch(error){console.error("TRCM Live View permission:",error);pageState.innerHTML='<i class="bi bi-exclamation-triangle"></i>Hak akses Live View gagal diverifikasi. Periksa koneksi, lalu muat ulang halaman.';pageState.setAttribute("role","alert");}})();
 window.addEventListener("beforeunload",function(){if(realtimeClient)realtimeClient.removeAllChannels();if(realtimeTimer)clearTimeout(realtimeTimer);if(clockTimer)clearInterval(clockTimer);if(fallbackTimer)clearInterval(fallbackTimer);});
 })();
