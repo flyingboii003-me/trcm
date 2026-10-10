@@ -39,12 +39,16 @@
           <div class="card-body p-0">
             <div class="p-3 p-lg-4 border-bottom">
               <div class="row g-2">
-                <div class="col-12 col-md-8">
+                <div class="col-12 col-md-5">
                   <label class="visually-hidden" for="search-card">Cari nomor kartu</label>
                   <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu...">
                   </div>
+                </div>
+                <div class="col-12 col-md-3">
+                  <label class="form-label small mb-1" for="client-filter">Filter klien</label>
+                  <select class="form-select" id="client-filter"><option value="all">Semua Klien</option></select>
                 </div>
                 <div class="col-12 col-md-4">
                   <button class="btn btn-light border w-100" id="reset-search" type="button">
@@ -180,6 +184,7 @@ window.trcmComponentsReady.then(async function () {
   const table = document.getElementById("loading-table");
   const resultCount = document.getElementById("result-count");
   const searchCard = document.getElementById("search-card");
+  const clientFilter = document.getElementById("client-filter");
   const resetSearch = document.getElementById("reset-search");
   const refreshButton = document.getElementById("page-refresh-button");
   const gateSelect = document.getElementById("gate-select");
@@ -344,9 +349,12 @@ window.trcmComponentsReady.then(async function () {
 
   function renderTable() {
     const needle = searchCard.value.trim().toLowerCase();
+    const selectedClient = clientFilter.value;
     const filtered = visits.filter(function (visit) {
       const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "";
-      return !needle || card.toLowerCase().includes(needle);
+      const client = visit.clients && visit.clients.name ? visit.clients.name : "";
+      return (!needle || card.toLowerCase().includes(needle)) &&
+        (selectedClient === "all" || client === selectedClient);
     });
 
     resultCount.textContent = filtered.length + " truck terdaftar / parkir";
@@ -360,9 +368,7 @@ window.trcmComponentsReady.then(async function () {
       const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
       const isParked = visit.process_status === "queue";
-      const action = isParked
-        ? '<button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
-        : '<button type="button" class="btn btn-light border btn-sm" disabled title="Menunggu Gate Security mengubah status menjadi Antri/Parkir"><i class="bi bi-hourglass-split me-1"></i>Menunggu Parkir</button>';
+      const action = '<button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (!canStart || !isParked ? " disabled" : "") + (isParked ? "" : ' title="Menunggu Gate Security mengubah status menjadi Antri/Parkir"') + '><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>';
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
@@ -418,6 +424,10 @@ window.trcmComponentsReady.then(async function () {
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
+      const selected = clientFilter.value;
+      const clients = Array.from(new Set(visits.map(function (visit) { return visit.clients && visit.clients.name ? visit.clients.name : ""; }).filter(Boolean))).sort(function (a,b) { return a.localeCompare(b); });
+      clientFilter.innerHTML = '<option value="all">Semua Klien</option>' + clients.map(function (name) { return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>'; }).join("");
+      clientFilter.value = clients.includes(selected) ? selected : "all";
       renderTable();
     } catch (error) {
       console.error("TRCM Mulai Loading:", error);
@@ -643,8 +653,10 @@ window.trcmComponentsReady.then(async function () {
     populateLines(gateSelect.value);
   });
   searchCard.addEventListener("input", renderTable);
+  clientFilter.addEventListener("change", renderTable);
   resetSearch.addEventListener("click", function () {
     searchCard.value = "";
+    clientFilter.value = "all";
     renderTable();
   });
   refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
