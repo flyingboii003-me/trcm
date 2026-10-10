@@ -231,16 +231,42 @@
       session = null;
     }
 
-    const user = session && session.user;
-    const displayName = (user && user.full_name && user.full_name.trim()) || "Akun";
-
     const accountName = document.getElementById("account-name");
     const accountMenuName = document.getElementById("account-menu-name");
     const sidebarAccountName = document.getElementById("sidebar-account-name");
 
-    if (accountName) accountName.textContent = displayName;
-    if (accountMenuName) accountMenuName.textContent = "Halo, " + displayName;
-    if (sidebarAccountName) sidebarAccountName.textContent = displayName;
+    function applyDisplayName(name) {
+      const displayName = (typeof name === "string" && name.trim()) || "Akun";
+      if (accountName) accountName.textContent = displayName;
+      if (accountMenuName) accountMenuName.textContent = "Halo, " + displayName;
+      if (sidebarAccountName) sidebarAccountName.textContent = displayName;
+    }
+
+    const user = session && session.user;
+    applyDisplayName(user && user.full_name);
+
+    if (!session || !session.access_token) return;
+
+    fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_profile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+        Authorization: "Bearer " + session.access_token
+      },
+      body: "{}"
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Gagal memuat profil pengguna");
+        return response.json();
+      })
+      .then((profiles) => {
+        const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+        if (profile && profile.full_name) applyDisplayName(profile.full_name);
+      })
+      .catch((error) => {
+        console.warn("Nama lengkap pengguna tidak dapat dimuat:", error);
+      });
   }
 
   function setupMobileSidebar() {
