@@ -22,7 +22,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Mulai Loading</h1>
-            <p class="page-subtitle">Pilih truck berstatus Terdaftar atau Antri/Parkir untuk memulai proses loading.</p>
+            <p class="page-subtitle">Daftar seluruh truck Terdaftar dan Parkir. Mulai loading hanya tersedia setelah Gate Security menetapkan status Antri/Parkir.</p>
           </div>
           <button class="btn btn-date-picker" id="page-refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
@@ -349,16 +349,20 @@ window.trcmComponentsReady.then(async function () {
       return !needle || card.toLowerCase().includes(needle);
     });
 
-    resultCount.textContent = filtered.length + " truck menunggu Mulai Loading";
+    resultCount.textContent = filtered.length + " truck terdaftar / parkir";
 
     if (!filtered.length) {
-      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck yang menunggu Mulai Loading.</td></tr>';
+      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck berstatus Terdaftar atau Parkir.</td></tr>';
       return;
     }
 
     table.innerHTML = filtered.map(function (visit) {
       const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
       const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      const isParked = visit.process_status === "queue";
+      const action = isParked
+        ? '<button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-play-circle me-1"></i>Mulai Loading</button>'
+        : '<button type="button" class="btn btn-light border btn-sm" disabled title="Menunggu Gate Security mengubah status menjadi Antri/Parkir"><i class="bi bi-hourglass-split me-1"></i>Menunggu Parkir</button>';
       return '<tr>' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
@@ -367,7 +371,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(client) + '</td>' +
         '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
-        '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm start-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canStart ? "" : " disabled") + '><i class="bi bi-play-circle me-1"></i>Mulai</button></td>' +
+        '<td class="action-cell">' + action + '</td>' +
       '</tr>';
     }).join("");
   }
@@ -410,7 +414,7 @@ window.trcmComponentsReady.then(async function () {
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
-        "&process_status=in.(registered,queue)&wh_out_at=is.null&order=wh_in_at.asc";
+        "&process_status=in.(registered,queue)&wh_out_at=is.null&order=registered_at.asc";
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
