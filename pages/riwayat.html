@@ -458,6 +458,22 @@ async function openVisitModal(visitId) {
     const client = (visit.clients && visit.clients.name) || "—";
     const gate = visit.gates && visit.gates.gate_number;
     const lineNumber = visit.line_numbers && visit.line_numbers.line_number;
+    let activityActors = [];
+    try {
+      const actorResponse = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_visit_event_actors", {
+        method: "POST",
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + trcmSession.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_visit_id: visit.id })
+      });
+      const actorRows = await actorResponse.json().catch(function () { return []; });
+      if (actorResponse.ok && Array.isArray(actorRows)) activityActors = actorRows;
+    } catch (actorError) { console.warn("TRCM visit actors:", actorError); }
+    const actorHtml = activityActors.length
+      ? '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Aktivitas</th><th>Checker / pengguna</th><th>Waktu</th></tr></thead><tbody>' + activityActors.map(function (row) {
+          const labels = { wh_in: "WH In", registered: "Terdaftar", parked: "Antri/Parkir", processing: "Proses", started: "Mulai Loading", completed: "Selesai Loading", wh_out: "WH Out", cancelled: "Dibatalkan" };
+          return '<tr><td>' + escapeHtml(labels[row.status] || row.status || "—") + '</td><td>' + escapeHtml(row.actor_display_name || "Pengguna") + '</td><td>' + escapeHtml(formatDateTime(row.created_at)) + '</td></tr>';
+        }).join("") + '</tbody></table></div>'
+      : '<div class="modal-empty">Belum ada data atribusi aktivitas.</div>';
 
     visitModalTitle.textContent = visit.plate_number || "Detail visit";
     visitModalSubtitle.textContent =
@@ -580,6 +596,7 @@ async function openVisitModal(visitId) {
         documents + "</div></section>" +
       '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
         times + "</div></section>" +
+      '<section class="detail-section"><h3>Aktivitas dan Checker</h3>' + actorHtml + "</section>" +
       '<section class="detail-section"><h3>Foto visit</h3><div class="photo-list">' +
         photoHtml + "</div></section>";
   } catch (error) {
