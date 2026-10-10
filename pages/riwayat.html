@@ -110,7 +110,7 @@ const editModal = new bootstrap.Modal(editModalElement);
 const editForm = document.getElementById("visit-edit-form");
 const editAlert = document.getElementById("visit-edit-alert");
 const editSaveButton = document.getElementById("edit-save-button");
-const canManageVisits = trcmSession.user && (trcmSession.user.role === "gatesec" || trcmSession.user.role === "admin");
+const canManageVisits = Boolean(trcmSession.user && (trcmSession.user.role === "gatesec" || trcmSession.user.role === "admin") && window.trcmPermissions && window.trcmPermissions.can("history", "update"));
 const filterClient = document.getElementById("filter-client");
 const filterPlate = document.getElementById("filter-plate");
 const filterCard = document.getElementById("filter-card");
@@ -420,7 +420,7 @@ async function openVisitModal(visitId) {
       "clients(name)",
       "gates(gate_number)",
       "line_numbers(line_number)",
-      "photos(id,photo_type,file_location,created_at)"
+      "photos(id,photo_type,file_location,created_at,uploaded_by,uploaded_by_user:users!photos_uploaded_by_fkey(username,full_name))"
     ].join(",");
 
     const url = SUPABASE_URL +
@@ -576,15 +576,16 @@ async function openVisitModal(visitId) {
       ? '<div class="photo-grid">' + photoResults.map(function (item) {
           const photo = item.photo;
           const label = photoTypeLabel(photo.photo_type);
+          const photoActor = photo.uploaded_by_user ? (photo.uploaded_by_user.full_name || photo.uploaded_by_user.username) : "Tidak tercatat";
           if (!item.url) {
-            return '<div class="photo-item"><span class="photo-type">' + escapeHtml(label) + '</span><span class="photo-location">Foto tidak dapat dibuka.</span><span class="event-meta">' + escapeHtml(formatDateTime(photo.created_at)) + '</span></div>';
+            return '<div class="photo-item"><span class="photo-type">' + escapeHtml(label) + '</span><span class="photo-location">Foto tidak dapat dibuka.</span><span class="event-meta">' + escapeHtml("Uploader: " + photoActor + " · " + formatDateTime(photo.created_at)) + '</span></div>';
           }
           return '<div class="photo-item">' +
             '<a class="photo-thumb-button" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" title="Buka foto ukuran penuh">' +
               '<img src="' + escapeHtml(item.url) + '" alt="' + escapeHtml(label) + '" loading="lazy">' +
             '</a>' +
             '<span class="photo-type">' + escapeHtml(label) + '</span>' +
-            '<span class="photo-item-meta">' + escapeHtml(formatDateTime(photo.created_at)) + '</span>' +
+            '<span class="photo-item-meta">' + escapeHtml("Uploader: " + photoActor + " · " + formatDateTime(photo.created_at)) + '</span>' +
           '</div>';
         }).join("") + '</div>'
       : '<div class="modal-empty">Belum ada foto yang tercatat untuk visit ini.</div>';
