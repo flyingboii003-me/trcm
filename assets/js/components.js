@@ -16,16 +16,24 @@
     const headerButton = document.getElementById("header-refresh-button");
     if (headerButton && !headerButton.dataset.bound) {
       headerButton.dataset.bound = "true";
-      headerButton.addEventListener("click", function () {
+      headerButton.addEventListener("click", async function () {
         if (!pageRefreshCallback || headerButton.disabled) return;
+        const originalContent = headerButton.innerHTML;
+        const originalLabel = headerButton.getAttribute("aria-label") || "Perbarui data";
         headerButton.disabled = true;
-        headerButton.classList.add("is-refreshing");
-        Promise.resolve(pageRefreshCallback()).catch(function (error) {
+        headerButton.setAttribute("aria-label", "Memuat...");
+        headerButton.title = "Memuat...";
+        headerButton.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>';
+        try {
+          await pageRefreshCallback();
+        } catch (error) {
           console.error("TRCM refresh:", error);
-        }).finally(function () {
+        } finally {
+          headerButton.innerHTML = originalContent;
           headerButton.disabled = false;
-          headerButton.classList.remove("is-refreshing");
-        });
+          headerButton.setAttribute("aria-label", originalLabel);
+          headerButton.title = originalLabel;
+        }
       });
     }
     setupPageRealtime();
@@ -414,15 +422,6 @@
     setAccountNames();
     setupMobileSidebar();
     setupLogout();
-    const headerRefresh = document.getElementById("header-refresh-button");
-    if (headerRefresh && !headerRefresh.dataset.bound) {
-      headerRefresh.dataset.bound = "true";
-      headerRefresh.addEventListener("click", function () {
-        if (typeof pageRefreshCallback !== "function" || headerRefresh.disabled) return;
-        headerRefresh.disabled = true;
-        Promise.resolve(pageRefreshCallback()).catch(function (error) { console.error("TRCM refresh:", error); }).finally(function () { headerRefresh.disabled = false; });
-      });
-    }
     const profileButton = document.getElementById("profile-open");
     if (profileButton) profileButton.addEventListener("click", function () { window.location.href = "profil.html"; });
 
