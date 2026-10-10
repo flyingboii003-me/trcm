@@ -42,7 +42,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
-window.trcmComponentsReady.then(function () {
+window.trcmComponentsReady.then(async function () {
   const session = (() => { try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { return null; } })();
   const loading = document.getElementById("profile-loading");
   const content = document.getElementById("profile-content");
