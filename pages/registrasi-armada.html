@@ -197,7 +197,7 @@
                     <div class="col-12"><label class="form-label" for="notes">Catatan</label><textarea class="form-control" id="notes" rows="4" maxlength="1000" placeholder="Catatan tambahan untuk visit"></textarea></div>
                   </div>
                 </div>
-              <div class="col-12"><label class="form-label" for="wh-in-photo">Foto saat WH In (opsional)</label><input class="form-control" id="wh-in-photo" type="file" accept="image/*" capture="environment"><div class="form-text">Foto tidak wajib dan tidak menghalangi proses Register.</div><img id="wh-in-photo-preview" class="mt-2 rounded-3 d-none" alt="Pratinjau foto WH In" style="max-width:180px;max-height:140px;object-fit:cover"></div></section>
+              <div class="col-12"><label class="form-label" for="wh-in-photo-gallery">Foto saat WH In (opsional)</label><div class="photo-picker-actions"><button class="btn btn-light border" type="button" id="wh-in-take-photo"><i class="bi bi-camera me-1"></i>Ambil foto</button><button class="btn btn-light border" type="button" id="wh-in-choose-photo"><i class="bi bi-images me-1"></i>Pilih dari galeri</button></div><input class="visually-hidden" id="wh-in-photo-camera" type="file" accept="image/*" capture="environment"><input class="visually-hidden" id="wh-in-photo-gallery" type="file" accept="image/*"><div class="form-text">Foto tidak wajib. Gunakan kamera atau pilih gambar dari galeri.</div><img id="wh-in-photo-preview" class="mt-2 rounded-3 d-none" alt="Pratinjau foto WH In" style="max-width:180px;max-height:140px;object-fit:cover"></div>
             </div>
 
             <div class="col-12 col-xl-4">
@@ -564,7 +564,7 @@ window.trcmComponentsReady.then(async function () {
       const savedRows = await postJson("/rest/v1/visits", payload);
       const saved = Array.isArray(savedRows) ? savedRows[0] : savedRows;
       clearAlert();
-      const whInPhotoInput=document.getElementById("wh-in-photo"), whInPhoto=whInPhotoInput&&whInPhotoInput.files&&whInPhotoInput.files[0];
+      const whInPhotoInput=document.getElementById("wh-in-photo-gallery"), whInPhoto=whInPhotoInput&&whInPhotoInput.files&&whInPhotoInput.files[0];
       if(whInPhoto&&saved&&saved.id){try{if(!whInPhoto.type.startsWith("image/")||whInPhoto.size>8*1024*1024)throw Error("Foto harus berupa gambar maksimal 8 MB.");const objectPath=saved.id+"/registration-"+Date.now()+"-"+whInPhoto.name.replace(/[^a-zA-Z0-9._-]/g,"_");const up=await fetch("https://pcednpmjyfkuomfcmian.supabase.co/storage/v1/object/trcm-visit-photos/"+objectPath.split("/").map(encodeURIComponent).join("/"),{method:"POST",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":whInPhoto.type,"x-upsert":"false"},body:whInPhoto});if(!up.ok)throw Error("Foto gagal diunggah.");await postJson("/rest/v1/photos",{visit_id:saved.id,photo_type:"registration",file_location:objectPath,uploaded_by:session.user.id});}catch(photoError){console.warn("Foto WH In opsional:",photoError);setAlert("Registrasi tersimpan, tetapi foto opsional gagal diunggah: "+photoError.message,"error");}}
       await Swal.fire({
         icon: "success",
@@ -605,8 +605,11 @@ window.trcmComponentsReady.then(async function () {
     }
   });
 
-  const whInPhotoInput=document.getElementById("wh-in-photo"), whInPhotoPreview=document.getElementById("wh-in-photo-preview");
-  if(whInPhotoInput&&whInPhotoPreview)whInPhotoInput.addEventListener("change",function(){const f=whInPhotoInput.files&&whInPhotoInput.files[0];if(!f){whInPhotoPreview.classList.add("d-none");return}whInPhotoPreview.src=URL.createObjectURL(f);whInPhotoPreview.classList.remove("d-none")});
+  const whInCameraInput=document.getElementById("wh-in-photo-camera"), whInGalleryInput=document.getElementById("wh-in-photo-gallery"), whInPhotoPreview=document.getElementById("wh-in-photo-preview");
+  document.getElementById("wh-in-take-photo").addEventListener("click",()=>whInCameraInput.click());
+  document.getElementById("wh-in-choose-photo").addEventListener("click",()=>whInGalleryInput.click());
+  whInCameraInput.addEventListener("change",()=>{const file=whInCameraInput.files&&whInCameraInput.files[0];if(!file){whInPhotoPreview.classList.add("d-none");return}const transfer=new DataTransfer();transfer.items.add(file);whInGalleryInput.files=transfer.files;whInPhotoPreview.src=URL.createObjectURL(file);whInPhotoPreview.classList.remove("d-none")});
+  whInGalleryInput.addEventListener("change",()=>{const file=whInGalleryInput.files&&whInGalleryInput.files[0];if(file){whInPhotoPreview.src=URL.createObjectURL(file);whInPhotoPreview.classList.remove("d-none")}else whInPhotoPreview.classList.add("d-none")});
   resetButton.addEventListener("click", async function () {
     form.reset(); form.classList.remove("was-validated"); clearAlert(); vendorValue.value = ""; vendorSearch.value = ""; vendorSearch.setCustomValidity(""); truckTypeValue.value = ""; truckTypeSearch.value = ""; syncKirState();
     try { await randomizeCard(); } catch (error) { setAlert(error.message, "error"); }
