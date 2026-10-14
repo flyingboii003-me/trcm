@@ -274,7 +274,7 @@
       const status=r.errors.length?'<span class="plan-status invalid"><i class="bi bi-x-circle-fill"></i>Tidak valid</span>':r.warnings.length?'<span class="plan-status warning"><i class="bi bi-exclamation-triangle-fill"></i>Periksa</span>':'<span class="plan-status valid"><i class="bi bi-check-circle-fill"></i>Valid</span>';
       const data=type==="inbound"?[i+1,c[0],c[1],c[2],c[3]]:[i+1,c[0],c[1],c[2],c[3],c[4],c[5],c[6]];
       const cells=data.map((v,j)=>"<td>"+(j===0?"<span class=\"text-secondary\">"+textSafe(v)+"</span>":(type==="inbound"&&j===1||type==="outbound"&&(j===1||j===2||j===6)?"<span class=\"plan-mono\">"+textSafe(v)+"</span>":textSafe(v)))+"</td>").join("");
-      return '<tr class="'+(r.errors.length?'row-invalid':'')+'">'+cells+"<td>"+status+(notes.length?'<div class="plan-hint mt-1">'+notes.map(textSafe).join("<br>")+"</div>":'<span class="text-secondary">—</span>')+"</td></tr>";
+      return '<tr class="'+(r.errors.length?'row-invalid':'')+'">'+cells+"<td>"+status+"</td><td>"+(notes.length?'<div class="plan-hint">'+notes.map(textSafe).join("<br>")+"</div>":'<span class="text-secondary">—</span>')+"</td></tr>";
     }).join("");
     $("confirm-button").disabled=errors>0||rows.length===0;
     $("preview-footer-note").textContent=errors?"Perbaiki semua kesalahan untuk mengaktifkan konfirmasi.":warnings?"Peringatan harus ditinjau sebelum impor sebenarnya.":"Validasi dasar lolos. Fitur simpan belum diaktifkan pada pratinjau ini.";
