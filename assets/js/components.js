@@ -50,11 +50,11 @@
 
   function setupPageRealtime() {
     if (realtimeClient || !pageRefreshCallback) return;
-    const session = (() => { try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { return null; } })();
+    const session = getTrcmSession();
     if (!session || !session.access_token) return;
     function connect() {
       if (!window.supabase || !window.supabase.createClient) return;
-      realtimeClient = window.supabase.createClient("https://pcednpmjyfkuomfcmian.supabase.co", "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp");
+      realtimeClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
       realtimeClient.realtime.setAuth(session.access_token);
       realtimeClient.channel("trcm-live-" + (window.location.pathname.split("/").pop() || "dashboard"))
         .on("postgres_changes", { event: "*", schema: "public", table: "visits" }, queueRealtimeRefresh)
@@ -142,17 +142,14 @@
   }
 
   async function loadMyMenuPermissions() {
-    const session = (() => {
-      try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); }
-      catch { return null; }
-    })();
+    const session = getTrcmSession();
     const accessToken = session && session.access_token;
     if (!accessToken) return null;
 
-    const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_permissions", {
+    const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_my_permissions", {
       method: "POST",
       headers: {
-        "apikey": "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+        "apikey": SUPABASE_PUBLISHABLE_KEY,
         "Authorization": "Bearer " + accessToken,
         "Content-Type": "application/json"
       },
@@ -315,11 +312,7 @@
   function setAccountNames() {
     let session = null;
 
-    try {
-      session = JSON.parse(sessionStorage.getItem("trcm_session") || "null");
-    } catch {
-      session = null;
-    }
+    session = getTrcmSession();
 
     const accountName = document.getElementById("account-name");
     const accountMenuName = document.getElementById("account-menu-name");
@@ -337,11 +330,11 @@
 
     if (!session || !session.access_token) return;
 
-    fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_profile", {
+    fetch(SUPABASE_URL + "/rest/v1/rpc/get_my_profile", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+        apikey: SUPABASE_PUBLISHABLE_KEY,
         Authorization: "Bearer " + session.access_token
       },
       body: "{}"
@@ -510,9 +503,4 @@
       '<span class="status-dot"></span>' + escapeHtml(label) + '</span>';
   };
 
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, function (character) {
-      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
-    });
-  }
 })();

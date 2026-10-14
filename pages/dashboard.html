@@ -110,11 +110,10 @@
 
 <div id="visit-detail-container"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
 window.trcmComponentsReady.then(async function () {
-const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 const recentTable = document.getElementById("recent-truck-table");
 const recentResultCount = document.getElementById("recent-result-count");
 let trcmSession = null;
@@ -123,17 +122,12 @@ let activityChart = null;
 let vendorChart = null;
 let clientChart = null;
 
-try { trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { trcmSession = null; }
+trcmSession = getTrcmSession();
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
   window.location.replace("../index.html");
   return;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, function (character) {
-    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
-  });
-}
 function localDateKey(value) {
   if (!value) return "";
   const date = new Date(value);

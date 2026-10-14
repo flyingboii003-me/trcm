@@ -75,11 +75,10 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
 window.trcmComponentsReady.then(async function () {
-const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 
 const visitModalBackdrop = document.getElementById("visit-modal-backdrop");
 const visitModal = document.getElementById("visit-modal");
@@ -90,11 +89,7 @@ const visitModalSubtitle = document.getElementById("visit-modal-subtitle");
 const visitModalBody = document.getElementById("visit-modal-body");
 
 let trcmSession = null;
-try {
-  trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null");
-} catch {
-  trcmSession = null;
-}
+trcmSession = getTrcmSession();
 
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
   window.location.replace("../index.html");
@@ -124,19 +119,6 @@ const PAGE_SIZE = 10;
 let currentPage = 1;
 
 const statusLabels = window.trcmStatusLabels || {};
-
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, function (character) {
-    const replacements = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    };
-    return replacements[character];
-  });
-}
 
 function showEditAlert(message, type) {
   editAlert.className = "alert alert-" + type;
