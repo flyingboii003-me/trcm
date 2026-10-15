@@ -847,6 +847,9 @@ button,input,select{font:inherit}
   }
 
   .btn-desktop-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 42px;
     height: 42px;
     flex: 0 0 42px;
