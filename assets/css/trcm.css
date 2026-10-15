@@ -782,3 +782,84 @@ button,input,select{font:inherit}
 .photo-preview-remove{position:absolute;top:-.35rem;right:-.35rem;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;padding:0}.photo-upload-note{font-size:.75rem;color:var(--text-muted)}
 @media(max-width:767.98px){.modal-dialog-centered{min-height:calc(100% - 1rem)}.modal-dialog-centered .modal-content{max-height:85vh}.modal-card-custom{width:calc(100% - 1rem);max-height:85vh;margin:0 auto}.modal-card-footer{position:sticky;bottom:0;z-index:2}.detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.photo-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:479.98px){.detail-grid{grid-template-columns:1fr}.photo-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+
+/* Spark Admin-style collapsible sidebar (desktop only). */
+@media (min-width: 1201px) {
+  body.sidebar-minimized {
+    --sidebar-width: 80px;
+  }
+
+  body.sidebar-minimized .sidebar-wrapper {
+    padding: 2rem .75rem;
+    align-items: center;
+  }
+
+  body.sidebar-minimized .sidebar-brand {
+    justify-content: center;
+    width: 100%;
+    padding-left: 0;
+    overflow: hidden;
+  }
+
+  body.sidebar-minimized .sidebar-brand-logo {
+    width: 40px;
+    flex: 0 0 40px;
+    overflow: hidden;
+  }
+
+  body.sidebar-minimized .sidebar-brand-logo img {
+    width: 190px;
+    max-width: none;
+  }
+
+  body.sidebar-minimized .sidebar-menu-title,
+  body.sidebar-minimized .sidebar-menu-link span,
+  body.sidebar-minimized .sidebar-menu-chevron,
+  body.sidebar-minimized .sidebar-profile-info,
+  body.sidebar-minimized .sidebar-submenu-list {
+    display: none !important;
+  }
+
+  body.sidebar-minimized .sidebar-menu-section {
+    width: 100%;
+  }
+
+  body.sidebar-minimized .sidebar-menu-link {
+    justify-content: center;
+    padding: .75rem;
+    gap: 0;
+  }
+
+  body.sidebar-minimized .sidebar-menu-link > i:first-child {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+
+  body.sidebar-minimized .sidebar-profile {
+    justify-content: center;
+    padding: .5rem 0;
+    border-top-color: transparent;
+  }
+
+  body.sidebar-minimized .sidebar-profile-img {
+    flex-basis: 42px;
+  }
+
+  .btn-desktop-toggle {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border: 1px solid rgba(11, 19, 15, .1);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
+    transition: background .2s ease, color .2s ease;
+  }
+
+  .btn-desktop-toggle:hover {
+    background: #eef3f5;
+    color: var(--cj-blue);
+  }
+}
