@@ -178,7 +178,6 @@
                 <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2><p>Informasi pengiriman dan kota tujuan atau asal armada.</p></div></div>
                 <div class="card-body">
                   <div class="row g-3">
-                    <div class="col-12 col-md-6"><label class="form-label" for="shipment-type">Tipe shipment (opsional)</label><select class="form-select" id="shipment-type"><option value="">Pilih tipe shipment (opsional)</option><option value="Bongkar">Bongkar</option><option value="Muat">Muat</option></select></div>
                     <div class="col-12"><label class="form-label" for="destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="destination-city" maxlength="100" placeholder="Contoh: Surabaya" required><div class="invalid-feedback">Tujuan (Gudang / Kota) wajib diisi.</div></div>
                     <div class="col-12"><label class="form-label" for="notes">Catatan</label><textarea class="form-control" id="notes" rows="4" maxlength="1000" placeholder="Catatan tambahan untuk visit"></textarea></div>
                   <div class="col-12">
@@ -264,7 +263,6 @@ window.trcmComponentsReady.then(async function () {
     truckType: document.getElementById("truck-type"), licenseType: document.getElementById("license-type"),
     licenseNum: document.getElementById("license-num"), licenseExp: document.getElementById("license-exp"),
     vehicleExp: document.getElementById("vehicle-exp"), vehicleInspectExp: kirDate,
-    shipmentType: document.getElementById("shipment-type"),
     destinationCity: document.getElementById("destination-city"), notes: document.getElementById("notes")
   };
   let vendors = [];
@@ -543,7 +541,7 @@ window.trcmComponentsReady.then(async function () {
       license_exp: fields.licenseExp.value || null,
       vehicle_exp: fields.vehicleExp.value || null,
       vehicle_inspect_exp: kirExpired.checked ? null : (fields.vehicleInspectExp.value || null),
-      shipment_type: fields.shipmentType.value || null,
+      shipment_type: null,
       destination_city: fields.destinationCity.value.trim() || null,
       notes: fields.notes.value.trim() || null,
       vendor: fields.vendor.value.trim() || null,
