@@ -129,7 +129,7 @@
           </div>
           <div class="plan-footer">
             <span class="plan-demo-note"><i class="bi bi-shield-check me-1"></i>Validasi lokal · Belum terhubung ke database</span>
-            <div class="plan-bottom-actions"><button class="btn btn-primary" id="data-check-button" type="button"><i class="bi bi-search me-1"></i>Tampilkan data</button></div>
+            <div class="plan-bottom-actions"><button class="btn btn-primary" id="data-check-button" type="button"><i class="bi bi-search me-1"></i>Periksa data</g/button></div>
           </div>
         </section>
 
@@ -145,11 +145,11 @@
               <span class="plan-count error"><i class="bi bi-exclamation-circle"></i><span id="error-count">0 kesalahan</span></span>
               <span class="plan-count warning"><i class="bi bi-exclamation-triangle"></i><span id="warning-count">0 peringatan</span></span>
             </div>
-            <div id="validation-message" class="plan-callout mb-3" role="status"><i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Tampilkan data</strong> untuk memeriksa hasilnya.</div></div>
+            <div id="validation-message" class="plan-callout mb-3" role="status"><i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Periksa data</strong> untuk memeriksa hasilnya.</div></div>
             <div class="plan-data-table-wrap">
               <table class="table plan-data-table align-middle">
                 <thead id="data-check-head"><tr><th>No.</th><th>Data</th><th>Status</th><th>Catatan validasi</th></tr></thead>
-                <tbody id="data-check-body"><tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data data akan tampil di sini.</div></td></tr></tbody>
+                <tbody id="data-check-body"><tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data akan tampil di sini.</div></td></tr></tbody>
               </table>
             </div>
           </div>
@@ -246,15 +246,15 @@
     $("template-hint").textContent=schemas[type].hint;
     $("paste-hint").textContent=type==="inbound"?"Header harus sesuai template. Nomor DO, PART NUMBER, dan referensi disimpan sebagai teks.":"Header harus sesuai template. SHIPMENT disimpan sebagai teks; QUANTITY harus berupa angka lebih dari nol.";
     $("paste-data").value=schemas[type].sample;
-    resetdata-check();
+    resetDataCheck();
   }
-  function resetdata-check(){
+  function resetDataCheck(){
     checked=false;parsed=[];$("confirm-button").disabled=true;
     $("data-check-state").className="plan-status warning";$("data-check-state").innerHTML='<i class="bi bi-hourglass-split"></i>Belum diperiksa';
     $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="0 kesalahan";$("warning-count").textContent="0 peringatan";
-    $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Tampilkan data</strong> untuk memeriksa hasilnya.</div>';
+    $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Periksa data</strong> untuk memeriksa hasilnya.</div>';
     $("data-check-head").innerHTML="<tr><th>No.</th><th>Data</th><th>Status</th><th>Catatan validasi</th></tr>";
-    $("data-check-body").innerHTML='<tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data data akan tampil di sini.</div></td></tr>';
+    $("data-check-body").innerHTML='<tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data akan tampil di sini.</div></td></tr>';
     $("data-check-footer-note").textContent="Konfirmasi tersedia setelah semua kesalahan diperbaiki dan peringatan ditinjau.";
   }
   function normalizeHeader(value){return String(value||"").trim().replace(/\s+/g," ").toUpperCase()}
@@ -270,7 +270,7 @@
   function validate(){
     const result=parseRows();
     if(result.fatal){
-      checked=true;parsed=[];$("confirm-button").disabled=true;
+      checked=true;parsed=[];$("trip-group-card").classList.add("d-none");$("confirm-button").disabled=true;
       $("data-check-state").className="plan-status invalid";$("data-check-state").innerHTML='<i class="bi bi-x-circle-fill"></i>Header tidak valid';
       $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-exclamation-circle-fill" style="color:#B4232A"></i><div>'+textSafe(result.fatal)+'</div>';
       $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="1 kesalahan";$("warning-count").textContent="0 peringatan";
@@ -376,13 +376,13 @@
 
   document.querySelectorAll("[data-plan-type]").forEach(b=>b.addEventListener("click",()=>setType(b.dataset.planType)));
   $("data-check-button").addEventListener("click",validate);
-  $("restore-example").addEventListener("click",()=>{ $("paste-data").value=schemas[type].sample;resetdata-check();toast("Contoh "+(type==="inbound"?"Inbound":"Outbound")+" dimuat.")});
+  $("restore-example").addEventListener("click",()=>{ $("paste-data").value=schemas[type].sample;resetDataCheck();toast("Contoh "+(type==="inbound"?"Inbound":"Outbound")+" dimuat.")});
   $("copy-template").addEventListener("click",async()=>{
     const header=schemas[type].headers.join("\t");
     try{await navigator.clipboard.writeText(header);toast("Header template disalin.");}
     catch(e){$("paste-data").value=header+"\n"+$("paste-data").value.split("\n").slice(1).join("\n");toast("Header diletakkan di baris pertama area data.");}
   });
-  $("reset-button").addEventListener("click",()=>{ $("operational-date").value="2026-10-14";$("paste-data").value=schemas[type].sample;resetdata-check();toast("Data diatur ulang.")});
+  $("reset-button").addEventListener("click",()=>{ $("operational-date").value="2026-10-14";$("paste-data").value=schemas[type].sample;resetDataCheck();toast("Data diatur ulang.")});
   $("confirm-button").addEventListener("click",openFinalConfirmation);
   $("reset-trip-groups").addEventListener("click",()=>{tripAssignments={};renderTripGroups();toast("Kelompok Trip dikembalikan ke pilihan awal.");});
   $("confirm-import-final").addEventListener("click",()=>{bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).hide();toast("Konfirmasi UI selesai. Data belum disimpan dan Plan belum diaktifkan.");$("data-check-footer-note").textContent="Konfirmasi UI selesai. Tidak ada perubahan database.";});
