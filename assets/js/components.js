@@ -395,6 +395,11 @@
     if (!toggleButton) return;
 
     const icon = toggleButton.querySelector("i");
+    const storageKey = "trcm_sidebar_minimized";
+
+    function isDesktop() {
+      return window.innerWidth > 1200;
+    }
 
     function syncToggleState() {
       const minimized = document.body.classList.contains("sidebar-minimized");
@@ -408,15 +413,31 @@
       if (label && label.textContent.trim()) item.setAttribute("title", label.textContent.trim());
     });
 
+    function applySavedState() {
+      const minimized = window.localStorage.getItem(storageKey) === "true";
+      document.body.classList.toggle("sidebar-minimized", isDesktop() && minimized);
+      syncToggleState();
+    }
+
     toggleButton.addEventListener("click", function () {
-      document.body.classList.toggle("sidebar-minimized");
+      if (!isDesktop()) return;
+      const minimized = !document.body.classList.contains("sidebar-minimized");
+      document.body.classList.toggle("sidebar-minimized", minimized);
+      window.localStorage.setItem(storageKey, String(minimized));
       syncToggleState();
       window.setTimeout(function () {
         window.dispatchEvent(new Event("resize"));
       }, 300);
     });
 
-    syncToggleState();
+    applySavedState();
+    window.addEventListener("resize", function () {
+      if (!isDesktop()) {
+        document.body.classList.remove("sidebar-minimized");
+      } else {
+        applySavedState();
+      }
+    });
   }
 
   function setupLogout() {
