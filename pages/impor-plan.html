@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Pratinjau UI impor Plan Inbound dan Outbound TRCM">
+  <meta name="description" content="Impor Plan Inbound dan Outbound TRCM">
   <title>Impor Plan — TRCM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,12 +41,12 @@
     .plan-count{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .65rem;border:1px solid var(--plan-line);border-radius:50rem;background:#fff;color:var(--text-main);font-size:.75rem;font-weight:700}
     .plan-count.error{border-color:#F3B6B8;background:#FFF1F1;color:#B4232A}
     .plan-count.warning{border-color:#F6D29B;background:#FFF8E9;color:#8A4B08}
-    .plan-preview-wrap{overflow:auto;border:1px solid var(--plan-line);border-radius:var(--radius-lg)}
-    .plan-preview-table{min-width:680px;margin:0;font-size:.8rem}
-    .plan-preview-table thead th{padding:.85rem 1rem;background:#F5F7FA;color:#55627A;font-size:.7rem;font-weight:800;white-space:nowrap;border-bottom:1px solid var(--plan-line)}
-    .plan-preview-table tbody td{padding:.85rem 1rem;vertical-align:middle;white-space:nowrap;border-color:#E8EDF3}
-    .plan-preview-table tbody tr:hover td{background:rgba(0,110,205,.035)}
-    .plan-preview-table .row-invalid td{background:#FFF5F5}
+    .plan-data-table-wrap{overflow:auto;border:1px solid var(--plan-line);border-radius:var(--radius-lg)}
+    .plan-data-table{min-width:680px;margin:0;font-size:.8rem}
+    .plan-data-table thead th{padding:.85rem 1rem;background:#F5F7FA;color:#55627A;font-size:.7rem;font-weight:800;white-space:nowrap;border-bottom:1px solid var(--plan-line)}
+    .plan-data-table tbody td{padding:.85rem 1rem;vertical-align:middle;white-space:nowrap;border-color:#E8EDF3}
+    .plan-data-table tbody tr:hover td{background:rgba(0,110,205,.035)}
+    .plan-data-table .row-invalid td{background:#FFF5F5}
     .plan-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700}
     .plan-status{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .55rem;border-radius:50rem;font-size:.7rem;font-weight:800}
     .plan-status.valid{background:#E7F7EE;color:#17663B}
@@ -86,7 +86,7 @@
           <div>
             <span class="plan-kicker">Administrasi · Rencana operasional</span>
             <h1 class="page-title">Impor Plan</h1>
-            <p class="page-subtitle">Siapkan Plan Inbound atau Outbound dari Excel, periksa data, lalu tinjau sebelum diaktifkan.</p>
+            <p class="page-subtitle">Siapkan Plan Inbound atau Outbound dari Excel, periksa data, lalu konfirmasi sebelum diaktifkan.</p>
           </div>
           <div class="plan-mode-switch" role="group" aria-label="Jenis Plan">
             <button type="button" class="plan-mode-btn active" data-plan-type="inbound" aria-pressed="true"><i class="bi bi-box-arrow-in-down"></i>Plan Inbound</button>
@@ -97,7 +97,7 @@
         <ol class="plan-steps" aria-label="Tahapan impor">
           <li class="plan-step active" id="step-1"><span class="plan-step-number">1</span><span>Atur impor</span></li>
           <li class="plan-step-divider" aria-hidden="true"></li>
-          <li class="plan-step" id="step-2"><span class="plan-step-number">2</span><span>Pratinjau data</span></li>
+          <li class="plan-step" id="step-2"><span class="plan-step-number">2</span><span>Data data</span></li>
           <li class="plan-step-divider" aria-hidden="true"></li>
           <li class="plan-step" id="step-3"><span class="plan-step-number">3</span><span>Konfirmasi</span></li>
         </ol>
@@ -105,7 +105,7 @@
         <section class="plan-card mb-4" aria-labelledby="plan-settings-title">
           <div class="plan-card-head">
             <div><h2 class="plan-card-title" id="plan-settings-title">Atur impor</h2><p class="plan-card-subtitle">Tentukan tanggal operasional dan masukkan data sesuai template yang dipilih.</p></div>
-            <span class="badge rounded-pill text-bg-light border"><i class="bi bi-eye me-1"></i>Pratinjau UI</span>
+            <span class="badge rounded-pill text-bg-light border"><i class="bi bi-eye me-1"></i>Data UI</span>
           </div>
           <div class="plan-card-body">
             <div class="row g-3 mb-4">
@@ -125,23 +125,23 @@
               <span class="plan-drop-icon"><i class="bi bi-clipboard2-data"></i></span>
               <div><div class="fw-bold mb-1">Tempel data dari Excel</div><div class="plan-hint mt-0">Salin baris header dan data di Excel, lalu tempel ke area di bawah. Tidak perlu mengunggah file.</div></div>
             </div>
-            <label class="plan-field-label" for="paste-data">Data dari Excel (dipisahkan tab)</label>
+            <label class="plan-field-label" for="paste-data">Data Excel (dipisahkan tab)</label>
             <textarea class="plan-paste" id="paste-data" spellcheck="false" aria-describedby="paste-hint"></textarea>
             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mt-2 mb-4">
               <div class="plan-hint mt-0" id="paste-hint">Header harus sesuai dengan template. Nomor DO, PART NUMBER, dan angka referensi dibaca sebagai teks.</div>
               <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-example"><i class="bi bi-arrow-counterclockwise me-1"></i>Muat contoh</button>
             </div>
-            <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Data belum disimpan.</strong> Halaman ini hanya untuk menguji UI/UX. Tombol pratinjau menjalankan validasi di browser; tidak ada perubahan ke database.</div></div>
+            <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Data belum disimpan.</strong> Halaman ini hanya untuk menguji UI/UX. Tombol data menjalankan validasi di browser; tidak ada perubahan ke database.</div></div>
           </div>
           <div class="plan-footer">
-            <span class="plan-demo-note"><i class="bi bi-shield-check me-1"></i>Validasi lokal · Tidak terhubung ke database</span>
-            <div class="plan-bottom-actions"><button class="btn btn-primary" id="preview-button" type="button"><i class="bi bi-search me-1"></i>Tampilkan pratinjau</button></div>
+            <span class="plan-demo-note"><i class="bi bi-shield-check me-1"></i>Validasi lokal · Belum terhubung ke database</span>
+            <div class="plan-bottom-actions"><button class="btn btn-primary" id="preview-button" type="button"><i class="bi bi-search me-1"></i>Tampilkan data</button></div>
           </div>
         </section>
 
         <section class="plan-card mb-4" aria-labelledby="preview-title">
           <div class="plan-card-head">
-            <div><h2 class="plan-card-title" id="preview-title">Pratinjau dan validasi</h2><p class="plan-card-subtitle">Periksa kolom, data wajib, duplikat, dan kelompok truk sebelum melanjutkan.</p></div>
+            <div><h2 class="plan-card-title" id="preview-title">Data dan validasi</h2><p class="plan-card-subtitle">Periksa kolom, data wajib, duplikat, dan kelompok truk sebelum melanjutkan.</p></div>
             <span class="plan-status warning" id="preview-state"><i class="bi bi-hourglass-split"></i>Belum diperiksa</span>
           </div>
           <div class="plan-card-body">
@@ -151,16 +151,16 @@
               <span class="plan-count error"><i class="bi bi-exclamation-circle"></i><span id="error-count">0 kesalahan</span></span>
               <span class="plan-count warning"><i class="bi bi-exclamation-triangle"></i><span id="warning-count">0 peringatan</span></span>
             </div>
-            <div id="validation-message" class="plan-callout mb-3" role="status"><i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Tampilkan pratinjau</strong> untuk memeriksa hasilnya.</div></div>
-            <div class="plan-preview-wrap">
-              <table class="table plan-preview-table align-middle">
+            <div id="validation-message" class="plan-callout mb-3" role="status"><i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Tampilkan data</strong> untuk memeriksa hasilnya.</div></div>
+            <div class="plan-data-table-wrap">
+              <table class="table plan-data-table align-middle">
                 <thead id="preview-head"><tr><th>No.</th><th>Data</th><th>Status</th><th>Catatan validasi</th></tr></thead>
-                <tbody id="preview-body"><tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Pratinjau data akan tampil di sini.</div></td></tr></tbody>
+                <tbody id="preview-body"><tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data data akan tampil di sini.</div></td></tr></tbody>
               </table>
             </div>
           </div>
           <div class="plan-footer">
-            <span class="plan-demo-note" id="preview-footer-note">Konfirmasi impor akan aktif setelah validasi berhasil.</span>
+            <span class="plan-demo-note" id="preview-footer-note">Konfirmasi tersedia setelah semua kesalahan diperbaiki dan peringatan ditinjau.</span>
             <div class="plan-bottom-actions"><button type="button" class="btn btn-light border" id="reset-button"><i class="bi bi-arrow-repeat me-1"></i>Atur ulang</button><button type="button" class="btn btn-primary" id="confirm-button" disabled><i class="bi bi-check2-circle me-1"></i>Konfirmasi impor</button></div>
           </div>
         </section>
@@ -193,7 +193,6 @@
   const $=id=>document.getElementById(id);
   const textSafe=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
   function toast(message){$("toast-message").textContent=message;$("plan-toast").classList.add("show");window.setTimeout(()=>$("plan-toast").classList.remove("show"),4200)}
-  function setStep(n){[1,2,3].forEach(i=>{const el=$("step-"+i);el.classList.toggle("active",i<=n);el.querySelector(".plan-step-number").innerHTML=i<n?'<i class="bi bi-check-lg"></i>':String(i)})}
   function setType(next){
     type=next;checked=false;parsed=[];
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
@@ -207,10 +206,10 @@
     checked=false;parsed=[];$("confirm-button").disabled=true;
     $("preview-state").className="plan-status warning";$("preview-state").innerHTML='<i class="bi bi-hourglass-split"></i>Belum diperiksa';
     $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="0 kesalahan";$("warning-count").textContent="0 peringatan";
-    $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Tampilkan pratinjau</strong> untuk memeriksa hasilnya.</div>';
+    $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Tampilkan data</strong> untuk memeriksa hasilnya.</div>';
     $("preview-head").innerHTML="<tr><th>No.</th><th>Data</th><th>Status</th><th>Catatan validasi</th></tr>";
-    $("preview-body").innerHTML='<tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Pratinjau data akan tampil di sini.</div></td></tr>';
-    $("preview-footer-note").textContent="Konfirmasi impor akan aktif setelah validasi berhasil.";setStep(1);
+    $("preview-body").innerHTML='<tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data data akan tampil di sini.</div></td></tr>';
+    $("preview-footer-note").textContent="Konfirmasi impor akan aktif setelah validasi berhasil.";
   }
   function normalizeHeader(value){return String(value||"").trim().replace(/\s+/g," ").toUpperCase()}
   function parseRows(){
@@ -231,7 +230,7 @@
       $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="1 kesalahan";$("warning-count").textContent="0 peringatan";
       $("preview-head").innerHTML="<tr><th>Masalah</th><th>Header yang diperlukan</th></tr>";
       $("preview-body").innerHTML='<tr class="row-invalid"><td><span class="plan-status invalid">Header tidak cocok</span></td><td>'+schemas[type].headers.map(textSafe).join(" · ")+"</td></tr>";
-      $("preview-footer-note").textContent="Perbaiki header lalu jalankan pratinjau kembali.";setStep(2);return;
+      $("preview-footer-note").textContent="Perbaiki header lalu jalankan data kembali.";return;
     }
     const rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
     if(type==="inbound"){
@@ -277,8 +276,8 @@
       return '<tr class="'+(r.errors.length?'row-invalid':'')+'">'+cells+"<td>"+status+"</td><td>"+(notes.length?'<div class="plan-hint">'+notes.map(textSafe).join("<br>")+"</div>":'<span class="text-secondary">—</span>')+"</td></tr>";
     }).join("");
     $("confirm-button").disabled=errors>0||rows.length===0;
-    $("preview-footer-note").textContent=errors?"Perbaiki semua kesalahan untuk mengaktifkan konfirmasi.":warnings?"Peringatan harus ditinjau sebelum impor sebenarnya.":"Validasi dasar lolos. Fitur simpan belum diaktifkan pada pratinjau ini.";
-    setStep(2);
+    $("preview-footer-note").textContent=errors?"Perbaiki semua kesalahan untuk mengaktifkan konfirmasi.":warnings?"Peringatan harus ditinjau sebelum impor sebenarnya.":"Validasi dasar lolos. Fitur simpan belum diaktifkan pada data ini.";
+    
   }
   document.querySelectorAll("[data-plan-type]").forEach(b=>b.addEventListener("click",()=>setType(b.dataset.planType)));
   $("preview-button").addEventListener("click",validate);
@@ -288,12 +287,12 @@
     try{await navigator.clipboard.writeText(header);toast("Header template disalin.");}
     catch(e){$("paste-data").value=header+"\n"+$("paste-data").value.split("\n").slice(1).join("\n");toast("Header diletakkan di baris pertama area data.");}
   });
-  $("reset-button").addEventListener("click",()=>{ $("operational-date").value="2026-10-14";$("paste-data").value=schemas[type].sample;resetPreview();toast("Pratinjau diatur ulang.")});
+  $("reset-button").addEventListener("click",()=>{ $("operational-date").value="2026-10-14";$("paste-data").value=schemas[type].sample;resetPreview();toast("Data diatur ulang.")});
   $("confirm-button").addEventListener("click",()=>{
     if(!checked||parsed.some(r=>r.errors.length))return;
-    setStep(3);
+    
     toast("UI/UX saja: data belum disimpan dan belum ada Plan yang diaktifkan.");
-    $("preview-footer-note").textContent="Pratinjau selesai. Tidak ada data yang dikirim atau disimpan.";
+    $("preview-footer-note").textContent="Data selesai. Tidak ada data yang dikirim atau disimpan.";
   });
   $("paste-data").value=schemas.inbound.sample;
   if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function")window.trcmComponentsReady.then(()=>{const title=document.querySelector("[data-page-title]");if(title)title.textContent="Impor Plan";const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";});
