@@ -43,6 +43,7 @@ button,input,select{font:inherit}
 .form-control:focus,.form-select:focus{border-color:var(--cj-blue);box-shadow:0 0 0 3px rgba(0,110,205,.08)}
 .app-layout{min-height:100vh}
 .sidebar-wrapper{width:var(--sidebar-width);height:100vh;position:fixed;top:0;left:0;z-index:1030;display:flex;flex-direction:column;padding:2rem 1.5rem;background:var(--brand-dark);border-right:1px solid rgba(255,255,255,.1);transition:all .3s cubic-bezier(.4,0,.2,1)}
+.btn-desktop-toggle{display:none;}
 .sidebar-brand{display:flex;align-items:center;width:100%;height:48px;margin-bottom:2.5rem;padding-left:.5rem;color:#fff}
 .sidebar-brand:hover{color:#fff}
 .sidebar-brand-logo{display:flex;align-items:center;width:190px;height:48px;overflow:visible}
@@ -791,8 +792,15 @@ button,input,select{font:inherit}
   }
 
   body.sidebar-minimized .sidebar-wrapper {
-    padding: 2rem .75rem;
+    padding: 1.5rem .5rem;
     align-items: center;
+    overflow: hidden;
+    scrollbar-width: none;
+  }
+
+  body.sidebar-minimized .sidebar-wrapper::-webkit-scrollbar {
+    display: none;
+    width: 0;
   }
 
   body.sidebar-minimized .sidebar-brand {
@@ -803,14 +811,19 @@ button,input,select{font:inherit}
   }
 
   body.sidebar-minimized .sidebar-brand-logo {
-    width: 40px;
-    flex: 0 0 40px;
+    width: 56px;
+    height: 40px;
+    flex: 0 0 56px;
+    justify-content: center;
     overflow: hidden;
   }
 
   body.sidebar-minimized .sidebar-brand-logo img {
-    width: 190px;
-    max-width: none;
+    width: 52px;
+    height: 36px;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: center;
   }
 
   body.sidebar-minimized .sidebar-menu-title,
