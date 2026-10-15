@@ -94,7 +94,7 @@
           </div>
         </div>
 
-        <div class="plan-callout mb-4"><i class="bi bi-info-circle-fill"></i><div>Periksa seluruh data dan selesaikan pengelompokan Trip Outbound sebelum konfirmasi akhir. Data pada halaman ini belum disimpan ke database.</div></div>
+        <div class="plan-callout mb-4"><i class="bi bi-info-circle-fill"></i><div>Periksa seluruh data dan pastikan pengelompokan truk otomatis sudah sesuai sebelum konfirmasi akhir. Data pada halaman ini belum disimpan ke database.</div></div>
 
         <section class="plan-card mb-4" aria-labelledby="plan-settings-title">
           <div class="plan-card-head">
@@ -129,7 +129,7 @@
           </div>
           <div class="plan-footer">
             <span class="plan-demo-note"><i class="bi bi-shield-check me-1"></i>Validasi lokal · Belum terhubung ke database</span>
-            <div class="plan-bottom-actions"><button class="btn btn-primary" id="data-check-button" type="button"><i class="bi bi-search me-1"></i>Periksa data</g/button></div>
+            <div class="plan-bottom-actions"><button class="btn btn-primary" id="data-check-button" type="button"><i class="bi bi-search me-1"></i>Periksa data</button></div>
           </div>
         </section>
 
@@ -159,22 +159,21 @@
           </div>
         </section>
 
-        <section class="plan-card mb-4 d-none" id="trip-group-card" aria-labelledby="trip-group-title">
+        <section class="plan-card mb-4 d-none" id="truk-group-card" aria-labelledby="truk-group-title">
           <div class="plan-card-head">
-            <div><h2 class="plan-card-title" id="trip-group-title">Pengelompokan Truk / Trip</h2><p class="plan-card-subtitle">Pastikan setiap Shipment ditempatkan pada Trip yang benar. Setiap Shipment tetap menjadi detail tersendiri.</p></div>
-            <span class="plan-status warning" id="trip-group-state"><i class="bi bi-truck"></i>Perlu diperiksa</span>
+            <div><h2 class="plan-card-title" id="truk-group-title">Pengelompokan Truk Otomatis</h2><p class="plan-card-subtitle">Sistem mengelompokkan baris berdasarkan plat nomor dan nama driver. Setiap Shipment tetap menjadi detail tersendiri.</p></div>
+            <span class="plan-status warning" id="truk-group-state"><i class="bi bi-truck"></i>Perlu diperiksa</span>
           </div>
           <div class="plan-card-body">
-            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Jika plat nomor yang sama digunakan untuk beberapa Trip, pilih kelompok Trip pada setiap Shipment. Data tidak akan digabungkan atau dijumlahkan otomatis.</div></div>
+            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Baris dengan plat nomor dan nama driver yang sama otomatis dihitung sebagai satu truk. Semua shipment tetap ditampilkan sebagai detail terpisah. Plat sama dengan driver berbeda akan ditandai untuk diperiksa.</div></div>
             <div class="plan-data-check-wrap">
               <table class="table plan-data-check-table align-middle mb-0">
-                <thead><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Quantity</th><th>Kelompok Trip</th></tr></thead>
-                <tbody id="trip-group-body"><tr><td colspan="7" class="text-center text-secondary py-4">Data Shipment akan tampil setelah diperiksa.</td></tr></tbody>
+                <thead><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Quantity</th><th>Kelompok truk otomatis</th></tr></thead>
+                <tbody id="truk-group-body"><tr><td colspan="7" class="text-center text-secondary py-4">Data shipment akan tampil setelah diperiksa.</td></tr></tbody>
               </table>
             </div>
             <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mt-3">
-              <span class="plan-hint mt-0" id="trip-group-summary">Belum ada kelompok Trip.</span>
-              <button class="btn btn-outline-secondary btn-sm" id="reset-trip-groups" type="button"><i class="bi bi-arrow-counterclockwise me-1"></i>Atur ulang kelompok</button>
+              <span class="plan-hint mt-0" id="truk-group-summary">Kelompok truk terdeteksi otomatis.</span>
             </div>
           </div>
         </section>
@@ -195,7 +194,7 @@
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Jenis Plan</div><strong id="confirm-type">Outbound</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Tanggal operasional</div><strong id="confirm-date">—</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Baris detail</div><strong id="confirm-rows">0</strong></div></div>
-          <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Kelompok Truk / Trip</div><strong id="confirm-groups">0</strong></div></div>
+          <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Jumlah truk terdeteksi</div><strong id="confirm-groups">0</strong></div></div>
         </div>
         <div class="alert alert-warning small" id="confirm-warning" role="status"><i class="bi bi-exclamation-triangle-fill me-2"></i>Pastikan data dan pengelompokan sudah benar.</div>
         <h3 class="fs-6 fw-bold mb-3">Detail Shipment / barang</h3>
@@ -231,11 +230,11 @@
     outbound:{
       label:"Template Outbound",
       headers:["VENDOR","PLAT NOMOR","NAMA DRIVER","TIPE TRUCK","TUJUAN","SHIPMENT","QUANTITY"],
-      hint:"Satu baris mewakili satu detail shipment. Jika plat yang sama muncul beberapa kali, periksa apakah baris tersebut satu trip atau trip berbeda.",
+      hint:"Satu baris mewakili satu detail shipment. Jika plat yang sama muncul beberapa kali, periksa apakah baris tersebut satu truk atau truk berbeda.",
       sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\tQUANTITY\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\t24\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288\t16\nVendor B\tD 8234 CJ\tAndi Pratama\tCDD\tBandung\tSH0001290\t12"
     }
   };
-  let type="inbound", checked=false, parsed=[], tripAssignments={};
+  let type="inbound", checked=false, parsed=[];
   const $=id=>document.getElementById(id);
   const textSafe=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
   function toast(message){$("toast-message").textContent=message;$("plan-toast").classList.add("show");window.setTimeout(()=>$("plan-toast").classList.remove("show"),4200)}
@@ -249,7 +248,7 @@
     resetDataCheck();
   }
   function resetDataCheck(){
-    checked=false;parsed=[];tripAssignments={};$("trip-group-card").classList.add("d-none");$("confirm-button").disabled=true;
+    checked=false;parsed=[];$("truk-group-card").classList.add("d-none");$("confirm-button").disabled=true;
     $("data-check-state").className="plan-status warning";$("data-check-state").innerHTML='<i class="bi bi-hourglass-split"></i>Belum diperiksa';
     $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="0 kesalahan";$("warning-count").textContent="0 peringatan";
     $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Periksa data</strong> untuk memeriksa hasilnya.</div>';
@@ -270,7 +269,7 @@
   function validate(){
     const result=parseRows();
     if(result.fatal){
-      checked=true;parsed=[];$("trip-group-card").classList.add("d-none");$("confirm-button").disabled=true;
+      checked=true;parsed=[];$("truk-group-card").classList.add("d-none");$("confirm-button").disabled=true;
       $("data-check-state").className="plan-status invalid";$("data-check-state").innerHTML='<i class="bi bi-x-circle-fill"></i>Header tidak valid';
       $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-exclamation-circle-fill" style="color:#B4232A"></i><div>'+textSafe(result.fatal)+'</div>';
       $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="1 kesalahan";$("warning-count").textContent="0 peringatan";
@@ -299,12 +298,12 @@
         if(!quantity||!Number.isFinite(Number(quantity))||Number(quantity)<=0)r.errors.push("QUANTITY harus berupa angka lebih dari nol.");
         if(shipment&&seenShipment.has(shipment))r.warnings.push("Nomor SHIPMENT terduplikasi; periksa data sumber.");
         if(shipment)seenShipment.add(shipment);
-        if(plate){if(!plates.has(plate))plates.set(plate,[]);plates.get(plate).push(r)}
+        if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
       });
-      plates.forEach(group=>{if(group.length>1)group.forEach(r=>r.warnings.push("Plat muncul lebih dari sekali; konfirmasi kelompok trip saat proses impor."))});
+      plates.forEach(group=>{if(new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," "))).size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."))});
     }
     const errors=rows.reduce((n,r)=>n+r.errors.length,0),warnings=rows.reduce((n,r)=>n+r.warnings.length,0);
-    const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0])).size:new Set(rows.filter(r=>r.cells[1]).map(r=>r.cells[1])).size;
+    const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0].trim().toUpperCase())).size:new Set(rows.filter(r=>r.cells[1]&&r.cells[2]).map(r=>truckKey(r))).size;
     checked=true;parsed=rows;
     $("row-count").textContent=rows.length+" baris";$("group-count").textContent=groupCount+" kelompok";$("error-count").textContent=errors+" kesalahan";$("warning-count").textContent=warnings+" peringatan";
     $("data-check-state").className="plan-status "+(errors?"invalid":warnings?"warning":"valid");
@@ -327,48 +326,50 @@
     
   }
 
+  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
   function renderTripGroups(){
-    const card=$("trip-group-card");
+    const card=$("truk-group-card");
     if(type!=="outbound"||!checked||!parsed.length){card.classList.add("d-none");return;}
     card.classList.remove("d-none");
-    const plateCounts={};
-    parsed.forEach(r=>{const plate=(r.cells[1]||"").trim();if(plate)plateCounts[plate]=(plateCounts[plate]||0)+1;});
-    parsed.forEach((r,i)=>{if((r.cells[1]||"").trim()&&!tripAssignments[i])tripAssignments[i]="Trip 1";});
-    $("trip-group-body").innerHTML=parsed.map((r,i)=>{
-      const c=r.cells,plate=(c[1]||"").trim(),shipment=c[5]||"—";
-      if(!plate)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="6" class="text-danger">Plat nomor wajib diperbaiki sebelum pengelompokan.</td></tr>';
-      const options=["Trip 1","Trip 2","Trip 3"].map(t=>'<option value="'+t+'" '+(tripAssignments[i]===t?'selected':'')+'>'+t+'</option>').join("");
-      return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span>'+(plateCounts[plate]>1?'<div class="plan-hint">Plat berulang</div>':'')+'</td><td><span class="plan-mono">'+textSafe(shipment)+'</span></td><td>'+textSafe(c[0]||"—")+'</td><td>'+textSafe(c[4]||"—")+'</td><td>'+textSafe(c[6]||"—")+'</td><td><select class="form-select form-select-sm plan-input trip-assignment" data-row-index="'+i+'" aria-label="Kelompok Trip untuk Shipment '+textSafe(shipment)+'">'+options+'</select></td></tr>';
+    const groups=new Map();
+    parsed.forEach((r,i)=>{
+      const plate=(r.cells[1]||"").trim(),driver=(r.cells[2]||"").trim();
+      if(!plate||!driver)return;
+      const key=truckKey(r);
+      if(!groups.has(key))groups.set(key,{plate,driver,rows:[]});
+      groups.get(key).rows.push({row:r,index:i});
+    });
+    const groupIndexByKey=new Map([...groups.keys()].map((key,index)=>[key,index+1]));
+    $("truk-group-body").innerHTML=parsed.map((r,i)=>{
+      const cells=r.cells,plate=(cells[1]||"").trim(),driver=(cells[2]||"").trim(),shipment=cells[5]||"—";
+      if(!plate||!driver)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="6" class="text-danger">Plat nomor dan nama driver wajib diisi untuk mengenali truk.</td></tr>';
+      const plateKey=plate.toUpperCase().replace(/\s+/g," ");
+      const samePlateDifferentDriver=parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driver.toUpperCase().replace(/\s+/g," "));
+      const groupNo=groupIndexByKey.get(truckKey(r));
+      return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment)+'</span></td><td>'+textSafe(cells[0]||"—")+'</td><td>'+textSafe(cells[4]||"—")+'</td><td>'+textSafe(cells[6]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
     }).join("");
-    $("trip-group-body").querySelectorAll(".trip-assignment").forEach(select=>select.addEventListener("change",()=>{
-      tripAssignments[Number(select.dataset.rowIndex)]=select.value;
-      updateTripSummary();
-    }));
-    updateTripSummary();
-  }
-  function updateTripSummary(){
-    const groups=new Set();
-    parsed.forEach((r,i)=>{const plate=(r.cells[1]||"").trim();if(plate)groups.add(plate+"|"+(tripAssignments[i]||"Trip 1"));});
-    const shipments=parsed.filter(r=>(r.cells[1]||"").trim()).length;
-    $("trip-group-summary").textContent=groups.size+" kelompok Truk / Trip · "+shipments+" Shipment detail";
-    $("trip-group-state").className="plan-status "+(shipments===parsed.length?"valid":"warning");
-    $("trip-group-state").innerHTML='<i class="bi bi-truck"></i>'+(shipments===parsed.length?"Pengelompokan tersedia":"Perlu perbaikan");
-    $("group-count").textContent=groups.size+" kelompok";
+    const groupedRows=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);
+    $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" detail shipment";
+    const hasMissing=parsed.some(r=>!(r.cells[1]||"").trim()||!(r.cells[2]||"").trim());
+    const hasPlateConflict=parsed.some((r,i)=>parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")));
+    $("truk-group-state").className="plan-status "+(hasMissing||hasPlateConflict?"warning":"valid");
+    $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(hasMissing?"Data truk belum lengkap":hasPlateConflict?"Perlu periksa driver":"Pengelompokan otomatis");
+    $("group-count").textContent=groups.size+" truk";
   }
   function openFinalConfirmation(){
     if(!checked||parsed.some(r=>r.errors.length))return;
-    if(type==="outbound"&&parsed.some(r=>!(r.cells[1]||"").trim()))return;
+    if(type==="outbound"&&parsed.some(r=>!(r.cells[1]||"").trim()||!(r.cells[2]||"").trim()))return;
     $("confirm-type").textContent=type==="inbound"?"Plan Inbound":"Plan Outbound";
     $("confirm-date").textContent=$("operational-date").value||"—";
     $("confirm-rows").textContent=String(parsed.length);
-    const groups=type==="inbound"?new Set(parsed.map(r=>r.cells[0]).filter(Boolean)).size:new Set(parsed.filter(r=>(r.cells[1]||"").trim()).map(r=>r.cells[1].trim()+"|"+(tripAssignments[parsed.indexOf(r)]||"Trip 1"))).size;
+    const groups=type==="inbound"?new Set(parsed.map(r=>(r.cells[0]||"").trim().toUpperCase()).filter(Boolean)).size:new Set(parsed.filter(r=>(r.cells[1]||"").trim()&&(r.cells[2]||"").trim()).map(r=>truckKey(r))).size;
     $("confirm-groups").textContent=String(groups);
     $("confirm-warning").innerHTML='<i class="bi bi-exclamation-triangle-fill me-2"></i>Ini adalah konfirmasi UI. Tidak ada data yang disimpan atau Plan yang diaktifkan.';
-    const headers=type==="inbound"?["DO / Transport task","Part number","Nama produk","QTY","Status"]:["Plat nomor","Shipment","Vendor","Driver","Tipe truck","Tujuan","Quantity","Kelompok Trip","Status"];
+    const headers=type==="inbound"?["DO / Transport task","Part number","Nama produk","QTY","Status"]:["Truk","Plat nomor","Nama driver","Shipment","Vendor","Tipe truck","Tujuan","Quantity","Status"];
     $("confirm-table-head").innerHTML="<tr>"+headers.map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("confirm-table-body").innerHTML=parsed.map((r,i)=>{
       const c=r.cells;
-      const vals=type==="inbound"?[c[0],c[1],c[2],c[3],r.warnings.length?"Perlu ditinjau":"Valid"]:[c[1],c[5],c[0],c[2],c[3],c[4],c[6],tripAssignments[i]||"Trip 1",r.warnings.length?"Perlu ditinjau":"Valid"];
+      const truckNo=type==="outbound"?1+parsed.slice(0,i+1).findIndex(row=>truckKey(row)===truckKey(r)):0; const truckNo=type==="outbound"?[...new Set(parsed.slice(0,i+1).filter(row=>(row.cells[1]||"").trim()&&(row.cells[2]||"").trim()).map(row=>truckKey(row)))].indexOf(truckKey(r))+1:0; const vals=type==="inbound"?[c[0],c[1],c[2],c[3],r.warnings.length?"Perlu ditinjau":"Valid"]:["Truk "+truckNo,c[1],c[2],c[5],c[0],c[3],c[4],c[6],r.warnings.length?"Perlu ditinjau":"Valid"];
       return "<tr>"+vals.map((v,j)=>"<td>"+((type==="outbound"&&(j===0||j===1))||(type==="inbound"&&j<2)?'<span class="plan-mono">'+textSafe(v||"—")+"</span>":textSafe(v||"—"))+"</td>").join("")+"</tr>";
     }).join("");
     bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).show();
@@ -384,7 +385,6 @@
   });
   $("reset-button").addEventListener("click",()=>{ $("operational-date").value="2026-10-14";$("paste-data").value=schemas[type].sample;resetDataCheck();toast("Data diatur ulang.")});
   $("confirm-button").addEventListener("click",openFinalConfirmation);
-  $("reset-trip-groups").addEventListener("click",()=>{tripAssignments={};renderTripGroups();toast("Kelompok Trip dikembalikan ke pilihan awal.");});
   $("confirm-import-final").addEventListener("click",()=>{bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).hide();toast("Konfirmasi UI selesai. Data belum disimpan dan Plan belum diaktifkan.");$("data-check-footer-note").textContent="Konfirmasi UI selesai. Tidak ada perubahan database.";});
   $("paste-data").value=schemas.inbound.sample;
   if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function")window.trcmComponentsReady.then(()=>{const title=document.querySelector("[data-page-title]");if(title)title.textContent="Impor Plan";const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";});
