@@ -249,7 +249,7 @@
     resetDataCheck();
   }
   function resetDataCheck(){
-    checked=false;parsed=[];$("confirm-button").disabled=true;
+    checked=false;parsed=[];tripAssignments={};$("trip-group-card").classList.add("d-none");$("confirm-button").disabled=true;
     $("data-check-state").className="plan-status warning";$("data-check-state").innerHTML='<i class="bi bi-hourglass-split"></i>Belum diperiksa';
     $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="0 kesalahan";$("warning-count").textContent="0 peringatan";
     $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Periksa data</strong> untuk memeriksa hasilnya.</div>';
