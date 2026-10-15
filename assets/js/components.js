@@ -390,6 +390,35 @@
     });
   }
 
+  function setupDesktopSidebar() {
+    const toggleButton = document.getElementById("desktop-sidebar-toggle");
+    if (!toggleButton) return;
+
+    const icon = toggleButton.querySelector("i");
+
+    function syncToggleState() {
+      const minimized = document.body.classList.contains("sidebar-minimized");
+      if (icon) icon.className = minimized ? "bi bi-chevron-bar-right" : "bi bi-chevron-bar-left";
+      toggleButton.setAttribute("aria-label", minimized ? "Perluas sidebar" : "Ciutkan sidebar");
+      toggleButton.setAttribute("title", minimized ? "Perluas sidebar" : "Ciutkan sidebar");
+    }
+
+    document.querySelectorAll("#sidebar [data-nav-key], #sidebar [data-menu-toggle]").forEach(function (item) {
+      const label = item.querySelector("span");
+      if (label && label.textContent.trim()) item.setAttribute("title", label.textContent.trim());
+    });
+
+    toggleButton.addEventListener("click", function () {
+      document.body.classList.toggle("sidebar-minimized");
+      syncToggleState();
+      window.setTimeout(function () {
+        window.dispatchEvent(new Event("resize"));
+      }, 300);
+    });
+
+    syncToggleState();
+  }
+
   function setupLogout() {
     const logoutButton = document.getElementById("account-logout");
 
@@ -445,6 +474,7 @@
     setPageTitle();
     setAccountNames();
     setupMobileSidebar();
+    setupDesktopSidebar();
     setupLogout();
     const profileButton = document.getElementById("profile-open");
     if (profileButton) profileButton.addEventListener("click", function () { window.location.href = "profil.html"; });
