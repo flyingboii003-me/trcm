@@ -369,7 +369,7 @@
     $("confirm-table-head").innerHTML="<tr>"+headers.map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("confirm-table-body").innerHTML=parsed.map((r,i)=>{
       const c=r.cells;
-      const truckNo=type==="outbound"?1+parsed.slice(0,i+1).findIndex(row=>truckKey(row)===truckKey(r)):0; const truckNo=type==="outbound"?[...new Set(parsed.slice(0,i+1).filter(row=>(row.cells[1]||"").trim()&&(row.cells[2]||"").trim()).map(row=>truckKey(row)))].indexOf(truckKey(r))+1:0; const vals=type==="inbound"?[c[0],c[1],c[2],c[3],r.warnings.length?"Perlu ditinjau":"Valid"]:["Truk "+truckNo,c[1],c[2],c[5],c[0],c[3],c[4],c[6],r.warnings.length?"Perlu ditinjau":"Valid"];
+      const truckNo=type==="outbound"?[...new Set(parsed.slice(0,i+1).filter(row=>(row.cells[1]||"").trim()&&(row.cells[2]||"").trim()).map(row=>truckKey(row)))].indexOf(truckKey(r))+1:0; const vals=type==="inbound"?[c[0],c[1],c[2],c[3],r.warnings.length?"Perlu ditinjau":"Valid"]:["Truk "+truckNo,c[1],c[2],c[5],c[0],c[3],c[4],c[6],r.warnings.length?"Perlu ditinjau":"Valid"];
       return "<tr>"+vals.map((v,j)=>"<td>"+((type==="outbound"&&(j===0||j===1))||(type==="inbound"&&j<2)?'<span class="plan-mono">'+textSafe(v||"—")+"</span>":textSafe(v||"—"))+"</td>").join("")+"</tr>";
     }).join("");
     bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).show();
