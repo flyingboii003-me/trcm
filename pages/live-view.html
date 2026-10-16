@@ -74,6 +74,42 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 .kanban-cards .truck-meta{font-size:.78rem}
 .kanban-empty{padding:22px 12px;color:var(--muted);text-align:center;font-size:.85rem}
 .kanban-message{grid-column:1/-1}
+.client-board{display:flex;flex-direction:column;gap:20px;min-width:0}
+.client-group{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;min-width:0}
+.client-group-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;background:var(--surface2);border-bottom:1px solid var(--border);border-top:5px solid var(--client-color,#6B7280)}
+.client-group-title{display:flex;align-items:center;gap:12px;min-width:0}
+.client-color-dot{width:13px;height:13px;flex:0 0 13px;border-radius:50%;background:var(--client-color,#6B7280)}
+.client-group-head h2{font-size:1.25rem;overflow-wrap:anywhere}
+.client-group-total{font:600 1rem "JetBrains Mono",monospace;padding:7px 11px;border:1px solid var(--border);background:var(--surface);border-radius:10px;white-space:nowrap}
+.client-activity-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+.client-activity{min-width:0;border:1px solid var(--border);border-radius:15px;overflow:hidden;background:var(--surface)}
+.client-activity-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.client-activity-title{display:flex;align-items:center;gap:10px;font-size:1.02rem;font-weight:800;margin:0}
+.client-activity-title i{font-size:1.25rem;color:var(--activity-color,var(--blue))}
+.client-activity-total{font:600 .88rem "JetBrains Mono",monospace;color:var(--muted);white-space:nowrap}
+.client-activity .counters{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:12px 12px 0}
+.client-activity .counter{padding:9px 8px;border-radius:10px}
+.client-activity .counter-label{font-size:.67rem;gap:5px}
+.client-activity .counter-dot{width:8px;height:8px}
+.client-activity .counter-value{font-size:1.45rem;margin-top:8px}
+.client-activity .kanban-cards{padding:12px}
+.client-activity .truck-row{border-left:5px solid var(--client-color,#6B7280);border-top:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-right:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-bottom:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);background:color-mix(in srgb,var(--client-color,#6B7280) 6%,white)}
+.client-activity .truck-row[data-status="registered"],.client-activity .truck-row[data-status="wh_in"]{--status-color:#7C889F}
+.client-activity .truck-row[data-status="queue"]{--status-color:#55627A}
+.client-activity .truck-row[data-status="started"]{--status-color:var(--orange)}
+.client-activity .truck-row[data-status="completed"]{--status-color:var(--green)}
+.client-activity .truck-row .status[data-status="registered"],.client-activity .truck-row .status[data-status="wh_in"]{background:#EAF4FF;border-color:#93C5FD;color:#005BA8}
+.client-activity .truck-row .status[data-status="queue"]{background:#FEF3C7;border-color:#FACC15;color:#92400E}
+.client-activity .truck-row .status[data-status="started"]{background:#FFEDD5;border-color:#FB923C;color:#9A3412}
+.client-activity .truck-row .status[data-status="completed"]{background:#DCFCE7;border-color:#86EFAC;color:#166534}
+.client-activity .truck-row[data-status="completed"]{--status-color:var(--green)}
+.client-activity .truck-row[data-status="started"]{--status-color:var(--orange)}
+.client-activity .truck-row[data-status="queue"]{--status-color:#D6A000}
+.client-activity .truck-row[data-status="registered"],.client-activity .truck-row[data-status="wh_in"]{--status-color:#006ECD}
+.client-activity .counter[data-status="completed"] .counter-dot{background:var(--green)}
+.client-activity .counter[data-status="started"] .counter-dot{background:var(--orange)}
+.client-activity .counter[data-status="queue"] .counter-dot{background:#D6A000}
+.client-activity .counter[data-status="registered"] .counter-dot{background:#006ECD}
 .counter[data-status="registered"] .counter-dot,.counter[data-status="wh_in"] .counter-dot,.truck-row[data-status="registered"],.truck-row[data-status="wh_in"]{--status-color:#7C889F}
 .counter[data-status="queue"] .counter-dot,.truck-row[data-status="queue"]{--status-color:#55627A}
 .counter[data-status="started"] .counter-dot,.truck-row[data-status="started"]{--status-color:var(--orange)}
@@ -86,8 +122,8 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 .status[data-status="completed"]{background:#EAF3FC;border-color:#A9CDEB;color:#005BA8}
 .footer{display:flex;justify-content:flex-end;gap:16px;color:var(--muted);font-size:.8rem;padding:18px 4px 0}
 [hidden]{display:none!important}
-@media(max-width:1100px){.panels{grid-template-columns:1fr}.counters{grid-template-columns:repeat(4,minmax(0,1fr))}.truck-list{display:block}.kanban-board{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
-@media(max-width:640px){body{padding:14px}.toolbar{align-items:stretch}.toolbar-group{width:100%}.toolbar-group .tool-button{flex:1}.live-header{align-items:flex-start;gap:12px}.brand{gap:10px}.brand-mark{width:42px;height:42px}.eyebrow{font-size:.65rem}h1{font-size:1.5rem}.clock-time{font-size:1.45rem}.clock-date{font-size:.75rem}.connection{font-size:.65rem}.panel-head{padding:16px}.counters{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 12px 0}.truck-list{display:block;padding:12px}.kanban-board{grid-template-columns:minmax(0,1fr)}.kanban-cards .truck-row{padding:12px}.kanban-cards .truck-side{align-items:flex-start;justify-content:flex-start}.total{font-size:1.5rem;min-width:60px;padding:10px}.footer{flex-direction:column}}
+@media(max-width:1100px){.panels{grid-template-columns:1fr}.counters{grid-template-columns:repeat(4,minmax(0,1fr))}.truck-list{display:block}.kanban-board{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.client-activity-board{gap:12px;padding:12px}.client-activity .counters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){body{padding:14px}.toolbar{align-items:stretch}.toolbar-group{width:100%}.toolbar-group .tool-button{flex:1}.live-header{align-items:flex-start;gap:12px}.brand{gap:10px}.brand-mark{width:42px;height:42px}.eyebrow{font-size:.65rem}h1{font-size:1.5rem}.clock-time{font-size:1.45rem}.clock-date{font-size:.75rem}.connection{font-size:.65rem}.panel-head{padding:16px}.counters{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 12px 0}.truck-list{display:block;padding:12px}.kanban-board{grid-template-columns:minmax(0,1fr)}.client-group-head{padding:14px}.client-group-head h2{font-size:1.05rem}.client-activity-board{grid-template-columns:minmax(0,1fr);padding:10px}.client-activity .counters{grid-template-columns:repeat(4,minmax(0,1fr))}.client-activity .counter{padding:8px 6px}.client-activity .counter-label{font-size:.61rem;gap:4px}.client-activity .counter-value{font-size:1.2rem}.kanban-cards .truck-row{padding:12px}.kanban-cards .truck-side{align-items:flex-start;justify-content:flex-start}.total{font-size:1.5rem;min-width:60px;padding:10px}.footer{flex-direction:column}}
 /* Final status badge palette: keep these rules after legacy overrides. */
 .status[data-status="registered"],
 .status[data-status="wh_in"]{background:#EAF4FF;border-color:#93C5FD;color:#005BA8}
@@ -107,27 +143,8 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 </header>
 <div class="toolbar" aria-label="Kontrol Live Dashboard"><div class="toolbar-group"><a class="tool-button" href="dashboard.html"><i class="bi bi-arrow-left" aria-hidden="true"></i>Kembali ke Dashboard</a><button class="tool-button primary" id="fullscreen-button" type="button" aria-label="Aktifkan tampilan layar penuh"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>Layar penuh</span></button></div></div>
 <div id="page-state" class="state" role="status"><i class="bi bi-arrow-repeat"></i>Memuat data armada...</div>
-<div id="live-panels" class="panels" hidden>
-  <section class="panel" aria-labelledby="inbound-title">
-    <div class="panel-head"><div class="panel-title"><i class="bi bi-box-arrow-in-down"></i><h2 id="inbound-title">Inbound</h2></div><div class="total" id="inbound-total">0</div></div>
-    <div class="counters">
-      <div class="counter" data-status="registered"><div class="counter-label"><span class="counter-dot"></span>Terdaftar</div><div class="counter-value" id="inbound-registered">0</div></div>
-      <div class="counter" data-status="queue"><div class="counter-label"><span class="counter-dot"></span>Parkir</div><div class="counter-value" id="inbound-queue">0</div></div>
-      <div class="counter" data-status="started"><div class="counter-label"><span class="counter-dot"></span>Proses</div><div class="counter-value" id="inbound-started">0</div></div>
-      <div class="counter" data-status="completed"><div class="counter-label"><span class="counter-dot"></span>Selesai</div><div class="counter-value" id="inbound-completed">0</div></div>
-    </div>
-    <div class="truck-list" id="inbound-list"></div>
-  </section>
-  <section class="panel" aria-labelledby="outbound-title">
-    <div class="panel-head"><div class="panel-title"><i class="bi bi-box-arrow-up"></i><h2 id="outbound-title">Outbound</h2></div><div class="total" id="outbound-total">0</div></div>
-    <div class="counters">
-      <div class="counter" data-status="registered"><div class="counter-label"><span class="counter-dot"></span>Terdaftar</div><div class="counter-value" id="outbound-registered">0</div></div>
-      <div class="counter" data-status="queue"><div class="counter-label"><span class="counter-dot"></span>Parkir</div><div class="counter-value" id="outbound-queue">0</div></div>
-      <div class="counter" data-status="started"><div class="counter-label"><span class="counter-dot"></span>Proses</div><div class="counter-value" id="outbound-started">0</div></div>
-      <div class="counter" data-status="completed"><div class="counter-label"><span class="counter-dot"></span>Selesai</div><div class="counter-value" id="outbound-completed">0</div></div>
-    </div>
-    <div class="truck-list" id="outbound-list"></div>
-  </section>
+<div id="live-panels" hidden>
+  <div id="client-board" class="client-board" aria-label="Kanban armada berdasarkan klien"></div>
 </div>
 <footer class="footer"><span id="updated-at">Pembaruan terakhir: —</span></footer>
 </main>
@@ -146,35 +163,48 @@ function statusOf(v){return labels[v.process_status]?v.process_status:"registere
 function activityOf(v){return v.activity_type==="inbound"?"Inbound":"Outbound";}
 function formatDuration(v){const start=v.wh_in_at||v.registered_at||v.created_at;if(!start)return"—";const mins=Math.max(0,Math.floor((Date.now()-new Date(start).getTime())/60000));return Math.floor(mins/60)+"j "+String(mins%60).padStart(2,"0")+"m";}
 function formatTime(v){const value=v.started_at||v.registered_at||v.wh_in_at;if(!value)return"Jam masuk belum tersedia";return"Masuk "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(new Date(value));}
-function renderPanel(type){
- const rows=visits.filter(v=>v.activity_type===type&&!v.wh_out_at).sort((a,b)=>new Date(a.wh_in_at||a.registered_at||a.created_at||0)-new Date(b.wh_in_at||b.registered_at||b.created_at||0));
- const prefix=type==="inbound"?"inbound":"outbound";
- document.getElementById(prefix+"-total").textContent=String(rows.length);
- ["registered","queue","started","completed"].forEach(status=>{document.getElementById(prefix+"-"+status).textContent=String(rows.filter(v=>statusOf(v)===status||(status==="registered"&&statusOf(v)==="wh_in")).length);});
- const board=document.getElementById(prefix+"-list");
- const groups=new Map();
- rows.forEach(visit=>{
-   const clientName=visit.clients&&visit.clients.name?String(visit.clients.name):"Klien belum diisi";
-   if(!groups.has(clientName))groups.set(clientName,[]);
-   groups.get(clientName).push(visit);
- });
- if(!groups.size){board.innerHTML='<div class="state kanban-message"><i class="bi bi-truck"></i>Tidak ada armada aktif untuk '+(type==="inbound"?"Inbound":"Outbound")+'.</div>';return;}
- board.innerHTML='<div class="kanban-board">'+Array.from(groups.entries()).map(([clientName,clientRows])=>{
-   const cards=clientRows.slice(0,16).map(v=>{
-     const status=statusOf(v),card=v.cards&&v.cards.card_number?v.cards.card_number:"Tanpa kartu";
-     const vendor=v.vendor||"Vendor belum diisi";
-     const gate=v.gates&&v.gates.gate_number?" · Gate "+v.gates.gate_number:"";
-     const line=v.line_numbers&&v.line_numbers.line_number?" · Line "+v.line_numbers.line_number:"";
-     const driver=v.driver_name||"Pengemudi belum diisi";
-     const shipment=v.shipment_number?" · Shipment "+v.shipment_number:"";
-     const destination=v.destination_city?" · Tujuan "+v.destination_city:"";
-     return '<article class="truck-row" data-status="'+esc(status)+'"><div class="truck-main"><div class="plate">'+esc(v.plate_number||"Plat belum diisi")+'</div><div class="truck-meta">'+esc(card)+' · '+esc(vendor)+' · '+esc(driver)+'<br>'+esc(gate)+esc(line)+esc(shipment)+esc(destination)+' · '+esc(formatTime(v))+'</div></div><div class="truck-side"><span class="status" data-status="'+esc(status)+'">'+esc(labels[status]||"Terdaftar")+'</span><span class="duration">'+esc(formatDuration(v))+'</span></div></article>';
-   }).join("");
-   const more=clientRows.length>16?'<div class="truck-meta">Menampilkan 16 dari '+clientRows.length+' armada aktif.</div>':"";
-   return '<section class="kanban-column" aria-label="Klien '+esc(clientName)+'"><header class="kanban-column-head"><h3 class="kanban-client">'+esc(clientName)+'</h3><span class="kanban-count">'+clientRows.length+' armada</span></header><div class="kanban-cards">'+(cards||'<div class="kanban-empty">Tidak ada armada aktif.</div>')+more+'</div></section>';
- }).join("")+'</div>';
+const clientPalette={"kimberly clark":"#006ECD","henkel":"#EF151E","modena":"#111111"};
+const statusPalette={registered:"#006ECD",wh_in:"#006ECD",queue:"#D6A000",started:"#F97316",completed:"#16A34A"};
+function clientColor(name){return clientPalette[String(name||"").trim().toLowerCase()]||"#6B7280";}
+function renderCounters(rows,prefix){
+ const definitions=[["registered","Terdaftar"],["queue","Parkir"],["started","Proses"],["completed","Selesai"]];
+ return '<div class="counters">'+definitions.map(([status,label])=>'<div class="counter" data-status="'+status+'"><div class="counter-label"><span class="counter-dot"></span>'+label+'</div><div class="counter-value">'+rows.filter(v=>statusOf(v)===status||(status==="registered"&&statusOf(v)==="wh_in")).length+'</div></div>').join("")+'</div>';
 }
-function render(){renderPanel("inbound");renderPanel("outbound");panels.hidden=false;pageState.hidden=true;document.getElementById("updated-at").textContent="Pembaruan terakhir: "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date());}
+function renderTruckCard(v,color){
+ const status=statusOf(v),card=v.cards&&v.cards.card_number?v.cards.card_number:"Tanpa kartu";
+ const vendor=v.vendor||"Vendor belum diisi";
+ const gate=v.gates&&v.gates.gate_number?" · Gate "+v.gates.gate_number:"";
+ const line=v.line_numbers&&v.line_numbers.line_number?" · Line "+v.line_numbers.line_number:"";
+ const driver=v.driver_name||"Pengemudi belum diisi";
+ const shipment=v.shipment_number?" · Shipment "+v.shipment_number:"";
+ const destination=v.destination_city?" · Tujuan "+v.destination_city:"";
+ return '<article class="truck-row" data-status="'+esc(status)+'" style="--client-color:'+color+';--status-color:'+(statusPalette[status]||statusPalette.registered)+'"><div class="truck-main"><div class="plate">'+esc(v.plate_number||"Plat belum diisi")+'</div><div class="truck-meta">'+esc(card)+' · '+esc(vendor)+' · '+esc(driver)+'<br>'+esc(gate)+esc(line)+esc(shipment)+esc(destination)+' · '+esc(formatTime(v))+'</div></div><div class="truck-side"><span class="status" data-status="'+esc(status)+'">'+esc(labels[status]||"Terdaftar")+'</span><span class="duration">'+esc(formatDuration(v))+'</span></div></article>';
+}
+function renderActivityColumn(clientName,type,rows,color){
+ const inbound=type==="inbound",label=inbound?"Inbound":"Outbound",icon=inbound?"bi-box-arrow-in-down":"bi-box-arrow-up";
+ const cards=rows.slice(0,16).map(v=>renderTruckCard(v,color)).join("");
+ const more=rows.length>16?'<div class="truck-meta">Menampilkan 16 dari '+rows.length+' armada aktif.</div>':"";
+ return '<section class="client-activity" style="--client-color:'+color+';--activity-color:'+(inbound?"#006ECD":"#EF151E")+'" aria-label="'+esc(clientName+" "+label)+'"><header class="client-activity-head"><h3 class="client-activity-title"><i class="bi '+icon+'" aria-hidden="true"></i>'+label+'</h3><span class="client-activity-total">'+rows.length+' armada</span></header>'+renderCounters(rows,type)+'<div class="kanban-cards">'+(cards||'<div class="kanban-empty">Tidak ada armada '+label+' aktif.</div>')+more+'</div></section>';
+}
+function render(){
+ const active=visits.filter(v=>!v.wh_out_at&&(v.activity_type==="inbound"||v.activity_type==="outbound")).sort((a,b)=>new Date(a.wh_in_at||a.registered_at||a.created_at||0)-new Date(b.wh_in_at||b.registered_at||b.created_at||0));
+ const groups=new Map();
+ active.forEach(visit=>{
+   const clientName=visit.clients&&visit.clients.name?String(visit.clients.name):"Klien belum diisi";
+   if(!groups.has(clientName))groups.set(clientName,{inbound:[],outbound:[]});
+   groups.get(clientName)[visit.activity_type].push(visit);
+ });
+ const board=document.getElementById("client-board");
+ if(!groups.size){board.innerHTML='<div class="state kanban-message"><i class="bi bi-truck"></i>Tidak ada armada aktif untuk ditampilkan.</div>';}
+ else{
+   board.innerHTML=Array.from(groups.entries()).sort((a,b)=>a[0].localeCompare(b[0],"id")).map(([clientName,activities])=>{
+     const color=clientColor(clientName),total=activities.inbound.length+activities.outbound.length;
+     return '<section class="client-group" style="--client-color:'+color+'" aria-label="Klien '+esc(clientName)+'"><header class="client-group-head"><div class="client-group-title"><span class="client-color-dot" aria-hidden="true"></span><h2>'+esc(clientName)+'</h2></div><span class="client-group-total">'+total+' armada aktif</span></header><div class="client-activity-board">'+renderActivityColumn(clientName,"inbound",activities.inbound,color)+renderActivityColumn(clientName,"outbound",activities.outbound,color)+'</div></section>';
+   }).join("");
+ }
+ panels.hidden=false;pageState.hidden=true;
+ document.getElementById("updated-at").textContent="Pembaruan terakhir: "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date());
+}
 async function request(path,options){const response=await fetch(SUPABASE_URL+path,Object.assign({headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}},options||{}));let data=null;try{data=await response.json();}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)||"Permintaan data Live View gagal.");return data;}
 async function loadVisits(){try{const select="id,plate_number,driver_name,activity_type,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,shipment_number,destination_city,vendor,card_id,client_id,gate_id,line_number_id,cards(card_number),clients(name),gates(gate_number),line_numbers(line_number)";const data=await request("/rest/v1/visits?select="+encodeURIComponent(select)+"&wh_out_at=is.null&order=created_at.asc");if(!Array.isArray(data))throw new Error("Respons data Live View tidak valid.");visits=data;render();}catch(error){console.error("TRCM Live View:",error);if(!panels.hidden){connection.classList.remove("is-live");connectionLabel.textContent="Data tertunda · mencoba lagi";}else{pageState.innerHTML='<i class="bi bi-exclamation-triangle"></i>Data Live View gagal dimuat. Periksa koneksi atau akses Viewer, lalu muat ulang halaman.';pageState.setAttribute("role","alert");}}}
 async function checkPermission(){if(!session||!session.access_token||!session.user){location.replace("../index.html");return false;}const rows=await request("/rest/v1/rpc/get_my_permissions",{method:"POST",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:"{}"});if(!Array.isArray(rows)||!rows.some(r=>r.resource_key==="live_view"&&r.permission_key==="view")){pageState.innerHTML='<i class="bi bi-shield-lock"></i>Akses Live View tidak tersedia untuk akun ini.';pageState.setAttribute("role","alert");return false;}return true;}
