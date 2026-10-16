@@ -103,12 +103,19 @@
           </div>
           <div class="plan-card-body">
             <div class="row g-3 mb-4">
-              <div class="col-md-5">
+              <div class="col-md-4">
+                <label class="plan-field-label" for="plan-client">Klien <span class="plan-required">*</span></label>
+                <select class="form-select plan-input" id="plan-client" required>
+                  <option value="">Memuat daftar klien...</option>
+                </select>
+                <div class="plan-hint" id="plan-client-hint">Pilih klien untuk menentukan data Plan yang akan diperiksa.</div>
+              </div>
+              <div class="col-md-3">
                 <label class="plan-field-label" for="operational-date">Tanggal operasional <span class="plan-required">*</span></label>
                 <input class="form-control plan-input" id="operational-date" type="date" value="2026-10-14" required>
                 <div class="plan-hint">Plan akan dikelompokkan berdasarkan tanggal ini.</div>
               </div>
-              <div class="col-md-7">
+              <div class="col-md-5">
                 <label class="plan-field-label" for="plan-template-name">Template yang dipilih</label>
                 <div class="form-control plan-input d-flex align-items-center justify-content-between" id="plan-template-name" aria-live="polite"><span><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i><strong>Template Inbound</strong></span><button class="btn btn-sm btn-outline-primary" type="button" id="copy-template"><i class="bi bi-clipboard me-1"></i>Salin header</button></div>
                 <div class="plan-hint" id="template-hint">Nomor DO wajib diisi pada setiap baris. DO yang sama menandakan truk yang sama.</div>
@@ -191,6 +198,7 @@
       </div>
       <div class="modal-body">
         <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Klien</div><strong id="confirm-client">—</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Jenis Plan</div><strong id="confirm-type">Outbound</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Tanggal operasional</div><strong id="confirm-date">—</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Baris detail</div><strong id="confirm-rows">0</strong></div></div>
@@ -236,6 +244,31 @@
   };
   let type="inbound", checked=false, parsed=[];
   const $=id=>document.getElementById(id);
+  const session=typeof getTrcmSession==="function"?getTrcmSession():null;
+  async function loadClients(){
+    const select=$("plan-client");
+    if(!session||!session.access_token){
+      select.innerHTML='<option value="">Daftar klien tidak tersedia</option>';
+      $("plan-client-hint").textContent="Masuk kembali untuk memuat daftar klien dari Master Data.";
+      select.disabled=true;
+      return;
+    }
+    try{
+      const response=await fetch(SUPABASE_URL+"/rest/v1/clients?select=id,name&order=name.asc",{
+        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}
+      });
+      const rows=await response.json();
+      if(!response.ok||!Array.isArray(rows))throw new Error("Daftar klien tidak dapat dimuat.");
+      select.innerHTML='<option value="">Pilih klien</option>'+rows.map(client=>'<option value="'+textSafe(client.id)+'">'+textSafe(client.name)+'</option>').join("");
+      select.disabled=rows.length===0;
+      $("plan-client-hint").textContent=rows.length?"Pilih klien yang sesuai dengan data Excel.":"Belum ada klien pada Master Data.";
+    }catch(error){
+      console.error("TRCM Impor Plan clients:",error);
+      select.innerHTML='<option value="">Gagal memuat daftar klien</option>';
+      select.disabled=true;
+      $("plan-client-hint").textContent="Periksa koneksi dan izin akses Master Data, lalu muat ulang halaman.";
+    }
+  }
   const textSafe=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
   function toast(message){$("toast-message").textContent=message;$("plan-toast").classList.add("show");window.setTimeout(()=>$("plan-toast").classList.remove("show"),4200)}
   function setType(next){
@@ -267,6 +300,16 @@
     return {headers,rows};
   }
   function validate(){
+    if(!$("plan-client").value){
+      checked=true;parsed=[];$("truk-group-card").classList.add("d-none");$("confirm-button").disabled=true;
+      $("data-check-state").className="plan-status invalid";$("data-check-state").innerHTML='<i class="bi bi-x-circle-fill"></i>Klien belum dipilih';
+      $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-exclamation-circle-fill" style="color:#B4232A"></i><div>Pilih klien sebelum memeriksa data Plan.</div>';
+      $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="1 kesalahan";$("warning-count").textContent="0 peringatan";
+      $("data-check-head").innerHTML="<tr><th>Masalah</th><th>Tindakan yang diperlukan</th></tr>";
+      $("data-check-body").innerHTML='<tr class="row-invalid"><td><span class="plan-status invalid">Klien wajib dipilih</span></td><td>Pilih klien pada bagian Atur impor.</td></tr>';
+      $("data-check-footer-note").textContent="Pilih klien lalu jalankan pemeriksaan data kembali.";
+      return;
+    }
     const result=parseRows();
     if(result.fatal){
       checked=true;parsed=[];$("truk-group-card").classList.add("d-none");$("confirm-button").disabled=true;
@@ -359,6 +402,7 @@
   function openFinalConfirmation(){
     if(!checked||parsed.some(r=>r.errors.length))return;
     if(type==="outbound"&&parsed.some(r=>!(r.cells[1]||"").trim()||!(r.cells[2]||"").trim()))return;
+    $("confirm-client").textContent=$("plan-client").selectedOptions[0]?.textContent||"—";
     $("confirm-type").textContent=type==="inbound"?"Plan Inbound":"Plan Outbound";
     $("confirm-date").textContent=$("operational-date").value||"—";
     $("confirm-rows").textContent=String(parsed.length);
@@ -377,6 +421,7 @@
 
   document.querySelectorAll("[data-plan-type]").forEach(b=>b.addEventListener("click",()=>setType(b.dataset.planType)));
   $("data-check-button").addEventListener("click",validate);
+  $("plan-client").addEventListener("change",resetDataCheck);
   $("restore-example").addEventListener("click",()=>{ $("paste-data").value=schemas[type].sample;resetDataCheck();toast("Contoh "+(type==="inbound"?"Inbound":"Outbound")+" dimuat.")});
   $("copy-template").addEventListener("click",async()=>{
     const header=schemas[type].headers.join("\t");
@@ -387,6 +432,7 @@
   $("confirm-button").addEventListener("click",openFinalConfirmation);
   $("confirm-import-final").addEventListener("click",()=>{bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).hide();toast("Konfirmasi UI selesai. Data belum disimpan dan Plan belum diaktifkan.");$("data-check-footer-note").textContent="Konfirmasi UI selesai. Tidak ada perubahan database.";});
   $("paste-data").value=schemas.inbound.sample;
+  loadClients();
   if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function")window.trcmComponentsReady.then(()=>{const title=document.querySelector("[data-page-title]");if(title)title.textContent="Impor Plan";const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";});
 })();
 </script>
