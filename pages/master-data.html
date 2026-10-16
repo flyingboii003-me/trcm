@@ -140,13 +140,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
 (function () {
   "use strict";
 
-  const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 
   let session = null;
   let activeTab = "cards";
@@ -277,20 +276,6 @@
     modalKicker: document.getElementById("master-modal-kicker"),
     save: document.getElementById("master-save")
   };
-
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, function (character) {
-      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
-    });
-  }
-
-  function getSession() {
-    try {
-      return JSON.parse(sessionStorage.getItem("trcm_session") || "null");
-    } catch {
-      return null;
-    }
-  }
 
   function getRole(value) {
     if (!value || typeof value !== "object") return "";
@@ -788,7 +773,7 @@
   });
 
   async function init() {
-    session = getSession();
+    session = getTrcmSession();
 
     if (!session || !session.access_token) {
       window.location.replace("../index.html");

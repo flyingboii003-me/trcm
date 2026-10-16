@@ -50,11 +50,11 @@
 
   function setupPageRealtime() {
     if (realtimeClient || !pageRefreshCallback) return;
-    const session = (() => { try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { return null; } })();
+    const session = getTrcmSession();
     if (!session || !session.access_token) return;
     function connect() {
       if (!window.supabase || !window.supabase.createClient) return;
-      realtimeClient = window.supabase.createClient("https://pcednpmjyfkuomfcmian.supabase.co", "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp");
+      realtimeClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
       realtimeClient.realtime.setAuth(session.access_token);
       realtimeClient.channel("trcm-live-" + (window.location.pathname.split("/").pop() || "dashboard"))
         .on("postgres_changes", { event: "*", schema: "public", table: "visits" }, queueRealtimeRefresh)
@@ -111,6 +111,7 @@
     if (page === "selesai-loading.html") return "selesai-loading";
     if (page === "checker.html") return "checker";
     if (page === "master-data.html") return "master-data";
+    if (page === "impor-plan.html") return "impor-plan";
     if (page === "user-role.html") return "user-role";
     if (page === "profil.html") return "profil";
     if (page === "live-view.html") return "live-view";
@@ -142,17 +143,14 @@
   }
 
   async function loadMyMenuPermissions() {
-    const session = (() => {
-      try { return JSON.parse(sessionStorage.getItem("trcm_session") || "null"); }
-      catch { return null; }
-    })();
+    const session = getTrcmSession();
     const accessToken = session && session.access_token;
     if (!accessToken) return null;
 
-    const response = await fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_permissions", {
+    const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_my_permissions", {
       method: "POST",
       headers: {
-        "apikey": "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+        "apikey": SUPABASE_PUBLISHABLE_KEY,
         "Authorization": "Bearer " + accessToken,
         "Content-Type": "application/json"
       },
@@ -315,11 +313,7 @@
   function setAccountNames() {
     let session = null;
 
-    try {
-      session = JSON.parse(sessionStorage.getItem("trcm_session") || "null");
-    } catch {
-      session = null;
-    }
+    session = getTrcmSession();
 
     const accountName = document.getElementById("account-name");
     const accountMenuName = document.getElementById("account-menu-name");
@@ -337,11 +331,11 @@
 
     if (!session || !session.access_token) return;
 
-    fetch("https://pcednpmjyfkuomfcmian.supabase.co/rest/v1/rpc/get_my_profile", {
+    fetch(SUPABASE_URL + "/rest/v1/rpc/get_my_profile", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp",
+        apikey: SUPABASE_PUBLISHABLE_KEY,
         Authorization: "Bearer " + session.access_token
       },
       body: "{}"
@@ -392,6 +386,56 @@
     window.addEventListener("resize", function () {
       if (window.innerWidth >= 1200) {
         closeSidebar();
+      }
+    });
+  }
+
+  function setupDesktopSidebar() {
+    const toggleButton = document.getElementById("desktop-sidebar-toggle");
+    if (!toggleButton) return;
+
+    const icon = toggleButton.querySelector("i");
+    const storageKey = "trcm_sidebar_minimized";
+
+    function isDesktop() {
+      return window.innerWidth > 1200;
+    }
+
+    function syncToggleState() {
+      const minimized = document.body.classList.contains("sidebar-minimized");
+      if (icon) icon.className = minimized ? "bi bi-chevron-bar-right" : "bi bi-chevron-bar-left";
+      toggleButton.setAttribute("aria-label", minimized ? "Perluas sidebar" : "Ciutkan sidebar");
+      toggleButton.setAttribute("title", minimized ? "Perluas sidebar" : "Ciutkan sidebar");
+    }
+
+    document.querySelectorAll("#sidebar [data-nav-key], #sidebar [data-menu-toggle]").forEach(function (item) {
+      const label = item.querySelector("span");
+      if (label && label.textContent.trim()) item.setAttribute("title", label.textContent.trim());
+    });
+
+    function applySavedState() {
+      const minimized = window.localStorage.getItem(storageKey) === "true";
+      document.body.classList.toggle("sidebar-minimized", isDesktop() && minimized);
+      syncToggleState();
+    }
+
+    toggleButton.addEventListener("click", function () {
+      if (!isDesktop()) return;
+      const minimized = !document.body.classList.contains("sidebar-minimized");
+      document.body.classList.toggle("sidebar-minimized", minimized);
+      window.localStorage.setItem(storageKey, String(minimized));
+      syncToggleState();
+      window.setTimeout(function () {
+        window.dispatchEvent(new Event("resize"));
+      }, 300);
+    });
+
+    applySavedState();
+    window.addEventListener("resize", function () {
+      if (!isDesktop()) {
+        document.body.classList.remove("sidebar-minimized");
+      } else {
+        applySavedState();
       }
     });
   }
@@ -451,6 +495,7 @@
     setPageTitle();
     setAccountNames();
     setupMobileSidebar();
+    setupDesktopSidebar();
     setupLogout();
     const profileButton = document.getElementById("profile-open");
     if (profileButton) profileButton.addEventListener("click", function () { window.location.href = "profil.html"; });
@@ -510,9 +555,4 @@
       '<span class="status-dot"></span>' + escapeHtml(label) + '</span>';
   };
 
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, function (character) {
-      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
-    });
-  }
 })();

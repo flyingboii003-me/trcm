@@ -43,32 +43,32 @@
         <div class="row g-3 mb-4">
           <div class="col-12 col-sm-6 col-xl-3"><div class="card card-stat d-flex flex-column justify-content-between h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Menunggu</div><div class="stat-value stat-value-with-unit" id="stat-waiting">—</div><div class="stat-note" id="stat-waiting-note">Hari ini: — · Kemarin: —</div>
+            <div class="stat-label">Menunggu</div><div class="stat-value stat-value-with-unit" id="stat-waiting">—</div><div class="stat-note" id="stat-waiting-note">Data hari ini</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note" id="stat-process-note">Hari ini: — · Kemarin: —</div>
+            <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note" id="stat-process-note">Data hari ini</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
-            <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note" id="stat-done-note">Hari ini: — · Kemarin: —</div>
+            <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note" id="stat-done-note">Data hari ini</div>
           </div></div></div>
           <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
             <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
-            <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note" id="stat-average-note">Hari ini: — · Kemarin: —</div>
+            <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note" id="stat-average-note">Data hari ini</div>
           </div></div></div>
         </div>
 
         <div class="row g-3 mb-4 dashboard-chart-row">
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi armada hari ini dibandingkan dengan hari sebelumnya.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi armada berdasarkan status hari ini.</p></div></div>
               <div class="card-body"><div id="status-overview" class="status-overview" aria-label="Status armada"></div></div>
             </section>
           </div>
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Tipe aktivitas armada</h3><p>Perbandingan hari ini dan hari sebelumnya.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Tipe aktivitas armada</h3><p>Jumlah armada hari ini.</p></div></div>
               <div class="card-body"><div id="destination-chart" class="operational-chart" aria-label="Grafik tipe aktivitas armada"></div></div>
             </section>
           </div>
@@ -77,13 +77,13 @@
         <div class="row g-3 mb-4 dashboard-chart-row">
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by vendor</h3><p>Perbandingan jumlah armada hari ini dan hari sebelumnya.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by vendor</h3><p>Jumlah armada hari ini.</p></div></div>
               <div class="card-body"><div id="vendor-chart" class="operational-chart" aria-label="Grafik jumlah armada by vendor"></div><div id="vendor-chart-legend" class="chart-category-legend" aria-label="Legenda vendor"></div></div>
             </section>
           </div>
           <div class="col-12 col-xl-6">
             <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by klien</h3><p>Perbandingan jumlah armada hari ini dan hari sebelumnya.</p></div></div>
+              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by klien</h3><p>Jumlah armada hari ini.</p></div></div>
               <div class="card-body"><div id="client-chart" class="operational-chart" aria-label="Grafik jumlah armada by klien"></div><div id="client-chart-legend" class="chart-category-legend" aria-label="Legenda klien"></div></div>
             </section>
           </div>
@@ -110,11 +110,10 @@
 
 <div id="visit-detail-container"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
 window.trcmComponentsReady.then(async function () {
-const SUPABASE_URL = "https://pcednpmjyfkuomfcmian.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 const recentTable = document.getElementById("recent-truck-table");
 const recentResultCount = document.getElementById("recent-result-count");
 let trcmSession = null;
@@ -123,17 +122,12 @@ let activityChart = null;
 let vendorChart = null;
 let clientChart = null;
 
-try { trcmSession = JSON.parse(sessionStorage.getItem("trcm_session") || "null"); } catch { trcmSession = null; }
+trcmSession = getTrcmSession();
 if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
   window.location.replace("../index.html");
   return;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, function (character) {
-    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
-  });
-}
 function localDateKey(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -148,12 +142,6 @@ function localDateKey(value) {
     return result;
   }, {});
   return parts.year + "-" + parts.month + "-" + parts.day;
-}
-function shiftDateKey(key, days) {
-  const parts = key.split("-").map(Number);
-  const date = new Date(parts[0], parts[1] - 1, parts[2]);
-  date.setDate(date.getDate() + days);
-  return localDateKey(date);
 }
 function formatTime(value) {
   if (!value) return "—";
@@ -184,29 +172,21 @@ function averageWarehouseMinutes(dayKey) {
   }, 0);
   return total / rows.length;
 }
-function setComparison(elementId, todayValue, yesterdayValue, formatter) {
-  const element = document.getElementById(elementId);
-  if (!element) return;
-  element.textContent = "Hari ini: " + formatter(todayValue) + " · Kemarin: " + formatter(yesterdayValue);
-}
-function renderStats(todayKey, yesterdayKey) {
-  const waiting = function (v) { return v.process_status === "wh_in" || v.process_status === "registered"; };
-  const processing = function (v) { return v.process_status === "queue" || v.process_status === "started"; };
-  const done = function (v) { return v.process_status === "completed"; };
-  const values = {
-    waiting:[countForDay(todayKey,waiting),countForDay(yesterdayKey,waiting)],
-    processing:[countForDay(todayKey,processing),countForDay(yesterdayKey,processing)],
-    done:[countForDay(todayKey,done),countForDay(yesterdayKey,done)],
-    average:[averageWarehouseMinutes(todayKey),averageWarehouseMinutes(yesterdayKey)]
-  };
-  document.getElementById("stat-waiting").textContent = values.waiting[0] + " Armada";
-  document.getElementById("stat-process").textContent = values.processing[0] + " Armada";
-  document.getElementById("stat-done").textContent = values.done[0] + " Armada";
-  document.getElementById("stat-average").textContent = formatDuration(values.average[0]);
-  setComparison("stat-waiting-note",values.waiting[0],values.waiting[1],v => v + " armada");
-  setComparison("stat-process-note",values.processing[0],values.processing[1],v => v + " armada");
-  setComparison("stat-done-note",values.done[0],values.done[1],v => v + " armada");
-  setComparison("stat-average-note",values.average[0],values.average[1],formatDuration);
+function renderStats(todayKey) {
+  const waiting = v => v.process_status === "wh_in" || v.process_status === "registered";
+  const processing = v => v.process_status === "queue" || v.process_status === "started";
+  const done = v => v.process_status === "completed";
+  const waitingCount = countForDay(todayKey, waiting);
+  const processingCount = countForDay(todayKey, processing);
+  const doneCount = countForDay(todayKey, done);
+  document.getElementById("stat-waiting").textContent = waitingCount + " Armada";
+  document.getElementById("stat-process").textContent = processingCount + " Armada";
+  document.getElementById("stat-done").textContent = doneCount + " Armada";
+  document.getElementById("stat-average").textContent = formatDuration(averageWarehouseMinutes(todayKey));
+  document.getElementById("stat-waiting-note").textContent = "Pendaftaran hari ini";
+  document.getElementById("stat-process-note").textContent = "Proses hari ini";
+  document.getElementById("stat-done-note").textContent = "Selesai hari ini";
+  document.getElementById("stat-average-note").textContent = "Kunjungan selesai hari ini";
 }
 function statusCount(visit, dayKey) {
   if (localDateKey(visit.wh_in_at || visit.registered_at || visit.created_at) !== dayKey) return null;
@@ -272,57 +252,23 @@ function destroyCharts() {
   [activityChart,vendorChart,clientChart].forEach(function(c){if(c)c.destroy();});
   activityChart = vendorChart = clientChart = null;
 }
-function renderCharts(todayKey,yesterdayKey) {
+function renderCharts(todayKey) {
   if (typeof ApexCharts === "undefined") return;
   destroyCharts();
-  const base = {
-    chart:{type:"bar",height:230,toolbar:{show:false},zoom:{enabled:false},fontFamily:"Plus Jakarta Sans, sans-serif"},
-    states:{hover:{filter:{type:"none"}}},dataLabels:{enabled:false},
-    grid:{borderColor:"#E9EFEF",strokeDashArray:4},
-    tooltip:{theme:"dark"},legend:{position:"top",horizontalAlign:"right",fontFamily:"Plus Jakarta Sans, sans-serif",fontSize:"11px"}
-  };
-  const byDay = function(dayKey,predicate){return visits.filter(function(v){return localDateKey(v.wh_in_at||v.registered_at||v.created_at)===dayKey&&predicate(v);}).length;};
-  const activityValues = function(day){return ["inbound","outbound"].map(k=>byDay(day,v=>v.activity_type===k));};
-  activityChart = new ApexCharts(document.querySelector("#destination-chart"),{
-    ...base,series:[{name:"Hari ini",data:activityValues(todayKey)},{name:"Kemarin",data:activityValues(yesterdayKey)}],
-    plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},xaxis:{categories:["Inbound","Outbound"],axisBorder:{show:false},axisTicks:{show:false}},colors:["#006ECD","#A7B0AC"]
-  });
-  const buildCounts=function(field){
-    const t={},y={};
-    visits.forEach(function(v){
-      const day=localDateKey(v.wh_in_at||v.registered_at||v.created_at);
-      const name=field==="vendor"?String(v.vendor||"Tanpa vendor").trim()||"Tanpa vendor":String((v.clients&&v.clients.name)||"Tanpa klien").trim()||"Tanpa klien";
-      if(day===todayKey)t[name]=(t[name]||0)+1;
-      if(day===yesterdayKey)y[name]=(y[name]||0)+1;
-    });
-    const names=Array.from(new Set(Object.keys(t).concat(Object.keys(y)))).sort((a,b)=>(t[b]||0)+(y[b]||0)-(t[a]||0)-(y[a]||0)).slice(0,6);
-    return {names:names,today:names.map(n=>t[n]||0),yesterday:names.map(n=>y[n]||0)};
+  const base = {chart:{type:"bar",height:230,toolbar:{show:false},zoom:{enabled:false},fontFamily:"Plus Jakarta Sans, sans-serif"},states:{hover:{filter:{type:"none"}}},dataLabels:{enabled:false},grid:{borderColor:"#E9EFEF",strokeDashArray:4},tooltip:{theme:"dark"},legend:{show:false}};
+  const todayVisits = visits.filter(v => localDateKey(v.wh_in_at||v.registered_at||v.created_at) === todayKey);
+  const activityValues = ["inbound","outbound"].map(type => todayVisits.filter(v => v.activity_type === type).length);
+  activityChart = new ApexCharts(document.querySelector("#destination-chart"),{...base,series:[{name:"Hari ini",data:activityValues}],plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},xaxis:{categories:["Inbound","Outbound"],axisBorder:{show:false},axisTicks:{show:false}},colors:["#006ECD"]});
+  const buildCounts = field => {
+    const counts={};
+    todayVisits.forEach(v => {const name=field==="vendor"?String(v.vendor||"Tanpa vendor").trim()||"Tanpa vendor":String((v.clients&&v.clients.name)||"Tanpa klien").trim()||"Tanpa klien";counts[name]=(counts[name]||0)+1;});
+    const names=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]).slice(0,6);
+    return {names,values:names.map(n=>counts[n]||0)};
   };
   const vendor=buildCounts("vendor");
-  vendorChart=new ApexCharts(document.querySelector("#vendor-chart"),{
-    ...base,series:[{name:"Hari ini",data:vendor.today},{name:"Kemarin",data:vendor.yesterday}],
-    plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},xaxis:{categories:vendor.names,labels:{show:false}},yaxis:{show:true,labels:{show:true,maxWidth:120,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"}}},colors:["#006ECD","#A7B0AC"]
-  });
-  const client=buildCounts("client");
-  const clientColor={"kimberly clark":"#006ECD",henkel:"#EF151E",modena:"#111111"};
-  const clientTarget=document.querySelector("#client-chart");
-  if(clientTarget){
-    const maxValue=Math.max(1,...client.today,...client.yesterday);
-    clientTarget.classList.add("client-overview");
-    clientTarget.innerHTML=client.names.length
-      ? '<div class="small text-muted mb-3">Hari ini dan kemarin · warna mengikuti klien</div>' +
-        client.names.map(function(name,index){
-          const color=clientColor[name.toLowerCase()]||"#6B7280";
-          const todayWidth=Math.max(client.today[index]?5:0,Math.round(client.today[index]/maxValue*100));
-          const yesterdayWidth=Math.max(client.yesterday[index]?5:0,Math.round(client.yesterday[index]/maxValue*100));
-          return '<div class="status-overview-item">' +
-            '<div class="status-overview-head"><span class="status-overview-label"><span class="status-overview-dot" style="background:'+color+'"></span>'+escapeHtml(name)+'</span><span class="status-overview-value">'+client.today[index]+' hari ini <small class="text-muted">/ '+client.yesterday[index]+' kemarin</small></span></div>' +
-            '<div class="status-overview-track"><div class="status-overview-fill" style="width:'+todayWidth+'%;background:'+color+'"></div></div>' +
-            '<div class="status-overview-track mt-1"><div class="status-overview-fill" style="width:'+yesterdayWidth+'%;background:#D1D8D5"></div></div>' +
-          '</div>';
-        }).join("")
-      : '<div class="status-overview-empty">Belum ada data klien hari ini maupun kemarin.</div>';
-  }
+  vendorChart=new ApexCharts(document.querySelector("#vendor-chart"),{...base,series:[{name:"Hari ini",data:vendor.values}],plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},xaxis:{categories:vendor.names,labels:{show:false}},yaxis:{show:true,labels:{show:true,maxWidth:120,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"}}},colors:["#006ECD"]});
+  const client=buildCounts("client"), clientColor={"kimberly clark":"#006ECD",henkel:"#EF151E",modena:"#111111"}, clientTarget=document.querySelector("#client-chart");
+  if(clientTarget){const maxValue=Math.max(1,...client.values);clientTarget.classList.add("client-overview");clientTarget.innerHTML=client.names.length ? '<div class="small text-muted mb-3">Jumlah armada hari ini · warna mengikuti klien</div>'+client.names.map((name,index)=>{const color=clientColor[name.toLowerCase()]||"#6B7280",width=Math.max(client.values[index]?5:0,Math.round(client.values[index]/maxValue*100));return '<div class="status-overview-item"><div class="status-overview-head"><span class="status-overview-label"><span class="status-overview-dot" style="background:'+color+'"></span>'+escapeHtml(name)+'</span><span class="status-overview-value">'+client.values[index]+' armada</span></div><div class="status-overview-track"><div class="status-overview-fill" style="width:'+width+'%;background:'+color+'"></div></div></div>';}).join("") : '<div class="status-overview-empty">Belum ada data klien hari ini.</div>';}
   [activityChart,vendorChart].forEach(c=>c.render());
 }
 function renderRecent(todayKey) {
@@ -345,10 +291,9 @@ async function loadDashboard() {
     if(!response.ok||!Array.isArray(data))throw new Error(data.message||"Gagal mengambil data dashboard.");
     visits=data;
     const todayKey=localDateKey(new Date());
-    const yesterdayKey=shiftDateKey(todayKey,-1);
-    renderStats(todayKey,yesterdayKey);
-    renderStatusOverview(todayKey,yesterdayKey);
-    renderCharts(todayKey,yesterdayKey);
+    renderStats(todayKey);
+    renderStatusOverview(todayKey);
+    renderCharts(todayKey);
     renderRecent(todayKey);
   }catch(error){
     recentTable.innerHTML='<tr><td colspan="4" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';

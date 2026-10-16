@@ -1,5 +1,3 @@
-const SUPABASE_URL="https://pcednpmjyfkuomfcmian.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_ERlBrySRotVM5jfLA1oukQ_Cg0gmgIp";
 const USERNAME_LOGIN_URL=SUPABASE_URL+"/functions/v1/username-login";
 
 const loginForm=document.getElementById("loginForm");
