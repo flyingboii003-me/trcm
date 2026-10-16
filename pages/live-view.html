@@ -74,24 +74,24 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 .kanban-cards .truck-meta{font-size:.78rem}
 .kanban-empty{padding:22px 12px;color:var(--muted);text-align:center;font-size:.85rem}
 .kanban-message{grid-column:1/-1}
-.client-board{display:flex;flex-direction:column;gap:20px;min-width:0}
-.client-group{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;min-width:0}
-.client-group-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;background:var(--surface2);border-bottom:1px solid var(--border);border-top:5px solid var(--client-color,#6B7280)}
+.client-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));align-items:start;gap:16px;min-width:0}
+.client-group{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;min-width:0;box-shadow:0 2px 8px rgba(15,26,46,.04)}
+.client-group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);border-top:5px solid var(--client-color,#6B7280)}
 .client-group-title{display:flex;align-items:center;gap:12px;min-width:0}
 .client-color-dot{width:13px;height:13px;flex:0 0 13px;border-radius:50%;background:var(--client-color,#6B7280)}
 .client-group-head h2{font-size:1.25rem;overflow-wrap:anywhere}
 .client-group-total{font:600 1rem "JetBrains Mono",monospace;padding:7px 11px;border:1px solid var(--border);background:var(--surface);border-radius:10px;white-space:nowrap}
-.client-activity-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+.client-activity-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:10px}
 .client-activity{min-width:0;border:1px solid var(--border);border-radius:15px;overflow:hidden;background:var(--surface)}
 .client-activity-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
 .client-activity-title{display:flex;align-items:center;gap:10px;font-size:1.02rem;font-weight:800;margin:0}
 .client-activity-title i{font-size:1.25rem;color:var(--activity-color,var(--blue))}
 .client-activity-total{font:600 .88rem "JetBrains Mono",monospace;color:var(--muted);white-space:nowrap}
-.client-activity .counters{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:12px 12px 0}
-.client-activity .counter{padding:9px 8px;border-radius:10px}
-.client-activity .counter-label{font-size:.67rem;gap:5px}
+.client-activity .counters{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:9px 9px 0}
+.client-activity .counter{padding:8px 6px;border-radius:9px}
+.client-activity .counter-label{font-size:clamp(.58rem,.55vw,.68rem);gap:4px}
 .client-activity .counter-dot{width:8px;height:8px}
-.client-activity .counter-value{font-size:1.45rem;margin-top:8px}
+.client-activity .counter-value{font-size:1.25rem;margin-top:6px}
 .client-activity .kanban-cards{padding:12px}
 .client-activity .truck-row{border-left:5px solid var(--status-color,var(--client-color,#6B7280));border-top:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-right:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-bottom:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);background:color-mix(in srgb,var(--client-color,#6B7280) 6%,white)}
 .client-activity .truck-row[data-status="registered"],.client-activity .truck-row[data-status="wh_in"]{--status-color:#7C889F}
@@ -122,8 +122,8 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 .status[data-status="completed"]{background:#EAF3FC;border-color:#A9CDEB;color:#005BA8}
 .footer{display:flex;justify-content:flex-end;gap:16px;color:var(--muted);font-size:.8rem;padding:18px 4px 0}
 [hidden]{display:none!important}
-@media(max-width:1100px){.panels{grid-template-columns:1fr}.counters{grid-template-columns:repeat(4,minmax(0,1fr))}.truck-list{display:block}.kanban-board{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.client-activity-board{gap:12px;padding:12px}.client-activity .counters{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:640px){body{padding:14px}.toolbar{align-items:stretch}.toolbar-group{width:100%}.toolbar-group .tool-button{flex:1}.live-header{align-items:flex-start;gap:12px}.brand{gap:10px}.brand-mark{width:42px;height:42px}.eyebrow{font-size:.65rem}h1{font-size:1.5rem}.clock-time{font-size:1.45rem}.clock-date{font-size:.75rem}.connection{font-size:.65rem}.panel-head{padding:16px}.counters{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 12px 0}.truck-list{display:block;padding:12px}.kanban-board{grid-template-columns:minmax(0,1fr)}.client-group-head{padding:14px}.client-group-head h2{font-size:1.05rem}.client-activity-board{grid-template-columns:minmax(0,1fr);padding:10px}.client-activity .counters{grid-template-columns:repeat(4,minmax(0,1fr))}.client-activity .counter{padding:8px 6px}.client-activity .counter-label{font-size:.61rem;gap:4px}.client-activity .counter-value{font-size:1.2rem}.kanban-cards .truck-row{padding:12px}.kanban-cards .truck-side{align-items:flex-start;justify-content:flex-start}.total{font-size:1.5rem;min-width:60px;padding:10px}.footer{flex-direction:column}}
+@media(max-width:1100px){.client-board{grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr))}.panels{grid-template-columns:1fr}.counters{grid-template-columns:repeat(4,minmax(0,1fr))}.truck-list{display:block}.kanban-board{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.client-activity-board{gap:12px;padding:12px}.client-activity .counters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.client-board{grid-template-columns:minmax(0,1fr)}body{padding:14px}.toolbar{align-items:stretch}.toolbar-group{width:100%}.toolbar-group .tool-button{flex:1}.live-header{align-items:flex-start;gap:12px}.brand{gap:10px}.brand-mark{width:42px;height:42px}.eyebrow{font-size:.65rem}h1{font-size:1.5rem}.clock-time{font-size:1.45rem}.clock-date{font-size:.75rem}.connection{font-size:.65rem}.panel-head{padding:16px}.counters{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 12px 0}.truck-list{display:block;padding:12px}.kanban-board{grid-template-columns:minmax(0,1fr)}.client-group-head{padding:14px}.client-group-head h2{font-size:1.05rem}.client-activity-board{grid-template-columns:minmax(0,1fr);padding:10px}.client-activity .counters{grid-template-columns:repeat(4,minmax(0,1fr))}.client-activity .counter{padding:8px 6px}.client-activity .counter-label{font-size:.61rem;gap:4px}.client-activity .counter-value{font-size:1.2rem}.kanban-cards .truck-row{padding:12px}.kanban-cards .truck-side{align-items:flex-start;justify-content:flex-start}.total{font-size:1.5rem;min-width:60px;padding:10px}.footer{flex-direction:column}}
 /* Final status badge palette: keep these rules after legacy overrides. */
 .status[data-status="registered"],
 .status[data-status="wh_in"]{background:#EAF4FF;border-color:#93C5FD;color:#005BA8}
@@ -155,7 +155,7 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 const session=getTrcmSession();
 const pageState=document.getElementById("page-state"),panels=document.getElementById("live-panels");
 const connection=document.getElementById("connection"),connectionLabel=document.getElementById("connection-label");
-let visits=[],realtimeClient=null,realtimeTimer=null,clockTimer=null,fallbackTimer=null;
+let visits=[],clients=[],realtimeClient=null,realtimeTimer=null,clockTimer=null,fallbackTimer=null;
 const fullscreenButton=document.getElementById("fullscreen-button");
 const labels={registered:"Terdaftar",wh_in:"Terdaftar",queue:"Parkir",started:"Sedang proses",completed:"Selesai"};
 function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -189,6 +189,7 @@ function renderActivityColumn(clientName,type,rows,color){
 function render(){
  const active=visits.filter(v=>!v.wh_out_at&&(v.activity_type==="inbound"||v.activity_type==="outbound")).sort((a,b)=>new Date(a.wh_in_at||a.registered_at||a.created_at||0)-new Date(b.wh_in_at||b.registered_at||b.created_at||0));
  const groups=new Map();
+ clients.forEach(client=>{const name=String(client.name||"").trim();if(name&&!groups.has(name))groups.set(name,{inbound:[],outbound:[]});});
  active.forEach(visit=>{
    const clientName=visit.clients&&visit.clients.name?String(visit.clients.name):"Klien belum diisi";
    if(!groups.has(clientName))groups.set(clientName,{inbound:[],outbound:[]});
@@ -206,7 +207,7 @@ function render(){
  document.getElementById("updated-at").textContent="Pembaruan terakhir: "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date());
 }
 async function request(path,options){const response=await fetch(SUPABASE_URL+path,Object.assign({headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}},options||{}));let data=null;try{data=await response.json();}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)||"Permintaan data Live View gagal.");return data;}
-async function loadVisits(){try{const select="id,plate_number,driver_name,activity_type,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,shipment_number,destination_city,vendor,card_id,client_id,gate_id,line_number_id,cards(card_number),clients(name),gates(gate_number),line_numbers(line_number)";const data=await request("/rest/v1/visits?select="+encodeURIComponent(select)+"&wh_out_at=is.null&order=created_at.asc");if(!Array.isArray(data))throw new Error("Respons data Live View tidak valid.");visits=data;render();}catch(error){console.error("TRCM Live View:",error);if(!panels.hidden){connection.classList.remove("is-live");connectionLabel.textContent="Data tertunda · mencoba lagi";}else{pageState.innerHTML='<i class="bi bi-exclamation-triangle"></i>Data Live View gagal dimuat. Periksa koneksi atau akses Viewer, lalu muat ulang halaman.';pageState.setAttribute("role","alert");}}}
+async function loadVisits(){try{const select="id,plate_number,driver_name,activity_type,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,shipment_number,destination_city,vendor,card_id,client_id,gate_id,line_number_id,cards(card_number),clients(name),gates(gate_number),line_numbers(line_number)";const data=await request("/rest/v1/visits?select="+encodeURIComponent(select)+"&wh_out_at=is.null&order=created_at.asc");if(!Array.isArray(data))throw new Error("Respons data Live View tidak valid.");visits=data;try{const clientData=await request("/rest/v1/clients?select=id,name&order=name.asc");if(Array.isArray(clientData))clients=clientData;}catch(clientError){console.warn("Daftar klien Live View tidak dapat dimuat; menampilkan klien dari data armada aktif.",clientError);clients=[];}render();}catch(error){console.error("TRCM Live View:",error);if(!panels.hidden){connection.classList.remove("is-live");connectionLabel.textContent="Data tertunda · mencoba lagi";}else{pageState.innerHTML='<i class="bi bi-exclamation-triangle"></i>Data Live View gagal dimuat. Periksa koneksi atau akses Viewer, lalu muat ulang halaman.';pageState.setAttribute("role","alert");}}}
 async function checkPermission(){if(!session||!session.access_token||!session.user){location.replace("../index.html");return false;}const rows=await request("/rest/v1/rpc/get_my_permissions",{method:"POST",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:"{}"});if(!Array.isArray(rows)||!rows.some(r=>r.resource_key==="live_view"&&r.permission_key==="view")){pageState.innerHTML='<i class="bi bi-shield-lock"></i>Akses Live View tidak tersedia untuk akun ini.';pageState.setAttribute("role","alert");return false;}return true;}
 function updateClock(){const now=new Date();document.getElementById("clock-time").textContent=new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);document.getElementById("clock-date").textContent=new Intl.DateTimeFormat("id-ID",{weekday:"long",day:"2-digit",month:"long",year:"numeric"}).format(now);}
 function connectRealtime(){const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";script.async=true;script.onload=function(){if(!window.supabase||!window.supabase.createClient)return;realtimeClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);realtimeClient.realtime.setAuth(session.access_token);realtimeClient.channel("trcm-live-view").on("postgres_changes",{event:"*",schema:"public",table:"visits"},function(){if(realtimeTimer)clearTimeout(realtimeTimer);realtimeTimer=setTimeout(loadVisits,400);}).subscribe(function(status){const live=status==="SUBSCRIBED";connection.classList.toggle("is-live",live);connectionLabel.textContent=live?"Realtime aktif":"Realtime "+String(status||"tidak tersedia").toLowerCase();});};script.onerror=function(){connectionLabel.textContent="Refresh berkala aktif";};document.head.appendChild(script);}
