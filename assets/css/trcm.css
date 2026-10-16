@@ -880,3 +880,46 @@ button,input,select{font:inherit}
     color: var(--cj-blue);
   }
 }
+
+
+/* Dashboard — status distribution segmented by client */
+.status-overview-track.status-overview-segmented{
+  display:flex;
+  align-items:stretch;
+  gap:2px;
+  background:#F1F5F4;
+}
+.status-overview-segment{
+  display:block;
+  flex:0 0 auto;
+  min-width:0;
+  height:100%;
+  transition:width .35s ease;
+}
+.status-overview-segment:first-child{border-radius:999px 0 0 999px;}
+.status-overview-segment:last-child{border-radius:0 999px 999px 0;}
+.status-overview-no-data{display:block;width:100%;height:100%;background:transparent;}
+.status-client-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.5rem .85rem;
+  margin-top:.25rem;
+  padding-top:.85rem;
+  border-top:1px solid var(--border);
+}
+.status-client-legend-item{
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  min-width:0;
+  color:var(--text-muted);
+  font-size:.72rem;
+  line-height:1.4;
+}
+.status-client-legend-dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  flex:0 0 8px;
+  border-radius:50%;
+}
