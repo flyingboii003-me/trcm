@@ -92,7 +92,18 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 .client-activity .counter-label{font-size:clamp(.58rem,.55vw,.68rem);gap:4px}
 .client-activity .counter-dot{width:8px;height:8px}
 .client-activity .counter-value{font-size:1.25rem;margin-top:6px}
-.client-activity .kanban-cards{padding:12px}
+.client-activity .kanban-cards{padding:10px;gap:8px}
+.client-activity .truck-row{grid-template-columns:minmax(0,1fr);align-items:stretch;gap:8px;padding:10px 11px;border-left-width:4px;border-radius:10px}
+.client-activity .truck-main{display:flex;flex-direction:column;gap:5px}
+.client-activity .plate{font-size:clamp(.92rem,1vw,1.12rem);line-height:1.25;letter-spacing:-.025em;overflow-wrap:anywhere}
+.client-activity .truck-meta{font-size:clamp(.68rem,.72vw,.78rem);line-height:1.45;margin-top:0;overflow-wrap:anywhere}
+.client-activity .truck-side{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;text-align:left}
+.client-activity .status{font-size:.68rem;padding:4px 7px;gap:5px}
+.client-activity .duration{font-size:.7rem;font-weight:600}
+.client-activity .truck-meta br{display:none}
+.client-activity .truck-meta{display:block}
+.client-activity .truck-meta{color:#48566D}
+
 .client-activity .truck-row{border-left:5px solid var(--status-color,var(--client-color,#6B7280));border-top:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-right:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-bottom:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);background:color-mix(in srgb,var(--client-color,#6B7280) 6%,white)}
 .client-activity .truck-row[data-status="registered"],.client-activity .truck-row[data-status="wh_in"]{--status-color:#7C889F}
 .client-activity .truck-row[data-status="queue"]{--status-color:#55627A}
@@ -184,7 +195,7 @@ function renderActivityColumn(clientName,type,rows,color){
  const inbound=type==="inbound",label=inbound?"Inbound":"Outbound",icon=inbound?"bi-box-arrow-in-down":"bi-box-arrow-up";
  const cards=rows.slice(0,16).map(v=>renderTruckCard(v,color)).join("");
  const more=rows.length>16?'<div class="truck-meta">Menampilkan 16 dari '+rows.length+' armada aktif.</div>':"";
- return '<section class="client-activity" style="--client-color:'+color+';--activity-color:'+(inbound?"#006ECD":"#EF151E")+'" aria-label="'+esc(clientName+" "+label)+'"><header class="client-activity-head"><h3 class="client-activity-title"><i class="bi '+icon+'" aria-hidden="true"></i>'+label+'</h3><span class="client-activity-total">'+rows.length+' armada</span></header>'+renderCounters(rows,type)+'<div class="kanban-cards">'+(cards||'<div class="kanban-empty">Tidak ada armada '+label+' aktif.</div>')+more+'</div></section>';
+ return '<section class="client-activity" style="--client-color:'+color+';--activity-color:'+(inbound?"#006ECD":"#EF151E")+'" aria-label="'+esc(clientName+" "+label)+'"><header class="client-activity-head"><h3 class="client-activity-title"><i class="bi '+icon+'" aria-hidden="true"></i>'+label+'</h3><span class="client-activity-total">'+rows.length+' armada</span></header><div class="kanban-cards">'+(cards||'<div class="kanban-empty">Tidak ada armada '+label+' aktif.</div>')+more+'</div></section>';
 }
 function render(){
  const active=visits.filter(v=>!v.wh_out_at&&(v.activity_type==="inbound"||v.activity_type==="outbound")).sort((a,b)=>new Date(a.wh_in_at||a.registered_at||a.created_at||0)-new Date(b.wh_in_at||b.registered_at||b.created_at||0));
