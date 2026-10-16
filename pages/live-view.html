@@ -104,6 +104,15 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 .client-activity .truck-meta{display:block}
 .client-activity .truck-meta{color:#48566D}
 
+.client-activity .kanban-cards{padding:10px;gap:8px}
+.client-activity .truck-row{grid-template-columns:minmax(0,1fr);align-items:stretch;gap:8px;padding:10px 11px;border-left-width:4px;border-radius:10px}
+.client-activity .truck-main{display:flex;flex-direction:column;gap:5px}
+.client-activity .plate{font-size:clamp(.92rem,1vw,1.12rem);line-height:1.25;letter-spacing:-.025em;overflow-wrap:anywhere}
+.client-activity .truck-meta{font-size:clamp(.68rem,.72vw,.78rem);line-height:1.45;margin-top:0;overflow-wrap:anywhere;color:#48566D}
+.client-activity .truck-side{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;text-align:left}
+.client-activity .status{font-size:.68rem;padding:4px 7px;gap:5px}
+.client-activity .duration{font-size:.7rem;font-weight:600}
+.client-activity .truck-meta br{display:none}
 .client-activity .truck-row{border-left:5px solid var(--status-color,var(--client-color,#6B7280));border-top:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-right:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);border-bottom:1px solid color-mix(in srgb,var(--client-color,#6B7280) 24%,white);background:color-mix(in srgb,var(--client-color,#6B7280) 6%,white)}
 .client-activity .truck-row[data-status="registered"],.client-activity .truck-row[data-status="wh_in"]{--status-color:#7C889F}
 .client-activity .truck-row[data-status="queue"]{--status-color:#55627A}
