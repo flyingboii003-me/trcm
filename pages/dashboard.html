@@ -208,9 +208,6 @@ function renderStatusOverview(todayKey) {
   const colorForClient = function(name) {
     return clientColors[String(name || "").trim().toLowerCase()] || "#6B7280";
   };
-  const yesterdayDate = new Date(todayKey + "T12:00:00Z");
-  yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
-  const yesterdayKey = yesterdayDate.toISOString().slice(0,10);
   const todayVisits = visits.filter(function(visit) { return statusCount(visit,todayKey) !== null; });
   const clients = Array.from(new Set(todayVisits.map(function(visit) {
     return String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
@@ -221,16 +218,13 @@ function renderStatusOverview(todayKey) {
   const statusRows = definitions.map(function(definition) {
     const todayByClient = {};
     let todayTotal = 0;
-    let yesterdayTotal = 0;
     visits.forEach(function(visit) {
       const statusToday = statusCount(visit,todayKey);
-      const statusYesterday = statusCount(visit,yesterdayKey);
       const clientName = String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
       if (statusToday === definition.key) {
         todayByClient[clientName] = (todayByClient[clientName] || 0) + 1;
         todayTotal += 1;
       }
-      if (statusYesterday === definition.key) yesterdayTotal += 1;
     });
     const segments = clients.map(function(clientName) {
       const count = todayByClient[clientName] || 0;
@@ -239,7 +233,7 @@ function renderStatusOverview(todayKey) {
       return '<span class="status-overview-segment" style="width:'+percentage+'%;background:'+colorForClient(clientName)+'" title="'+escapeHtml(clientName)+': '+count+' armada" aria-label="'+escapeHtml(clientName)+': '+count+' armada"></span>';
     }).join("");
     return '<div class="status-overview-item">' +
-      '<div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(definition.label)+'</span><span class="status-overview-value">'+todayTotal+' Armada <small class="text-muted">/ '+yesterdayTotal+' kemarin</small></span></div>' +
+      '<div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(definition.label)+'</span><span class="status-overview-value">'+todayTotal+' Armada</span></div>' +
       '<div class="status-overview-track status-overview-segmented" role="img" aria-label="'+escapeHtml(definition.label)+': '+todayTotal+' armada hari ini">'+(todayTotal ? segments : '<span class="status-overview-no-data"></span>')+'</div>' +
     '</div>';
   });
