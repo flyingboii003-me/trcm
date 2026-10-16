@@ -216,7 +216,7 @@ function statusCount(visit, dayKey) {
   if (visit.process_status === "queue") return "queue";
   return "wh_in";
 }
-function renderStatusOverview(todayKey, yesterdayKey) {
+function renderStatusOverview(todayKey) {
   const definitions = [
     {key:"wh_in",label:"Terdaftar"},
     {key:"queue",label:"Antri/Parkir"},
@@ -238,16 +238,13 @@ function renderStatusOverview(todayKey, yesterdayKey) {
   const statusRows = definitions.map(function(definition) {
     const todayByClient = {};
     let todayTotal = 0;
-    let yesterdayTotal = 0;
     visits.forEach(function(visit) {
       const statusToday = statusCount(visit,todayKey);
-      const statusYesterday = statusCount(visit,yesterdayKey);
       const clientName = String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
       if (statusToday === definition.key) {
         todayByClient[clientName] = (todayByClient[clientName] || 0) + 1;
         todayTotal += 1;
       }
-      if (statusYesterday === definition.key) yesterdayTotal += 1;
     });
     const segments = clients.map(function(clientName) {
       const count = todayByClient[clientName] || 0;
@@ -256,7 +253,7 @@ function renderStatusOverview(todayKey, yesterdayKey) {
       return '<span class="status-overview-segment" style="width:'+percentage+'%;background:'+colorForClient(clientName)+'" title="'+escapeHtml(clientName)+': '+count+' armada" aria-label="'+escapeHtml(clientName)+': '+count+' armada"></span>';
     }).join("");
     return '<div class="status-overview-item">' +
-      '<div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(definition.label)+'</span><span class="status-overview-value">'+todayTotal+' Armada <small class="text-muted">/ '+yesterdayTotal+' kemarin</small></span></div>' +
+      '<div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(definition.label)+'</span><span class="status-overview-value">'+todayTotal+' Armada</span></div>' +
       '<div class="status-overview-track status-overview-segmented" role="img" aria-label="'+escapeHtml(definition.label)+': '+todayTotal+' armada hari ini">'+(todayTotal ? segments : '<span class="status-overview-no-data"></span>')+'</div>' +
     '</div>';
   });
