@@ -224,17 +224,51 @@ function renderStatusOverview(todayKey, yesterdayKey) {
     {key:"completed",label:"Selesai Loading"},
     {key:"wh_out",label:"Selesai/Keluar Gudang"}
   ];
-  const todayCounts = definitions.map(d => visits.filter(v => statusCount(v,todayKey) === d.key).length);
-  const yesterdayCounts = definitions.map(d => visits.filter(v => statusCount(v,yesterdayKey) === d.key).length);
-  const total = todayCounts.reduce((s,v) => s+v,0);
+  const clientColors = {"kimberly clark":"#006ECD","henkel":"#EF151E","modena":"#111111"};
+  const colorForClient = function(name) {
+    return clientColors[String(name || "").trim().toLowerCase()] || "#6B7280";
+  };
+  const todayVisits = visits.filter(function(visit) { return statusCount(visit,todayKey) !== null; });
+  const clients = Array.from(new Set(todayVisits.map(function(visit) {
+    return String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
+  }))).sort(function(a,b) { return a.localeCompare(b,"id"); });
   const target = document.getElementById("status-overview");
   if (!target) return;
-  target.innerHTML = total
-    ? '<div class="small text-muted mb-3">Hari ini dibandingkan dengan kemarin</div>' +
-      definitions.map(function(d,i){
-        const pct = total ? Math.max(todayCounts[i] ? 5 : 0,Math.round(todayCounts[i]/total*100)) : 0;
-        return '<div class="status-overview-item"><div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(d.label)+'</span><span class="status-overview-value">'+todayCounts[i]+' Armada <small class="text-muted">/ '+yesterdayCounts[i]+' kemarin</small></span></div><div class="status-overview-track"><div class="status-overview-fill" style="width:'+pct+'%"></div></div></div>';
-      }).join("")
+
+  const statusRows = definitions.map(function(definition) {
+    const todayByClient = {};
+    let todayTotal = 0;
+    let yesterdayTotal = 0;
+    visits.forEach(function(visit) {
+      const statusToday = statusCount(visit,todayKey);
+      const statusYesterday = statusCount(visit,yesterdayKey);
+      const clientName = String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
+      if (statusToday === definition.key) {
+        todayByClient[clientName] = (todayByClient[clientName] || 0) + 1;
+        todayTotal += 1;
+      }
+      if (statusYesterday === definition.key) yesterdayTotal += 1;
+    });
+    const segments = clients.map(function(clientName) {
+      const count = todayByClient[clientName] || 0;
+      if (!count) return "";
+      const percentage = todayTotal ? count / todayTotal * 100 : 0;
+      return '<span class="status-overview-segment" style="width:'+percentage+'%;background:'+colorForClient(clientName)+'" title="'+escapeHtml(clientName)+': '+count+' armada" aria-label="'+escapeHtml(clientName)+': '+count+' armada"></span>';
+    }).join("");
+    return '<div class="status-overview-item">' +
+      '<div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(definition.label)+'</span><span class="status-overview-value">'+todayTotal+' Armada <small class="text-muted">/ '+yesterdayTotal+' kemarin</small></span></div>' +
+      '<div class="status-overview-track status-overview-segmented" role="img" aria-label="'+escapeHtml(definition.label)+': '+todayTotal+' armada hari ini">'+(todayTotal ? segments : '<span class="status-overview-no-data"></span>')+'</div>' +
+    '</div>';
+  });
+
+  const legend = clients.length
+    ? '<div class="status-client-legend" aria-label="Legenda warna klien">'+clients.map(function(clientName) {
+        return '<span class="status-client-legend-item"><span class="status-client-legend-dot" style="background:'+colorForClient(clientName)+'"></span>'+escapeHtml(clientName)+'</span>';
+      }).join("")+'</div>'
+    : "";
+  const totalToday = todayVisits.length;
+  target.innerHTML = totalToday
+    ? '<div class="small text-muted mb-3">Distribusi status hari ini · warna menunjukkan klien</div>'+statusRows.join("")+legend
     : '<div class="status-overview-empty">Belum ada data armada hari ini.</div>';
 }
 function destroyCharts() {
