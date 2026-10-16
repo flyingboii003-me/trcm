@@ -426,7 +426,7 @@ window.trcmComponentsReady.then(async function () {
         confirmButtonText: "Selesai",
         confirmButtonColor: "#0066B3"
       });
-        await loadVisits();
+      await loadVisits();
     } catch (error) {
       console.error("TRCM Mulai Loading save:", error);
       if (visitStatusUpdated) {
