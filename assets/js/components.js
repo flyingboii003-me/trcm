@@ -104,7 +104,8 @@
 
     if (page === "dashboard.html" || page === "") return "dashboard";
     if (page === "riwayat.html") return "riwayat";
-    if (page === "registrasi-armada.html") { return new URLSearchParams(window.location.search).get("view") === "wh-in" ? "wh-in" : "wh-in"; }
+    if (page === "registrasi-armada.html") return "registrasi-armada";
+    if (page === "wh-in.html") return "wh-in";
     if (page === "wh-out.html") return "wh-out";
     if (page === "antri-parkir.html") return "antri-parkir";
     if (page === "mulai-loading.html") return "mulai-loading";
@@ -255,7 +256,7 @@
   function syncCollapsibleMenuState() {
     const key = currentPageKey();
     const menus = [
-      { key: "kunjungan-armada", children: ["wh-in", "antri-parkir", "wh-out"] },
+      { key: "kunjungan-armada", children: ["registrasi-armada", "wh-in", "antri-parkir", "wh-out"] },
       { key: "checker", children: ["mulai-loading", "selesai-loading"] }
     ];
 
@@ -293,7 +294,7 @@
     const titles = {
       dashboard: "Dashboard TRCM",
       riwayat: "Riwayat",
-      "registrasi-armada": "WH In",
+      "registrasi-armada": "Registrasi Armada",
       "wh-in": "WH In",
       "wh-out": "WH Out",
       "master-data": "Master Data",
