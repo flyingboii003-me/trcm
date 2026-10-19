@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="TRCM - WH In Gate Security">
-<title>WH In — TRCM</title>
+<meta name="description" content="TRCM - Registrasi Armada Gate Security">
+<title>Registrasi Armada — TRCM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,8 +21,8 @@
       <div class="container-fluid px-0">
         <div class="page-header">
           <div>
-            <h1 class="page-title">WH In</h1>
-            <p class="page-subtitle">Registrasikan truck yang masuk ke gudang sebelum diteruskan ke proses Checker.</p>
+            <h1 class="page-title">Registrasi Armada</h1>
+            <p class="page-subtitle">Masukkan identitas driver dan truck sebelum armada dikonfirmasi masuk gudang.</p>
           </div>
         </div>
         <form id="registration-form" novalidate>
@@ -99,80 +99,6 @@
                   </div>
                 </div>
               </section>
-
-                            <section class="card content-card mb-3 checklist-card">
-<div class="card-header content-card-header"><div><h2 class="card-title">Checklist kendaraan</h2><p>Periksa peralatan dan kondisi kendaraan sebelum melanjutkan registrasi.</p></div></div>
-<div class="card-body"><div class="accordion" id="vehicle-checklists-accordion">
-<div class="accordion-item"><h3 class="accordion-header" id="equipment-checklist-heading"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#equipment-checklist-panel" aria-expanded="true" aria-controls="equipment-checklist-panel">Peralatan dan kelengkapan kendaraan</button></h3>
-<div id="equipment-checklist-panel" class="accordion-collapse collapse show" aria-labelledby="equipment-checklist-heading" data-bs-parent="#vehicle-checklists-accordion"><div class="accordion-body"><div class="d-flex justify-content-end mb-3"><button type="button" class="btn btn-sm checklist-fill-button" id="equipment-check-all">Check semua</button></div><div class="vehicle-checklist" id="equipment-checklist">
-                    <div class="checklist-row">
-                      <div class="checklist-label">Pengaman kargo</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-cargo_security-yes" name="equipment-cargo_security" data-checklist="equipment.cargo_security_yes" checked><label class="form-check-label" for="equipment-cargo_security-yes">Ada</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-cargo_security-no" name="equipment-cargo_security" data-checklist="equipment.cargo_security_no" ><label class="form-check-label" for="equipment-cargo_security-no">Tidak ada</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Dokumen pengiriman barang</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-shipping_documents-yes" name="equipment-shipping_documents" data-checklist="equipment.shipping_documents_yes" checked><label class="form-check-label" for="equipment-shipping_documents-yes">Ada</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-shipping_documents-no" name="equipment-shipping_documents" data-checklist="equipment.shipping_documents_no" ><label class="form-check-label" for="equipment-shipping_documents-no">Tidak ada</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Ganjal ban 2 buah</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-wheel_chocks-yes" name="equipment-wheel_chocks" data-checklist="equipment.wheel_chocks_yes" checked><label class="form-check-label" for="equipment-wheel_chocks-yes">Ada</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-wheel_chocks-no" name="equipment-wheel_chocks" data-checklist="equipment.wheel_chocks_no" ><label class="form-check-label" for="equipment-wheel_chocks-no">Tidak ada</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">APD driver dan kernet (Sepatu, Rompi, dan Helm safety)</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-ppe-yes" name="equipment-ppe" data-checklist="equipment.ppe_yes" checked><label class="form-check-label" for="equipment-ppe-yes">Ada</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="equipment-ppe-no" name="equipment-ppe" data-checklist="equipment.ppe_no" ><label class="form-check-label" for="equipment-ppe-no">Tidak ada</label></div>
-                    </div>
-                  </div></div></div></div>
-<div class="accordion-item"><h3 class="accordion-header" id="condition-checklist-heading"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#condition-checklist-panel" aria-expanded="false" aria-controls="condition-checklist-panel">Kondisi kendaraan</button></h3>
-<div id="condition-checklist-panel" class="accordion-collapse collapse" aria-labelledby="condition-checklist-heading" data-bs-parent="#vehicle-checklists-accordion"><div class="accordion-body"><div class="d-flex justify-content-end mb-3"><button type="button" class="btn btn-sm checklist-fill-button" id="condition-check-all">Isi semua</button></div><div class="vehicle-checklist" id="condition-checklist">
-                    
-                    <div class="checklist-row">
-                      <div class="checklist-label">Kondisi kabin dan kendaraan baik secara umum</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-general_condition-yes" name="condition-general_condition" data-checklist="condition.general_condition_yes" checked><label class="form-check-label" for="condition-general_condition-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-general_condition-no" name="condition-general_condition" data-checklist="condition.general_condition_no" ><label class="form-check-label" for="condition-general_condition-no">Tidak</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Kebocoran oli/bahan bakar</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-oil_fuel_leakage-yes" name="condition-oil_fuel_leakage" data-checklist="condition.oil_fuel_leakage_yes" checked><label class="form-check-label" for="condition-oil_fuel_leakage-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-oil_fuel_leakage-no" name="condition-oil_fuel_leakage" data-checklist="condition.oil_fuel_leakage_no" ><label class="form-check-label" for="condition-oil_fuel_leakage-no">Tidak</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Safety belt tersedia dan berfungsi</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-safety_belt-yes" name="condition-safety_belt" data-checklist="condition.safety_belt_yes" checked><label class="form-check-label" for="condition-safety_belt-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-safety_belt-no" name="condition-safety_belt" data-checklist="condition.safety_belt_no" ><label class="form-check-label" for="condition-safety_belt-no">Tidak</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Rem tangan berfungsi dengan baik</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-handbrake-yes" name="condition-handbrake" data-checklist="condition.handbrake_yes" checked><label class="form-check-label" for="condition-handbrake-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-handbrake-no" name="condition-handbrake" data-checklist="condition.handbrake_no" ><label class="form-check-label" for="condition-handbrake-no">Tidak</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Kabin kendaraan bersih dan tidak keropos</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-cabin_clean-yes" name="condition-cabin_clean" data-checklist="condition.cabin_clean_yes" checked><label class="form-check-label" for="condition-cabin_clean-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-cabin_clean-no" name="condition-cabin_clean" data-checklist="condition.cabin_clean_no" ><label class="form-check-label" for="condition-cabin_clean-no">Tidak</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Kaca spion berfungsi dengan baik dan tidak pecah</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-mirror-yes" name="condition-mirror" data-checklist="condition.mirror_yes" checked><label class="form-check-label" for="condition-mirror-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-mirror-no" name="condition-mirror" data-checklist="condition.mirror_no" ><label class="form-check-label" for="condition-mirror-no">Tidak</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Pintu kendaraan berfungsi dengan baik dan tidak ada kerusakan</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-door-yes" name="condition-door" data-checklist="condition.door_yes" checked><label class="form-check-label" for="condition-door-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-door-no" name="condition-door" data-checklist="condition.door_no" ><label class="form-check-label" for="condition-door-no">Tidak</label></div>
-                    </div>
-                    <div class="checklist-row">
-                      <div class="checklist-label">Kondisi kontainer bersih dan kering, tidak berbau kuat/pekat, tidak berlubang/bocor, dan tidak ada pest issue</div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-container-yes" name="condition-container" data-checklist="condition.container_yes" checked><label class="form-check-label" for="condition-container-yes">Ya</label></div>
-                      <div class="form-check-custom checklist-choice"><input class="form-check-input-custom" type="radio" id="condition-container-no" name="condition-container" data-checklist="condition.container_no" ><label class="form-check-label" for="condition-container-no">Tidak</label></div>
-                    </div>
-                  </div></div></div></div>
-</div></div></section>
-
-
 
               <section class="card content-card">
                 <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2><p>Informasi pengiriman dan kota tujuan atau asal armada.</p></div></div>
@@ -411,53 +337,6 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("summary-client").textContent = clientSelect.value ? clientSelect.selectedOptions[0].textContent : "—";
   }
 
-  function setChecklistPairState(container, key, value) {
-    const inputs = Array.from(container.querySelectorAll('input[data-checklist^="' + key + '"]'));
-    inputs.forEach(function (input) {
-      input.checked = input.dataset.checklist === key + "_" + value;
-    });
-  }
-
-  function getChecklistSnapshot() {
-    const snapshot = { equipment: {}, condition: {} };
-    document.querySelectorAll('input[data-checklist]').forEach(function (input) {
-      if (!input.checked) return;
-      const parts = input.dataset.checklist.split(".");
-      const group = parts[0];
-      const key = parts[1];
-      const base = key.replace(/_(yes|no|absent)$/, "");
-      let value = key.endsWith("_yes") ? true : key.endsWith("_no") || key.endsWith("_absent") ? false : true;
-      if (key.endsWith("_absent")) value = false;
-      snapshot[group][base] = value;
-    });
-    return snapshot;
-  }
-
-  function setupChecklist() {
-    const equipmentRows = Array.from(document.querySelectorAll("#equipment-checklist .checklist-row"));
-    const conditionRows = Array.from(document.querySelectorAll("#condition-checklist .checklist-row"));
-
-    document.getElementById("equipment-check-all").addEventListener("click", function () {
-      equipmentRows.forEach(function (row) {
-        const inputs = row.querySelectorAll('input[type="radio"]');
-        if (inputs[0]) inputs[0].checked = true;
-        if (inputs[1]) inputs[1].checked = false;
-      });
-    });
-
-    document.getElementById("condition-check-all").addEventListener("click", function () {
-      conditionRows.forEach(function (row) {
-        const inputs = row.querySelectorAll('input[type="radio"]');
-        if (inputs[0]) inputs[0].checked = true;
-        if (inputs[1]) inputs[1].checked = false;
-      });
-      const oilNo = document.querySelector('input[data-checklist="condition.oil_fuel_leakage_no"]');
-      const oilYes = document.querySelector('input[data-checklist="condition.oil_fuel_leakage_yes"]');
-      if (oilNo) oilNo.checked = true;
-      if (oilYes) oilYes.checked = false;
-    });
-  }
-
   function syncKirState() {
     kirDate.disabled = kirExpired.checked;
     kirDate.required = false;
@@ -513,14 +392,6 @@ window.trcmComponentsReady.then(async function () {
       setAlert("Periksa kembali seluruh field wajib sebelum Register.", "error");
       return;
     }
-    const checklistSnapshot = getChecklistSnapshot();
-    const equipmentKeys = ["cargo_security","shipping_documents","wheel_chocks","ppe"];
-    const conditionKeys = ["general_condition","oil_fuel_leakage","safety_belt","handbrake","cabin_clean","mirror","door","container"];
-    if (equipmentKeys.some(function (key) { return typeof checklistSnapshot.equipment[key] !== "boolean"; }) ||
-        conditionKeys.some(function (key) { return typeof checklistSnapshot.condition[key] !== "boolean"; })) {
-      setAlert("Lengkapi seluruh checklist peralatan dan kondisi kendaraan sebelum Register.", "error");
-      return;
-    }
 
     const registerButton = document.getElementById("register-button");
     registerButton.disabled = true;
@@ -545,9 +416,8 @@ window.trcmComponentsReady.then(async function () {
       destination_city: fields.destinationCity.value.trim() || null,
       notes: fields.notes.value.trim() || null,
       vendor: fields.vendor.value.trim() || null,
-      vehicle_checklist: checklistSnapshot,
-      wh_in_at: new Date().toISOString(),
-      registered_at: new Date().toISOString()
+      registered_at: new Date().toISOString(),
+      process_status: "wh_in"
     };
 
     try {
@@ -558,7 +428,7 @@ window.trcmComponentsReady.then(async function () {
       if(whInPhoto&&saved&&saved.id){try{if(!whInPhoto.type.startsWith("image/")||whInPhoto.size>8*1024*1024)throw Error("Foto harus berupa gambar maksimal 8 MB.");const objectPath=saved.id+"/registration-"+Date.now()+"-"+whInPhoto.name.replace(/[^a-zA-Z0-9._-]/g,"_");const up=await fetch(SUPABASE_URL+"/storage/v1/object/trcm-visit-photos/"+objectPath.split("/").map(encodeURIComponent).join("/"),{method:"POST",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":whInPhoto.type,"x-upsert":"false"},body:whInPhoto});if(!up.ok)throw Error("Foto gagal diunggah.");await postJson("/rest/v1/photos",{visit_id:saved.id,photo_type:"registration",file_location:objectPath,uploaded_by:session.user.id});}catch(photoError){console.warn("Foto WH In opsional:",photoError);setAlert("Registrasi tersimpan, tetapi foto opsional gagal diunggah: "+photoError.message,"error");}}
       await Swal.fire({
         icon: "success",
-        title: "Registrasi Berhasil",
+        title: "Registrasi Armada Berhasil",
         html: 'Data armada berhasil disimpan.<br><strong>Nomor kartu: ' + escapeHtml(cardInput.value) + '</strong>',
         confirmButtonText: "Selesai",
         confirmButtonColor: "#0066B3"
@@ -608,7 +478,6 @@ window.trcmComponentsReady.then(async function () {
     });
   }
 
-  setupChecklist();
   syncKirState();
   window.trcmRegisterRefresh(loadMasterData);
   try { await loadMasterData(); updateSummary(); } catch (error) { setAlert(error.message || "Master data gagal dimuat.", "error"); }
