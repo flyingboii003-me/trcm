@@ -416,6 +416,7 @@ window.trcmComponentsReady.then(async function () {
       destination_city: fields.destinationCity.value.trim() || null,
       notes: fields.notes.value.trim() || null,
       vendor: fields.vendor.value.trim() || null,
+      vehicle_checklist: { equipment: {}, condition: {} },
       registered_at: new Date().toISOString(),
       process_status: "wh_in"
     };
