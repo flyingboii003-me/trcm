@@ -34,7 +34,7 @@
           <div class="card-body">
             <div class="row g-3 align-items-end">
               <div class="col-12 col-md-5"><label class="form-label" for="fleet-template-select">Pilih template tersimpan</label><select class="form-select" id="fleet-template-select"><option value="">Memuat template...</option></select></div>
-              <div class="col-12 col-md-4"><div class="small text-secondary" id="fleet-template-description">Template menyimpan nama driver, nomor telepon, tipe truck, plat nomor, nomor container, vendor, dan klien. Nomor kartu, tanggal, status kunjungan, serta dokumen kedaluwarsa tidak disimpan.</div></div>
+              <div class="col-12 col-md-4"><div class="small text-secondary" id="fleet-template-description">Template menyimpan aktivitas, data driver, tipe SIM, nomor SIM, masa berlaku SIM/STNK/KIR, tipe truck, plat nomor, vendor, dan klien. Nomor container, kartu, catatan, foto, serta status kunjungan tidak disimpan.</div></div>
               <div class="col-12 col-md-3 d-flex gap-2"><button class="btn btn-outline-primary flex-fill" type="button" id="apply-fleet-template"><i class="bi bi-check2 me-1"></i>Gunakan</button><button class="btn btn-outline-danger" type="button" id="delete-fleet-template" title="Hapus template terpilih" aria-label="Hapus template terpilih"><i class="bi bi-trash"></i></button></div>
             </div>
             <div class="small mt-2" id="fleet-template-status" role="status"></div>
@@ -340,7 +340,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function loadFleetTemplates() {
     try {
-      const rows = await getJson("/rest/v1/fleet_templates?select=id,name,activity_type,driver_name,driver_phone,plate_number,container_num,truck_type,vendor,client_id&order=name.asc");
+      const rows = await getJson("/rest/v1/fleet_templates?select=id,name,activity_type,driver_name,driver_phone,plate_number,truck_type,vendor,client_id,license_type,license_num,license_exp,vehicle_exp,vehicle_inspect_exp,kir_expired&order=name.asc");
       fleetTemplates = rows || [];
       templateSelect.innerHTML = '<option value="">Pilih template armada</option>' + fleetTemplates.map(function (item) {
         return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.name) + ' — ' + escapeHtml(item.plate_number || item.truck_type || "Armada") + '</option>';
@@ -362,7 +362,14 @@ window.trcmComponentsReady.then(async function () {
     fields.driverName.value = template.driver_name || "";
     fields.driverPhone.value = template.driver_phone || "";
     fields.plateNumber.value = template.plate_number || "";
-    fields.containerNum.value = template.container_num || "";
+    fields.containerNum.value = "";
+    fields.licenseType.value = template.license_type || "";
+    fields.licenseNum.value = template.license_num || "";
+    fields.licenseExp.value = template.license_exp || "";
+    fields.vehicleExp.value = template.vehicle_exp || "";
+    kirExpired.checked = Boolean(template.kir_expired);
+    kirDate.value = template.vehicle_inspect_exp || "";
+    syncKirState();
     selectVendor("", template.vendor || "");
     selectTruckType(template.truck_type || "");
     if (template.client_id && Array.from(clientSelect.options).some(function (option) { return option.value === template.client_id; })) clientSelect.value = template.client_id;
@@ -406,10 +413,15 @@ window.trcmComponentsReady.then(async function () {
         driver_name: driverName,
         driver_phone: fields.driverPhone.value.trim() || null,
         plate_number: plateNumber,
-        container_num: fields.containerNum.value.trim() || null,
         truck_type: truckType,
         vendor: vendor,
-        client_id: clientId
+        client_id: clientId,
+        license_type: fields.licenseType.value || null,
+        license_num: fields.licenseNum.value.trim() || null,
+        license_exp: fields.licenseExp.value || null,
+        vehicle_exp: fields.vehicleExp.value || null,
+        vehicle_inspect_exp: kirExpired.checked ? null : (fields.vehicleInspectExp.value || null),
+        kir_expired: kirExpired.checked
       };
       await postJson("/rest/v1/fleet_templates", payload);
       await loadFleetTemplates();
