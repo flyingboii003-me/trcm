@@ -24,7 +24,22 @@
             <h1 class="page-title">Registrasi Armada</h1>
             <p class="page-subtitle">Masukkan identitas driver dan truck sebelum armada dikonfirmasi masuk gudang.</p>
           </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-primary" type="button" id="use-fleet-template"><i class="bi bi-journal-arrow-down me-1"></i>Gunakan Template</button>
+            <button class="btn btn-primary" type="button" id="save-fleet-template"><i class="bi bi-bookmark-plus me-1"></i>Simpan sebagai Template</button>
+          </div>
         </div>
+        <section class="card content-card mb-3" id="fleet-template-panel">
+          <div class="card-header content-card-header"><div><h2 class="card-title">Template Armada</h2><p>Simpan dan gunakan ulang data driver, kendaraan, vendor, serta klien.</p></div></div>
+          <div class="card-body">
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-md-5"><label class="form-label" for="fleet-template-select">Pilih template tersimpan</label><select class="form-select" id="fleet-template-select"><option value="">Memuat template...</option></select></div>
+              <div class="col-12 col-md-4"><div class="small text-secondary" id="fleet-template-description">Template menyimpan nama driver, nomor telepon, tipe truck, plat nomor, nomor container, vendor, dan klien. Nomor kartu, tanggal, status kunjungan, serta dokumen kedaluwarsa tidak disimpan.</div></div>
+              <div class="col-12 col-md-3 d-flex gap-2"><button class="btn btn-outline-primary flex-fill" type="button" id="apply-fleet-template"><i class="bi bi-check2 me-1"></i>Gunakan</button><button class="btn btn-outline-danger" type="button" id="delete-fleet-template" title="Hapus template terpilih" aria-label="Hapus template terpilih"><i class="bi bi-trash"></i></button></div>
+            </div>
+            <div class="small mt-2" id="fleet-template-status" role="status"></div>
+          </div>
+        </section>
         <form id="registration-form" novalidate>
           <div class="row g-3">
             <div class="col-12 col-xl-8">
@@ -314,6 +329,127 @@ window.trcmComponentsReady.then(async function () {
     clearAlert();
   }
 
+  const templateSelect = document.getElementById("fleet-template-select");
+  const templateStatus = document.getElementById("fleet-template-status");
+  let fleetTemplates = [];
+
+  function templateMessage(message, isError) {
+    templateStatus.className = "small mt-2 " + (isError ? "text-danger" : "text-success");
+    templateStatus.textContent = message || "";
+  }
+
+  async function loadFleetTemplates() {
+    try {
+      const rows = await getJson("/rest/v1/fleet_templates?select=id,name,driver_name,driver_phone,plate_number,container_num,truck_type,vendor,client_id&order=name.asc");
+      fleetTemplates = rows || [];
+      templateSelect.innerHTML = '<option value="">Pilih template armada</option>' + fleetTemplates.map(function (item) {
+        return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.name) + ' — ' + escapeHtml(item.plate_number || item.truck_type || "Armada") + '</option>';
+      }).join("");
+      document.getElementById("apply-fleet-template").disabled = !fleetTemplates.length;
+      document.getElementById("delete-fleet-template").disabled = !fleetTemplates.length;
+      if (!fleetTemplates.length) templateMessage("Belum ada template. Isi data lalu klik Simpan sebagai Template.", false);
+    } catch (error) {
+      templateSelect.innerHTML = '<option value="">Template tidak tersedia</option>';
+      document.getElementById("apply-fleet-template").disabled = true;
+      document.getElementById("delete-fleet-template").disabled = true;
+      templateMessage("Gagal memuat template: " + (error.message || "Periksa akses database."), true);
+    }
+  }
+
+  function applyFleetTemplate(template) {
+    if (!template) return;
+    fields.driverName.value = template.driver_name || "";
+    fields.driverPhone.value = template.driver_phone || "";
+    fields.plateNumber.value = template.plate_number || "";
+    fields.containerNum.value = template.container_num || "";
+    selectVendor("", template.vendor || "");
+    selectTruckType(template.truck_type || "");
+    if (template.client_id && Array.from(clientSelect.options).some(function (option) { return option.value === template.client_id; })) clientSelect.value = template.client_id;
+    form.classList.remove("was-validated");
+    updateSummary();
+    templateMessage('Template "' + template.name + '" diterapkan. Periksa kembali data sebelum Register.', false);
+  }
+
+  document.getElementById("save-fleet-template").addEventListener("click", async function () {
+    templateMessage("");
+    const driverName = fields.driverName.value.trim();
+    const plateNumber = fields.plateNumber.value.trim().toUpperCase();
+    const truckType = fields.truckType.value.trim();
+    const vendor = fields.vendor.value.trim();
+    const clientId = fields.client.value;
+    if (!driverName || !plateNumber || !truckType || !vendor || !clientId) {
+      templateMessage("Isi nama driver, plat nomor, tipe truck, vendor, dan klien sebelum menyimpan template.", true);
+      return;
+    }
+    const defaultName = [driverName, plateNumber].filter(Boolean).join(" — ");
+    const prompt = await Swal.fire({
+      title: "Simpan Template Armada",
+      input: "text",
+      inputLabel: "Nama template",
+      inputValue: defaultName,
+      inputPlaceholder: "Contoh: Armada Vendor A - B 1234 XYZ",
+      showCancelButton: true,
+      confirmButtonText: "Simpan",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#0066B3",
+      inputValidator: function (value) { return value && value.trim() ? undefined : "Nama template wajib diisi."; }
+    });
+    if (!prompt.isConfirmed) return;
+    const button = document.getElementById("save-fleet-template");
+    button.disabled = true;
+    try {
+      const payload = {
+        name: prompt.value.trim(),
+        driver_name: driverName,
+        driver_phone: fields.driverPhone.value.trim() || null,
+        plate_number: plateNumber,
+        container_num: fields.containerNum.value.trim() || null,
+        truck_type: truckType,
+        vendor: vendor,
+        client_id: clientId
+      };
+      await postJson("/rest/v1/fleet_templates", payload);
+      await loadFleetTemplates();
+      templateMessage("Template berhasil disimpan dan bisa digunakan kembali.", false);
+    } catch (error) {
+      templateMessage("Gagal menyimpan template: " + (error.message || "Terjadi kesalahan."), true);
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  document.getElementById("use-fleet-template").addEventListener("click", function () {
+    document.getElementById("fleet-template-panel").scrollIntoView({behavior:"smooth", block:"start"});
+    templateSelect.focus();
+  });
+  document.getElementById("apply-fleet-template").addEventListener("click", function () {
+    const template = fleetTemplates.find(function (item) { return item.id === templateSelect.value; });
+    if (!template) { templateMessage("Pilih template yang ingin digunakan.", true); return; }
+    applyFleetTemplate(template);
+    form.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+  document.getElementById("delete-fleet-template").addEventListener("click", async function () {
+    const template = fleetTemplates.find(function (item) { return item.id === templateSelect.value; });
+    if (!template) { templateMessage("Pilih template yang ingin dihapus.", true); return; }
+    const confirmation = await Swal.fire({icon:"warning", title:"Hapus template?", text:'Template "' + template.name + '" akan dihapus.', showCancelButton:true, confirmButtonText:"Hapus", cancelButtonText:"Batal", confirmButtonColor:"#dc3545"});
+    if (!confirmation.isConfirmed) return;
+    try {
+      const response = await fetch(SUPABASE_URL + "/rest/v1/fleet_templates?id=eq." + encodeURIComponent(template.id), {
+        method:"DELETE",
+        headers:{apikey:SUPABASE_PUBLISHABLE_KEY, Authorization:"Bearer " + session.access_token, Prefer:"return=minimal"}
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData = null; try { errorData = JSON.parse(errorText); } catch {}
+        throw new Error(errorData && errorData.message ? errorData.message : "Template gagal dihapus.");
+      }
+      await loadFleetTemplates();
+      templateMessage("Template berhasil dihapus.", false);
+    } catch (error) {
+      templateMessage("Gagal menghapus template: " + (error.message || "Terjadi kesalahan."), true);
+    }
+  });
+
   async function loadMasterData() {
     const [cardRows, vendorRows, clientRows, truckTypeRows] = await Promise.all([
       getJson("/rest/v1/cards?select=id,card_number,is_active&is_active=eq.true&order=card_number.asc"),
@@ -482,6 +618,7 @@ window.trcmComponentsReady.then(async function () {
   syncKirState();
   window.trcmRegisterRefresh(loadMasterData);
   try { await loadMasterData(); updateSummary(); } catch (error) { setAlert(error.message || "Master data gagal dimuat.", "error"); }
+  await loadFleetTemplates();
 });
 </script>
 </body>
