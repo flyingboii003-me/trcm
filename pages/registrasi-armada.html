@@ -340,7 +340,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function loadFleetTemplates() {
     try {
-      const rows = await getJson("/rest/v1/fleet_templates?select=id,name,driver_name,driver_phone,plate_number,container_num,truck_type,vendor,client_id&order=name.asc");
+      const rows = await getJson("/rest/v1/fleet_templates?select=id,name,activity_type,driver_name,driver_phone,plate_number,container_num,truck_type,vendor,client_id&order=name.asc");
       fleetTemplates = rows || [];
       templateSelect.innerHTML = '<option value="">Pilih template armada</option>' + fleetTemplates.map(function (item) {
         return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.name) + ' — ' + escapeHtml(item.plate_number || item.truck_type || "Armada") + '</option>';
@@ -358,6 +358,7 @@ window.trcmComponentsReady.then(async function () {
 
   function applyFleetTemplate(template) {
     if (!template) return;
+    fields.activityType.value = template.activity_type || "";
     fields.driverName.value = template.driver_name || "";
     fields.driverPhone.value = template.driver_phone || "";
     fields.plateNumber.value = template.plate_number || "";
@@ -377,8 +378,9 @@ window.trcmComponentsReady.then(async function () {
     const truckType = fields.truckType.value.trim();
     const vendor = fields.vendor.value.trim();
     const clientId = fields.client.value;
-    if (!driverName || !plateNumber || !truckType || !vendor || !clientId) {
-      templateMessage("Isi nama driver, plat nomor, tipe truck, vendor, dan klien sebelum menyimpan template.", true);
+    const activityType = fields.activityType.value;
+    if (!activityType || !driverName || !plateNumber || !truckType || !vendor || !clientId) {
+      templateMessage("Isi tipe aktivitas, nama driver, plat nomor, tipe truck, vendor, dan klien sebelum menyimpan template.", true);
       return;
     }
     const defaultName = [driverName, plateNumber].filter(Boolean).join(" — ");
@@ -400,6 +402,7 @@ window.trcmComponentsReady.then(async function () {
     try {
       const payload = {
         name: prompt.value.trim(),
+        activity_type: activityType,
         driver_name: driverName,
         driver_phone: fields.driverPhone.value.trim() || null,
         plate_number: plateNumber,
