@@ -360,7 +360,6 @@ window.trcmComponentsReady.then(async function () {
       return;
     }
 
-    saveButton.disabled = true;
     if (!["wh_in", "queue"].includes(selectedVisit.process_status) || !selectedVisit.wh_in_at) {
       await Swal.fire({icon:"warning",title:"WH In belum dikonfirmasi",text:"Truck hanya dapat dimulai setelah Gate Security mengonfirmasi WH In.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});
       await loadVisits();
@@ -371,13 +370,13 @@ window.trcmComponentsReady.then(async function () {
     let visitStatusUpdated = false;
 
     try {
-      await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id) + "&process_status=in.(wh_in,queue)&wh_in_at=not.is.null&wh_out_at=is.null", {
+      const updatedVisit = await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id) + "&process_status=in.(wh_in,queue)&wh_in_at=not.is.null&wh_out_at=is.null", {
         method: "PATCH",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
           Authorization: "Bearer " + session.access_token,
           "Content-Type": "application/json",
-          Prefer: "return=minimal"
+          Prefer: "return=representation"
         },
         body: JSON.stringify({
           gate_id: gateSelect.value,
@@ -389,6 +388,9 @@ window.trcmComponentsReady.then(async function () {
           started_at: startedAt
         })
       });
+      if (!Array.isArray(updatedVisit) || updatedVisit.length !== 1) {
+        throw new Error("Status truck berubah atau WH In belum dikonfirmasi. Daftar akan diperbarui.");
+      }
       visitStatusUpdated = true;
 
       try {
