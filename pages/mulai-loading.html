@@ -22,7 +22,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Mulai Loading</h1>
-            <p class="page-subtitle">Daftar truck berstatus Terdaftar atau Antri/Parkir. Checker dapat langsung memulai proses dari status Terdaftar maupun Antri/Parkir.</p>
+            <p class="page-subtitle">Daftar truck yang sudah dikonfirmasi WH In dan siap diproses. Daftar diperbarui otomatis saat Gate Security mengonfirmasi kedatangan.</p>
           </div>
           <button class="btn btn-date-picker" id="page-refresh-button" type="button">
             <i class="bi bi-arrow-clockwise"></i><span>Perbarui</span>
@@ -149,6 +149,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 window.trcmComponentsReady.then(async function () {
   "use strict";
@@ -222,10 +223,10 @@ window.trcmComponentsReady.then(async function () {
         (selectedClient === "all" || client === selectedClient);
     });
 
-    resultCount.textContent = filtered.length + " truck terdaftar / parkir";
+    resultCount.textContent = filtered.length + " truck sudah WH In";
 
     if (!filtered.length) {
-      table.innerHTML = '<tr><td colspan="8" class="table-state">Tidak ada truck berstatus Terdaftar atau Antri/Parkir.</td></tr>';
+      table.innerHTML = '<tr><td colspan="8" class="table-state">Belum ada truck yang sudah dikonfirmasi WH In.</td></tr>';
       return;
     }
 
@@ -285,7 +286,7 @@ window.trcmComponentsReady.then(async function () {
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
-        "&process_status=in.(registered,wh_in,queue)&wh_out_at=is.null&order=wh_in_at.asc";
+        "&process_status=in.(wh_in,queue)&wh_in_at=not.is.null&wh_out_at=is.null&order=wh_in_at.asc";
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
@@ -360,11 +361,17 @@ window.trcmComponentsReady.then(async function () {
     }
 
     saveButton.disabled = true;
+    if (!["wh_in", "queue"].includes(selectedVisit.process_status) || !selectedVisit.wh_in_at) {
+      await Swal.fire({icon:"warning",title:"WH In belum dikonfirmasi",text:"Truck hanya dapat dimulai setelah Gate Security mengonfirmasi WH In.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});
+      await loadVisits();
+      return;
+    }
+    saveButton.disabled = true;
     const startedAt = new Date().toISOString();
     let visitStatusUpdated = false;
 
     try {
-      await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
+      await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id) + "&process_status=in.(wh_in,queue)&wh_in_at=not.is.null&wh_out_at=is.null", {
         method: "PATCH",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
@@ -488,6 +495,27 @@ window.trcmComponentsReady.then(async function () {
 
   window.trcmRegisterRefresh(loadVisits);
   await Promise.all([loadReferenceData(), loadVisits()]);
+
+  // Live-update the Checker list when Gate Security confirms WH In.
+  if (window.supabase && typeof window.supabase.createClient === "function") {
+    try {
+      const realtimeClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+      });
+      realtimeClient.realtime.setAuth(session.access_token);
+      realtimeClient.channel("checker-wh-in-visits")
+        .on("postgres_changes", { event: "*", schema: "public", table: "visits" }, function () {
+          loadVisits();
+        })
+        .subscribe(function (status) {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.warn("TRCM WH In realtime unavailable; use Perbarui to reload.");
+          }
+        });
+    } catch (realtimeError) {
+      console.warn("TRCM WH In realtime setup failed:", realtimeError);
+    }
+  }
 });
 </script>
 </body>
