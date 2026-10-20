@@ -246,7 +246,10 @@
   </div>
 </div>
 <div class="plan-toast" id="plan-toast" role="status" aria-live="polite"><i class="bi bi-info-circle-fill"></i><div id="toast-message"></div></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
@@ -309,7 +312,8 @@
     }
   }
   const textSafe=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-  function toast(message){$("toast-message").textContent=message;$("plan-toast").classList.add("show");window.setTimeout(()=>$("plan-toast").classList.remove("show"),4200)}
+  const trcmToast=Swal.mixin({toast:true,position:"top-end",showConfirmButton:false,timer:4200,timerProgressBar:true});
+  function toast(message,icon="info"){trcmToast.fire({icon,title:String(message||"")});}
   function setType(next){
     type=next;checked=false;parsed=[];
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
