@@ -291,7 +291,10 @@
     const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";
     state.session=typeof getTrcmSession==="function"?getTrcmSession():null;
     if(!state.session||!state.session.access_token){window.location.replace("../index.html");return;}
-    const permissions=window.trcmPermissions;\n    state.canUpdate=!!(permissions&&permissions.can("daftar_plan","update"));\n    state.canDelete=!!(permissions&&permissions.can("daftar_plan","delete"));\n    const canImport = permissions && permissions.can("import_plan_upload", "view");
+    const permissions=window.trcmPermissions;
+    state.canUpdate=!!(permissions&&permissions.can("daftar_plan","update"));
+    state.canDelete=!!(permissions&&permissions.can("daftar_plan","delete"));
+    const canImport = permissions && permissions.can("import_plan_upload", "view");
     const createLink = $("create-plan-link");
     if (createLink && !canImport) createLink.hidden = true;
     await loadPlans();
