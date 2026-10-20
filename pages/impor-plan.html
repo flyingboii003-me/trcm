@@ -329,7 +329,7 @@
   function normalizeHeader(value){return String(value||"").normalize("NFKC").trim().replace(/[._-]+/g," ").replace(/\s+/g," ").toUpperCase()}
   function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\s+/g," ").toUpperCase()}
   function parseRows(){
-    const lines=$("paste-data").value.replace(/\r/g,"").split("\n").filter(line=>line.trim()!=="");
+    const lines=$("paste-data").value.replace(/\\r/g,"").split("\\n").filter(line=>line.trim()!=="");
     if(lines.length<2) return {fatal:"Masukkan header dan minimal satu baris data."};
     const headers=lines[0].split("\t").map(normalizeHeader);
     const fields=schemas[type].fields;
@@ -425,7 +425,7 @@
     
   }
 
-  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
+  function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\\s+/g," ").toUpperCase()}\n  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
   function renderTripGroups(){
     const card=$("truk-group-card");
     if(type!=="outbound"||!checked||!parsed.length){card.classList.add("d-none");return;}
