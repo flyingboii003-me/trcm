@@ -329,7 +329,7 @@
   function normalizeHeader(value){return String(value||"").normalize("NFKC").trim().replace(/[._-]+/g," ").replace(/\s+/g," ").toUpperCase()}
   function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\s+/g," ").toUpperCase()}
   function parseRows(){
-    const lines=$("paste-data").value.replace(/\\r/g,"").split("\\n").filter(line=>line.trim()!=="");
+    const lines=$("paste-data").value.replace(/\r/g,"").split("\n").filter(line=>line.trim()!=="");
     if(lines.length<2) return {fatal:"Masukkan header dan minimal satu baris data."};
     const headers=lines[0].split("\t").map(normalizeHeader);
     const fields=schemas[type].fields;
@@ -389,15 +389,21 @@
         if(doNo&&part)seen.add(key);
       });
     } else {
-      const seenShipment=new Set(),plates=new Map();
+      const shipmentRows=new Map(),plates=new Map();
       rows.forEach(r=>{
         const [vendor,plate,driver,truck,destination,shipment,quantity]=r.cells;
         [["VENDOR",vendor],["PLAT NOMOR",plate],["NAMA DRIVER",driver],["TIPE TRUCK",truck],["TUJUAN",destination],["SHIPMENT",shipment]].forEach(([label,value])=>{if(!value)r.errors.push(label+" wajib diisi.")});
         if(!quantity||!Number.isFinite(Number(quantity))||Number(quantity)<=0)r.errors.push("QUANTITY harus berupa angka lebih dari nol.");
         const shipmentKey=normalizeDocument(shipment);
-        if(shipmentKey&&seenShipment.has(shipmentKey))r.errors.push("Nomor SHIPMENT terduplikasi di dalam file. Setiap dokumen harus unik.");
-        if(shipmentKey)seenShipment.add(shipmentKey);
+        if(shipmentKey){
+          if(!shipmentRows.has(shipmentKey))shipmentRows.set(shipmentKey,[]);
+          shipmentRows.get(shipmentKey).push(r);
+        }
         if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
+      });
+      shipmentRows.forEach((shipmentGroup,shipmentKey)=>{
+        const tripKeys=new Set(shipmentGroup.map(r=>[r.cells[0],r.cells[1],r.cells[4]].map(normalizeDocument).join("|")));
+        if(tripKeys.size>1)shipmentGroup.forEach(r=>r.errors.push("SHIPMENT "+shipmentKey+" muncul pada lebih dari satu trip. Shipment yang sama hanya boleh berada pada trip dengan plat nomor, vendor, dan tujuan yang sama."));
       });
       plates.forEach(group=>{if(new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," "))).size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."))});
     }
@@ -425,7 +431,7 @@
     
   }
 
-  function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\\s+/g," ").toUpperCase()}\n  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
+  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
   function renderTripGroups(){
     const card=$("truk-group-card");
     if(type!=="outbound"||!checked||!parsed.length){card.classList.add("d-none");return;}
