@@ -14,6 +14,8 @@ create table if not exists public.import_plans (
   unique (client_id, operational_date, activity_type, revision)
 );
 
+create index if not exists import_plans_created_by_idx on public.import_plans (created_by);
+
 create unique index if not exists import_plans_one_active_per_scope
   on public.import_plans (client_id, operational_date, activity_type)
   where status = 'active';
@@ -49,6 +51,7 @@ create table if not exists public.import_plan_items (
     references public.import_plan_trips(id, plan_id) on delete restrict
 );
 
+create index if not exists import_plan_items_trip_plan_idx on public.import_plan_items (trip_id, plan_id);
 create index if not exists import_plan_items_plan_id_idx
   on public.import_plan_items (plan_id);
 create index if not exists import_plan_items_shipment_idx
@@ -120,6 +123,7 @@ create table if not exists public.visit_plan_items (
   unique (visit_id, plan_item_id)
 );
 
+create index if not exists visit_plan_items_linked_by_idx on public.visit_plan_items (linked_by);
 create index if not exists visit_plan_items_visit_id_idx
   on public.visit_plan_items (visit_id);
 create index if not exists visit_plan_items_plan_item_id_idx
