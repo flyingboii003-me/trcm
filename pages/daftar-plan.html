@@ -78,7 +78,7 @@
 
         <section class="list-card">
           <div class="list-card-head">
-            <div><h2 class="list-card-title">Seluruh Plan terimpor</h2><p class="list-card-subtitle">Data diambil langsung dari database. Aksi Perbarui dan Hapus mengikuti permission Admin.</p></div>
+            <div><h2 class="list-card-title">Seluruh Plan terimpor</h2><p class="list-card-subtitle">Data diambil langsung dari database. Aksi Ubah, Buat revisi, dan Hapus mengikuti permission Supabase.</p></div>
             <span class="list-note align-self-center" id="result-count">Menyiapkan daftar…</span>
           </div>
           <div class="list-card-body">
@@ -103,7 +103,7 @@
               <span class="list-note" id="page-info">—</span>
               <div class="d-flex align-items-center gap-2"><label for="page-size" class="list-note">Baris per halaman</label><select id="page-size" class="form-select form-select-sm" style="width:auto"><option>10</option><option>25</option><option>50</option></select><button id="prev-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><button id="next-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div>
             </div>
-            <p class="list-note mt-3 mb-0"><i class="bi bi-shield-check me-1"></i>Perbarui mengubah tanggal operasional dan status. Isi barang/shipment tetap melalui proses revisi Impor Plan.</p>
+            <p class="list-note mt-3 mb-0"><i class="bi bi-shield-check me-1"></i>Plan Draft dapat diubah. Plan Aktif tidak diubah langsung; Buat revisi membuat pengganti baru dan menyimpan Plan lama sebagai Digantikan.</p>
           </div>
         </section>
       </div>
@@ -167,9 +167,11 @@
     if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
     $("plan-table-body").innerHTML=rows.map(p=>{
       const client=p.clients&&p.clients.name||"Klien tidak tersedia";
-      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td><span class="fw-bold">v'+esc(p.revision||1)+'</span></td><td><span class="fw-semibold">'+esc(countItems(p))+'</span><span class="text-secondary small"> baris</span></td><td>'+esc(countTrips(p)||"—")+'</td><td>'+statusBadge(p.status)+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'" aria-label="Perbarui Plan" title="Perbarui Plan"><i class="bi bi-pencil-square"></i></button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'" aria-label="Hapus Plan" title="Hapus Plan"><i class="bi bi-trash"></i></button>':'')+'</td></tr>';
+      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td><span class="fw-bold">v'+esc(p.revision||1)+'</span></td><td><span class="fw-semibold">'+esc(countItems(p))+'</span><span class="text-secondary small"> baris</span></td><td>'+esc(countTrips(p)||"—")+'</td><td>'+statusBadge(p.status)+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="draft"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-revision="'+esc(p.id)+'"><i class="bi bi-copy me-1"></i>Buat revisi</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
     }).join("");
-    $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));\n    $("plan-table-body").querySelectorAll("[data-plan-edit]").forEach(button=>button.addEventListener("click",()=>editPlan(button.dataset.planEdit)));\n    $("plan-table-body").querySelectorAll("[data-plan-delete]").forEach(button=>button.addEventListener("click",()=>deletePlan(button.dataset.planDelete)));
+    $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));\n    $("plan-table-body").querySelectorAll("[data-plan-edit]").forEach(button=>button.addEventListener("click",()=>editPlan(button.dataset.planEdit)));
+    $("plan-table-body").querySelectorAll("[data-plan-revision]").forEach(button=>button.addEventListener("click",()=>createRevision(button.dataset.planRevision)));
+    $("plan-table-body").querySelectorAll("[data-plan-delete]").forEach(button=>button.addEventListener("click",()=>deletePlan(button.dataset.planDelete)));
   }
   async function loadPlans(){
     const button=$("refresh-plans");button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memuat…';
@@ -187,27 +189,61 @@
   }
   async function editPlan(id){
     if(!state.canUpdate)return;
-    const p=state.plans.find(row=>row.id===id);if(!p)return;
-    const date=window.prompt("Tanggal operasional (YYYY-MM-DD):",p.operational_date||"");if(date===null)return;
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)){toast("Format tanggal harus YYYY-MM-DD.");return;}
-    const labels={active:"Aktif",draft:"Draft",superseded:"Digantikan",cancelled:"Dibatalkan"};
-    const status=window.prompt("Status: active, draft, superseded, cancelled",p.status||"draft");if(status===null)return;
-    if(!Object.prototype.hasOwnProperty.call(labels,status)){toast("Status Plan tidak valid.");return;}
+    const p=state.plans.find(row=>row.id===id);
+    if(!p||p.status!=="draft"){toast("Hanya Plan Draft yang dapat diubah langsung.");return;}
+    const date=window.prompt("Tanggal operasional (YYYY-MM-DD):",p.operational_date||"");
+    if(date===null)return;
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||Number.isNaN(Date.parse(date+"T00:00:00"))){toast("Format tanggal harus YYYY-MM-DD.");return;}
     try{
-      const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({operational_date:date,status:status,updated_at:new Date().toISOString()})});
-      if(!Array.isArray(result)||result.length!==1)throw new Error("Plan tidak diperbarui. Periksa permission atau konflik Plan aktif.");
-      toast("Perubahan Plan berhasil disimpan.");await loadPlans();
-    }catch(error){toast(error.message||"Gagal memperbarui Plan.");}
+      const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id)+"&status=eq.draft",{
+        method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
+        body:JSON.stringify({operational_date:date,updated_at:new Date().toISOString()})
+      });
+      if(!Array.isArray(result)||result.length!==1)throw new Error("Plan Draft tidak diperbarui. Periksa permission atau status Plan.");
+      toast("Plan Draft berhasil diperbarui.");await loadPlans();
+    }catch(error){toast(error.message||"Gagal memperbarui Plan Draft.");}
+  }
+  async function createRevision(id){
+    if(!state.canUpdate)return;
+    const p=state.plans.find(row=>row.id===id);
+    if(!p||p.status!=="active"){toast("Revisi hanya dapat dibuat dari Plan Aktif.");return;}
+    const date=window.prompt("Tanggal operasional untuk revisi baru (YYYY-MM-DD):",p.operational_date||"");
+    if(date===null)return;
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||Number.isNaN(Date.parse(date+"T00:00:00"))){toast("Format tanggal harus YYYY-MM-DD.");return;}
+    const client=p.clients&&p.clients.name||"klien ini";
+    if(!window.confirm("Buat revisi/pengganti untuk Plan "+String(p.id).slice(0,6)+"… milik "+client+"? Plan aktif lama akan menjadi Digantikan. Isi barang dan trip akan disalin ke revisi baru."))return;
+    try{
+      const result=await request("/rest/v1/rpc/create_import_plan_revision",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({p_source_plan_id:id,p_operational_date:date})
+      });
+      const saved=Array.isArray(result)?result[0]:result;
+      if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID revisi baru.");
+      toast("Revisi baru berhasil dibuat (v"+saved.revision+"). Plan lama disimpan sebagai Digantikan.");
+      await loadPlans();
+    }catch(error){
+      const message=String(error.message||"");
+      if(message.includes("PLAN_HAS_VISIT_LINKS"))toast("Revisi tidak dapat dibuat karena detail Plan sudah terhubung ke visit aktual.");
+      else if(message.includes("PLAN_ACTIVE_EXISTS"))toast("Sudah ada Plan Aktif pada klien, tanggal, dan jenis tersebut.");
+      else if(message.includes("PERMISSION_DENIED")||message.includes("42501"))toast("Akun tidak memiliki permission yang diperlukan untuk membuat revisi.");
+      else toast(message||"Gagal membuat revisi Plan.");
+    }
   }
   async function deletePlan(id){
     if(!state.canDelete)return;
     const p=state.plans.find(row=>row.id===id);if(!p)return;
     const client=p.clients&&p.clients.name||"Klien tidak tersedia";
-    if(!window.confirm("Hapus Plan "+String(p.id).slice(0,6)+"… milik "+client+"? Rincian barang dan trip ikut dihapus. Tindakan ini tidak dapat dibatalkan."))return;
+    const warning=p.status==="active"?" Plan Aktif akan dihapus sehingga tidak ada Plan aktif untuk cakupan ini sampai Plan pengganti dibuat.":"";
+    if(!window.confirm("Hapus Plan "+String(p.id).slice(0,6)+"… milik "+client+"? Rincian barang dan trip ikut dihapus."+warning+" Tindakan ini tidak dapat dibatalkan."))return;
     try{
-      const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=representation"}});\n      if(!Array.isArray(result)||result.length!==1)throw new Error("Plan tidak terhapus. Periksa permission atau pastikan Plan belum terhubung ke visit.");
+      const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=representation"}});
+      if(!Array.isArray(result)||result.length!==1)throw new Error("Plan tidak terhapus. Periksa permission atau pastikan Plan belum terhubung ke visit.");
       toast("Plan berhasil dihapus.");await loadPlans();
-    }catch(error){toast(error.message||"Gagal menghapus Plan. Plan mungkin sudah terhubung ke visit.");}
+    }catch(error){
+      const message=String(error.message||"");
+      if(message.includes("23503")||message.includes("foreign key"))toast("Plan tidak dapat dihapus karena detailnya sudah terhubung ke visit aktual.");
+      else toast(message||"Gagal menghapus Plan.");
+    }
   }
   function detailCell(value){return esc(value||"—");}
   async function openDetail(id){
