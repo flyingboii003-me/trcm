@@ -133,7 +133,7 @@
 (function(){
   "use strict";
   const $=id=>document.getElementById(id);
-  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,canUpdate:false,canDelete:false};
+  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,canUpdate:false,canCreatePlan:false,canDelete:false};
   const statusLabels={active:"Aktif",draft:"Draft",superseded:"Digantikan",cancelled:"Dibatalkan"};
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
   function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
@@ -167,7 +167,7 @@
     if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
     $("plan-table-body").innerHTML=rows.map(p=>{
       const client=p.clients&&p.clients.name||"Klien tidak tersedia";
-      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td><span class="fw-bold">v'+esc(p.revision||1)+'</span></td><td><span class="fw-semibold">'+esc(countItems(p))+'</span><span class="text-secondary small"> baris</span></td><td>'+esc(countTrips(p)||"—")+'</td><td>'+statusBadge(p.status)+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="draft"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-revision="'+esc(p.id)+'"><i class="bi bi-copy me-1"></i>Buat revisi</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
+      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td><span class="fw-bold">v'+esc(p.revision||1)+'</span></td><td><span class="fw-semibold">'+esc(countItems(p))+'</span><span class="text-secondary small"> baris</span></td><td>'+esc(countTrips(p)||"—")+'</td><td>'+statusBadge(p.status)+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="draft"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canUpdate&&state.canCreatePlan&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-revision="'+esc(p.id)+'"><i class="bi bi-copy me-1"></i>Buat revisi</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
     }).join("");
     $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));
     $("plan-table-body").querySelectorAll("[data-plan-edit]").forEach(button=>button.addEventListener("click",()=>editPlan(button.dataset.planEdit)));
@@ -293,6 +293,7 @@
     if(!state.session||!state.session.access_token){window.location.replace("../index.html");return;}
     const permissions=window.trcmPermissions;
     state.canUpdate=!!(permissions&&permissions.can("daftar_plan","update"));
+    state.canCreatePlan=!!(permissions&&permissions.can("import_plan","create"));
     state.canDelete=!!(permissions&&permissions.can("daftar_plan","delete"));
     const canImport = permissions && permissions.can("import_plan_upload", "view");
     const createLink = $("create-plan-link");
