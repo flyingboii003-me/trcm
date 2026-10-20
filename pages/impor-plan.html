@@ -144,7 +144,7 @@
             <label class="plan-field-label" for="paste-data">Data Excel (dipisahkan tab)</label>
             <textarea class="plan-paste" id="paste-data" spellcheck="false" aria-describedby="paste-hint"></textarea>
             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mt-2 mb-4">
-              <div class="plan-hint mt-0" id="paste-hint">Header harus sesuai dengan template. Nomor DO, PART NUMBER, dan angka referensi dibaca sebagai teks.</div>
+              <div class="plan-hint mt-0" id="paste-hint">Nama header boleh memakai alias yang disetujui dan urutan kolom boleh berbeda. Nomor DO, PART NUMBER, dan referensi disimpan sebagai teks.</div>
               <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-example"><i class="bi bi-arrow-counterclockwise me-1"></i>Muat contoh</button>
             </div>
             <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Data belum disimpan.</strong> Halaman ini hanya untuk menguji UI/UX. Tombol data menjalankan validasi di browser; tidak ada perubahan ke database.</div></div>
@@ -291,7 +291,7 @@
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
     $("plan-template-name").querySelector("strong").textContent=schemas[type].label;
     $("template-hint").textContent=schemas[type].hint;
-    $("paste-hint").textContent=type==="inbound"?"Header harus sesuai template. Nomor DO, PART NUMBER, dan referensi disimpan sebagai teks.":"Header harus sesuai template. SHIPMENT disimpan sebagai teks; QUANTITY harus berupa angka lebih dari nol.";
+    $("paste-hint").textContent=type==="inbound"?"Header harus sesuai template. Nomor DO, PART NUMBER, dan referensi disimpan sebagai teks.":"Header boleh memakai alias yang disetujui dan urutan kolom boleh berbeda. SHIPMENT disimpan sebagai teks; QUANTITY harus berupa angka lebih dari nol.";
     $("paste-data").value=schemas[type].sample;
     resetDataCheck();
   }
@@ -304,15 +304,66 @@
     $("data-check-body").innerHTML='<tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data akan tampil di sini.</div></td></tr>';
     $("data-check-footer-note").textContent="Konfirmasi tersedia setelah semua kesalahan diperbaiki dan peringatan ditinjau.";
   }
-  function normalizeHeader(value){return String(value||"").trim().replace(/\s+/g," ").toUpperCase()}
+  function normalizeHeader(value){
+    return String(value||"").normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/[^\\p{L}\\p{N}]+/gu," ").replace(/\\s+/g," ").toUpperCase();
+  }
+  const headerAliases={
+    inbound:{
+      "DO / TRANSPORT TASK":"do_number","DO TRANSPORT TASK":"do_number","DO":"do_number","NOMOR DO":"do_number","NO DO":"do_number","TRANSPORT TASK":"do_number",
+      "PART NUMBER":"part_number","PART NO":"part_number","PART":"part_number","NOMOR PART":"part_number",
+      "NAMA PRODUK":"product_name","PRODUCT NAME":"product_name","PRODUK":"product_name",
+      "QTY":"quantity","QUANTITY":"quantity","JUMLAH":"quantity"
+    },
+    outbound:{
+      "VENDOR":"vendor","NAMA VENDOR":"vendor",
+      "PLAT NOMOR":"plate_number","NOMOR PLAT":"plate_number","NO POLISI":"plate_number","NOPOL":"plate_number","LICENSE PLATE":"plate_number",
+      "NAMA DRIVER":"driver_name","DRIVER":"driver_name","NAMA SOPIR":"driver_name","SOPIR":"driver_name",
+      "TIPE TRUCK":"truck_type","TIPE TRUK":"truck_type","JENIS TRUCK":"truck_type","JENIS TRUK":"truck_type","TRUCK TYPE":"truck_type",
+      "TUJUAN":"destination_city","KOTA TUJUAN":"destination_city","DESTINATION":"destination_city",
+      "SHIPMENT":"shipment_number","NOMOR SHIPMENT":"shipment_number","NO SHIPMENT":"shipment_number","DO":"shipment_number","NOMOR DO":"shipment_number","DO NUMBER":"shipment_number",
+      "QUANTITY":"quantity","QTY":"quantity","JUMLAH":"quantity"
+    }
+  };
+  const canonicalFields={
+    inbound:["do_number","part_number","product_name","quantity"],
+    outbound:["vendor","plate_number","driver_name","truck_type","destination_city","shipment_number","quantity"]
+  };
   function parseRows(){
-    const lines=$("paste-data").value.replace(/\r/g,"").split("\n").filter(line=>line.trim()!=="");
+    const lines=$("paste-data").value.replace(/\\r/g,"").split("\\n").filter(line=>line.trim()!=="");
     if(lines.length<2) return {fatal:"Masukkan header dan minimal satu baris data."};
-    const headers=lines[0].split("\t").map(normalizeHeader);
-    const expected=schemas[type].headers;
-    if(headers.length!==expected.length||headers.some((h,i)=>h!==expected[i]))return {fatal:"Header tidak sesuai template "+(type==="inbound"?"Inbound":"Outbound")+". Gunakan tombol Salin header atau Muat contoh untuk memperbaikinya.",got:headers};
-    const rows=lines.slice(1).map((line,index)=>({line:index+2,cells:line.split("\t").map(v=>v.trim())}));
-    return {headers,rows};
+    const rawHeaders=lines[0].split("\\t");
+    const headers=rawHeaders.map(normalizeHeader);
+    const aliases=headerAliases[type], fields=canonicalFields[type], mapping=[], unknown=[], duplicates=[];
+    headers.forEach((header,index)=>{
+      const field=aliases[header];
+      if(!header){unknown.push("Kolom "+(index+1)+" kosong");return;}
+      if(!field){unknown.push(rawHeaders[index].trim());return;}
+      if(mapping.some(item=>item.field===field)){duplicates.push(rawHeaders[index].trim());return;}
+      mapping.push({index,field});
+    });
+    const missing=fields.filter(field=>!mapping.some(item=>item.field===field));
+    if(unknown.length||duplicates.length||missing.length){
+      const problems=[];
+      if(missing.length)problems.push("Kolom wajib belum ditemukan: "+missing.map(field=>fieldLabel(type,field)).join(", ")+".");
+      if(unknown.length)problems.push("Header tidak dikenal: "+unknown.join(", ")+". Tambahkan alias yang disetujui atau perbaiki nama kolom.");
+      if(duplicates.length)problems.push("Lebih dari satu header dipetakan ke field yang sama: "+duplicates.join(", ")+".");
+      return {fatal:problems.join(" "),got:headers,missing,unknown,duplicates};
+    }
+    const rows=[];
+    for(let i=1;i<lines.length;i++){
+      const raw=lines[i].split("\\t");
+      if(raw.length!==rawHeaders.length)return {fatal:"Jumlah kolom pada baris "+(i+1)+" berbeda dari header. Pastikan setiap baris memiliki jumlah kolom yang sama."};
+      const cells=fields.map(field=>{const item=mapping.find(entry=>entry.field===field);return String(raw[item.index]??"").trim()});
+      rows.push({line:i+1,cells});
+    }
+    return {headers,rows,mapping};
+  }
+  function fieldLabel(planType,field){
+    const labels={
+      do_number:"Nomor DO",part_number:"PART NUMBER",product_name:"NAMA PRODUK",quantity:planType==="inbound"?"QTY":"QUANTITY",
+      vendor:"VENDOR",plate_number:"PLAT NOMOR",driver_name:"NAMA DRIVER",truck_type:"TIPE TRUCK",destination_city:"TUJUAN",shipment_number:"SHIPMENT"
+    };
+    return labels[field]||field;
   }
   function validate(){
     if(!$("plan-client").value){
@@ -354,8 +405,8 @@
         const [vendor,plate,driver,truck,destination,shipment,quantity]=r.cells;
         [["VENDOR",vendor],["PLAT NOMOR",plate],["NAMA DRIVER",driver],["TIPE TRUCK",truck],["TUJUAN",destination],["SHIPMENT",shipment]].forEach(([label,value])=>{if(!value)r.errors.push(label+" wajib diisi.")});
         if(!quantity||!Number.isFinite(Number(quantity))||Number(quantity)<=0)r.errors.push("QUANTITY harus berupa angka lebih dari nol.");
-        if(shipment&&seenShipment.has(shipment))r.warnings.push("Nomor SHIPMENT terduplikasi; periksa data sumber.");
-        if(shipment)seenShipment.add(shipment);
+        if(shipment&&seenShipment.has(normalizeDocument(shipment)))r.errors.push("Nomor SHIPMENT terduplikasi dalam file. Dokumen harus unik global dan tidak boleh dipakai ulang pada revisi.");
+        if(shipment)seenShipment.add(normalizeDocument(shipment));
         if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
       });
       plates.forEach(group=>{if(new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," "))).size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."))});
@@ -384,7 +435,7 @@
     
   }
 
-  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
+  function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\\s+/g," ").toUpperCase()}\n  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
   function renderTripGroups(){
     const card=$("truk-group-card");
     if(type!=="outbound"||!checked||!parsed.length){card.classList.add("d-none");return;}
