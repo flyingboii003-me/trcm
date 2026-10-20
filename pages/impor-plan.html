@@ -167,6 +167,12 @@
               <span class="plan-count error"><i class="bi bi-exclamation-circle"></i><span id="error-count">0 kesalahan</span></span>
               <span class="plan-count warning"><i class="bi bi-exclamation-triangle"></i><span id="warning-count">0 peringatan</span></span>
             </div>
+            <div id="header-mapping-summary" class="plan-data-table-wrap mb-3 d-none" aria-live="polite">
+              <table class="table plan-data-table align-middle">
+                <thead><tr><th>Header Excel</th><th>Dipetakan ke</th><th>Status</th></tr></thead>
+                <tbody id="header-mapping-body"></tbody>
+              </table>
+            </div>
             <div id="validation-message" class="plan-callout mb-3" role="status"><i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Periksa data</strong> untuk memeriksa hasilnya.</div></div>
             <div class="plan-data-table-wrap">
               <table class="table plan-data-table align-middle">
@@ -315,6 +321,7 @@
     $("data-check-state").className="plan-status warning";$("data-check-state").innerHTML='<i class="bi bi-hourglass-split"></i>Belum diperiksa';
     $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="0 kesalahan";$("warning-count").textContent="0 peringatan";
     $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-info-circle-fill"></i><div>Tempel data dari Excel, lalu pilih <strong>Periksa data</strong> untuk memeriksa hasilnya.</div>';
+    $("header-mapping-summary").classList.add("d-none");$("header-mapping-body").innerHTML="";
     $("data-check-head").innerHTML="<tr><th>No.</th><th>Data</th><th>Status</th><th>Catatan validasi</th></tr>";
     $("data-check-body").innerHTML='<tr><td colspan="4"><div class="plan-empty"><i class="bi bi-table"></i>Data akan tampil di sini.</div></td></tr>';
     $("data-check-footer-note").textContent="Konfirmasi tersedia setelah semua kesalahan diperbaiki dan peringatan ditinjau.";
@@ -366,6 +373,8 @@
       $("data-check-body").innerHTML='<tr class="row-invalid"><td><span class="plan-status invalid">Header tidak cocok</span></td><td>'+schemas[type].headers.map(textSafe).join(" · ")+"</td></tr>";
       $("data-check-footer-note").textContent="Perbaiki header lalu jalankan data kembali.";return;
     }
+    $("header-mapping-body").innerHTML=result.mapping.map(item=>"<tr><td>"+textSafe(item.source)+"</td><td>"+textSafe(item.label)+"</td><td><span class=\\"plan-status valid\\"><i class=\\"bi bi-check-circle-fill\\"></i>Cocok</span></td></tr>").join("");
+    $("header-mapping-summary").classList.remove("d-none");
     const rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
     if(type==="inbound"){
       const seen=new Set();
