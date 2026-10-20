@@ -331,8 +331,8 @@
       ["Status",statusLabels[p.status]||p.status],["Revisi","v"+(p.revision||1)],["Truk terkonfirmasi","Memuat…"],["Dibuat",dateTimeLabel(p.created_at)]
     ].map(([label,value])=>'<div class="list-detail-item"><div class="list-detail-label">'+esc(label)+'</div><div class="list-detail-value">'+esc(value)+'</div></div>').join("");
     $("detail-trips-title").textContent=p.activity_type==="inbound"?"Kelompok trip inbound":"Kelompok trip / truk";
-    $("detail-trips-head").innerHTML=p.activity_type==="inbound"?"<tr><th>No. trip</th><th>DO / Transport task</th><th>Part number</th><th>Nama produk</th><th>Total quantity</th></tr>":"<tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr>";
-    $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:6)+'" class="text-center text-secondary py-3">Memuat trip…</td></tr>';
+    $("detail-trips-head").innerHTML=p.activity_type==="inbound"?"<tr><th>No. trip</th><th>DO / Transport task</th><th>Part number</th><th>Nama produk</th><th>Total quantity</th></tr>":"<tr><th>No. trip</th><th>Shipment</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr>";
+    $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:7)+'" class="text-center text-secondary py-3">Memuat trip…</td></tr>';
     bootstrap.Modal.getOrCreateInstance($("plan-detail-modal")).show();
     try{
       const [items,trips]=await Promise.all([
@@ -355,13 +355,13 @@
           return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(uniqueValues("do_number").join(", "))+"</td><td>"+detailCell(uniqueValues("part_number").join(", "))+"</td><td>"+detailCell(uniqueValues("product_name").join(", "))+"</td><td>"+(groupItems.length?esc(quantity):"—")+"</td></tr>";
         }).join(""):'<tr><td colspan="5"><div class="list-empty">Belum ada kelompok trip inbound.</div></td></tr>';
       }else{
-        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>"<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>").join(""):'<tr><td colspan="6"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
+        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{const groupItems=items.filter(item=>item.trip_id===trip.id);const shipments=[...new Set(groupItems.map(item=>String(item.shipment_number||"").trim()).filter(Boolean))];return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(shipments.join(", "))+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>";}).join(""):'<tr><td colspan="7"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
       }
     }catch(error){
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent="—";
       $("detail-history-body").innerHTML='<tr><td colspan="4" class="text-secondary text-center py-3">Riwayat tidak dapat dimuat.</td></tr>';
-      $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:6)+'" class="text-danger p-3">'+esc(error.message||"Rincian trip gagal dimuat.")+'</td></tr>';
+      $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:7)+'" class="text-danger p-3">'+esc(error.message||"Rincian trip gagal dimuat.")+'</td></tr>';
     }
   }
   $("plan-search").addEventListener("input",applyFilters);
