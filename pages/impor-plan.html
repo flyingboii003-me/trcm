@@ -62,8 +62,6 @@
     .plan-callout i{margin-top:.1rem;color:var(--cj-blue);font-size:1rem}
     .plan-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem 1.5rem;border-top:1px solid var(--plan-line);background:#FBFCFE}
     .plan-demo-note{color:var(--plan-muted);font-size:.75rem}
-    .plan-toast{position:fixed;right:1.25rem;top:1.25rem;z-index:2000;max-width:min(420px,calc(100vw - 2rem));display:none;padding:1rem 1.1rem;border:1px solid #C9DFF4;border-radius:14px;background:#F0F7FF;color:#173E63;box-shadow:var(--shadow-lg);font-size:.85rem}
-    .plan-toast.show{display:flex;gap:.65rem;align-items:flex-start}
     .plan-empty{padding:2.5rem 1rem;text-align:center;color:var(--plan-muted)}
     .plan-empty i{display:block;margin-bottom:.65rem;font-size:1.7rem}
     .plan-bottom-actions{display:flex;justify-content:flex-end;gap:.65rem;flex-wrap:wrap}
@@ -246,7 +244,6 @@
     </div>
   </div>
 </div>
-<div class="plan-toast" id="plan-toast" role="status" aria-live="polite"><i class="bi bi-info-circle-fill"></i><div id="toast-message"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -312,8 +309,10 @@
     }
   }
   const textSafe=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-  const trcmToast=Swal.mixin({toast:true,position:"top-end",showConfirmButton:false,timer:4200,timerProgressBar:true});
-  function toast(message,icon="info"){trcmToast.fire({icon,title:String(message||"")});}
+  function toast(message,icon="info"){
+    const titles={success:"Berhasil",error:"Terjadi kesalahan",warning:"Perlu diperiksa",info:"Informasi",question:"Konfirmasi"};
+    return Swal.fire({icon,title:titles[icon]||"Informasi",text:String(message||""),confirmButtonText:icon==="error"?"Tutup":"Mengerti",confirmButtonColor:"#006ECD"});
+  }
   function setType(next){
     type=next;checked=false;parsed=[];
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
