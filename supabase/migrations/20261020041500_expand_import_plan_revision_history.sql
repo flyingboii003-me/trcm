@@ -25,6 +25,8 @@ create policy import_plan_history_insert_admin on public.import_plan_history
   for insert to authenticated
   with check (private.has_permission('daftar_plan','update'));
 
+drop function if exists public.create_import_plan_revision(uuid, date);
+
 create or replace function public.create_import_plan_revision(
   p_source_plan_id uuid,
   p_operational_date date,
