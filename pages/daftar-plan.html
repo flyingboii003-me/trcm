@@ -144,7 +144,7 @@
   function activityBadge(type){const s=String(type||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="inbound"?"bi-box-arrow-in-down":"bi-box-arrow-up")+'"></i>'+esc(activityLabels[s]||s||"—")+'</span>';}
   function countItems(plan){return Array.isArray(plan.import_plan_items)?plan.import_plan_items.length:Number(plan.row_count)||0;}
   function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}
-  async function request(path,options){const response=await fetch(SUPABASE_URL+path,Object.assign({headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token}},options||{}));const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)?(data.message||data.details||data.hint):"Permintaan database gagal ("+response.status+").");return data;}
+  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token},options&&options.headers||{});const response=await fetch(SUPABASE_URL+path,config);const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)?(data.message||data.details||data.hint):"Permintaan database gagal ("+response.status+").");return data;}
   function updateStats(plans){$("stat-total").textContent=plans.length;$("stat-active").textContent=plans.filter(p=>p.status==="active").length;$("stat-inbound").textContent=plans.filter(p=>p.activity_type==="inbound").length;$("stat-outbound").textContent=plans.filter(p=>p.activity_type==="outbound").length;}
   function applyFilters(){
     const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,status=$("filter-status").value,from=$("filter-from").value,to=$("filter-to").value;
@@ -205,8 +205,8 @@
     const client=p.clients&&p.clients.name||"Klien tidak tersedia";
     if(!window.confirm("Hapus Plan "+String(p.id).slice(0,6)+"… milik "+client+"? Rincian barang dan trip ikut dihapus. Tindakan ini tidak dapat dibatalkan."))return;
     try{
-      await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=representation"}});
-      toast("Permintaan hapus Plan berhasil diproses.");await loadPlans();
+      const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=representation"}});\n      if(!Array.isArray(result)||result.length!==1)throw new Error("Plan tidak terhapus. Periksa permission atau pastikan Plan belum terhubung ke visit.");
+      toast("Plan berhasil dihapus.");await loadPlans();
     }catch(error){toast(error.message||"Gagal menghapus Plan. Plan mungkin sudah terhubung ke visit.");}
   }
   function detailCell(value){return esc(value||"—");}
