@@ -119,6 +119,8 @@
       <div class="list-detail-grid mb-4" id="detail-summary"></div>
       <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-trips-title">Kelompok trip / truk</h3></div>
       <div class="list-table-wrap"><table class="table list-table align-middle"><thead id="detail-trips-head"><tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr></thead><tbody id="detail-trips-body"></tbody></table></div>
+      <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mt-4 mb-2"><h3 class="fs-6 fw-bold mb-0">Riwayat revisi dan perubahan</h3></div>
+      <div class="list-table-wrap"><table class="table list-table align-middle" style="min-width:600px"><thead><tr><th>Versi</th><th>Perubahan</th><th>Waktu</th><th>ID sumber</th></tr></thead><tbody id="detail-history-body"><tr><td colspan="4" class="text-secondary text-center py-3">Memuat riwayat…</td></tr></tbody></table></div>
     </div>
     <div class="modal-footer"><button class="btn btn-light border" type="button" data-bs-dismiss="modal">Tutup</button></div>
   </div></div>
@@ -338,7 +340,11 @@
         request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
         request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
       ]);
+      const historyPromise=request("/rest/v1/import_plan_history?select=id,revision,event_type,created_at,source_plan_id&or="+encodeURIComponent("(plan_id.eq."+id+",source_plan_id.eq."+id+")")+"&order=created_at.desc").catch(()=>[]);
       if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Respons rincian Plan tidak valid.");
+      const history=await historyPromise;
+      const eventLabels={created:"Versi dibuat",revised:"Sumber revisi disimpan",updated:"Plan diperbarui",status_changed:"Status berubah",deleted:"Plan dihapus"};
+      $("detail-history-body").innerHTML=Array.isArray(history)&&history.length?history.map(entry=>"<tr><td><strong>v"+esc(entry.revision||"—")+"</strong></td><td>"+esc(eventLabels[entry.event_type]||entry.event_type||"Perubahan")+"</td><td>"+esc(dateTimeLabel(entry.created_at))+"</td><td><span class=\"list-plan-id\">"+esc(entry.source_plan_id?String(entry.source_plan_id).slice(0,8)+"…":"—")+"</span></td></tr>").join(""):'<tr><td colspan="4" class="text-secondary text-center py-3">Belum ada riwayat yang tercatat.</td></tr>';
       const confirmedTruckCount=p.activity_type==="inbound"?trips.filter(trip=>items.some(item=>item.trip_id===trip.id)).length:trips.filter(trip=>String(trip.plate_number||"").trim()).length;
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent=String(confirmedTruckCount);
@@ -355,6 +361,7 @@
     }catch(error){
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent="—";
+      $("detail-history-body").innerHTML='<tr><td colspan="4" class="text-secondary text-center py-3">Riwayat tidak dapat dimuat.</td></tr>';
       $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:6)+'" class="text-danger p-3">'+esc(error.message||"Rincian trip gagal dimuat.")+'</td></tr>';
     }
   }
