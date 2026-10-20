@@ -476,7 +476,7 @@
     $("confirm-rows").textContent=String(parsed.length);
     const groups=type==="inbound"?new Set(parsed.map(r=>(r.cells[0]||"").trim().toUpperCase()).filter(Boolean)).size:new Set(parsed.filter(r=>(r.cells[1]||"").trim()&&(r.cells[2]||"").trim()).map(r=>truckKey(r))).size;
     $("confirm-groups").textContent=String(groups);
-    $("confirm-warning").innerHTML='<i class="bi bi-exclamation-triangle-fill me-2"></i>Plan akan disimpan dan diaktifkan untuk klien, tanggal, dan jenis ini. Jika sudah ada Plan aktif pada cakupan yang sama, database akan menolak simpan tanpa mengubah Plan lama.';
+    $("confirm-warning").innerHTML='<i class="bi bi-exclamation-triangle-fill me-2"></i>Plan dapat aktif berdampingan untuk klien, tanggal, dan jenis yang sama selama nomor DO (Inbound) atau Shipment (Outbound) belum digunakan pada Plan aktif lain.';
     const headers=type==="inbound"?["DO / Transport task","Part number","Nama produk","QTY","Status"]:["Truk","Plat nomor","Nama driver","Shipment","Vendor","Tipe truck","Tujuan","Quantity","Status"];
     $("confirm-table-head").innerHTML="<tr>"+headers.map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("confirm-table-body").innerHTML=parsed.map((r,i)=>{
@@ -507,7 +507,9 @@
   }
   function describeSaveError(message){
     const text=String(message||"");
-    if(text.includes("PLAN_ACTIVE_EXISTS")) return "Plan aktif untuk klien, tanggal, dan jenis ini sudah ada. Plan lama tidak diubah. Pilih tanggal/jenis lain atau gunakan alur revisi Plan yang berwenang.";
+    if(text.includes("PLAN_DO_EXISTS")) return "Nomor DO tersebut sudah digunakan pada Plan Inbound aktif untuk klien dan tanggal yang sama. Gunakan DO berbeda atau periksa Plan yang sudah ada.";
+    if(text.includes("PLAN_SHIPMENT_EXISTS")) return "Nomor Shipment tersebut sudah digunakan pada Plan Outbound aktif untuk klien dan tanggal yang sama. Gunakan Shipment berbeda atau periksa Plan yang sudah ada.";
+    if(text.includes("PLAN_ACTIVE_EXISTS")) return "Plan aktif untuk cakupan ini sudah ada. Periksa nomor DO atau Shipment yang digunakan.";
     if(text.includes("PERMISSION_DENIED")||text.includes("42501")) return "Akun Anda tidak memiliki izin untuk membuat Plan. Pastikan Anda masuk sebagai Admin.";
     if(text.includes("AUTH_REQUIRED")||text.includes("401")) return "Sesi masuk tidak valid atau sudah berakhir. Masuk kembali lalu ulangi.";
     if(text.includes("validate_import_plan_shipment_trip")||text.includes("Shipment yang sama")) return "Shipment yang sama terdeteksi pada vendor, plat, atau tujuan berbeda. Perbaiki data Excel lalu periksa ulang.";
