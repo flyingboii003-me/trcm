@@ -222,35 +222,72 @@
     if(!state.canUpdate)return;
     const p=state.plans.find(row=>row.id===id);
     if(!p||p.status!=="active"){toast("Revisi hanya dapat dibuat dari Plan Aktif.","warning");return;}
-    const dateDialog=await Swal.fire({
-      title:"Tanggal revisi Plan",text:"Revisi akan menjadi Plan baru dan menggantikan Plan Aktif saat ini.",
-      input:"date",inputLabel:"Tanggal operasional untuk revisi baru",inputValue:p.operational_date||"",
-      inputAttributes:{required:"true","aria-label":"Tanggal operasional revisi"},
-      showCancelButton:true,confirmButtonText:"Lanjutkan",cancelButtonText:"Batal",
-      confirmButtonColor:"#0d6efd",reverseButtons:true,
-      inputValidator:(value)=>{
-        if(!value)return "Tanggal operasional wajib diisi.";
-        const parsedDate=new Date(value+"T00:00:00");
-        if(Number.isNaN(parsedDate.getTime())||parsedDate.toISOString().slice(0,10)!==value)return "Pilih tanggal yang valid.";
+    let items,trips;
+    try{
+      [items,trips]=await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+        request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
+      ]);
+      if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Rincian shipment/DO gagal dimuat.");
+    }catch(error){toast(error.message||"Rincian Plan gagal dimuat.","error");return;}
+    const tripById=new Map(trips.map(t=>[t.id,t]));
+    const rows=items.map(item=>Object.assign({},item,tripById.get(item.trip_id)||{}));
+    if(!rows.length){toast("Plan ini belum memiliki shipment atau DO untuk direvisi.","warning");return;}
+    const fields=[
+      ["do_number","DO / Transport task"],["shipment_number","Shipment"],["part_number","Part number"],
+      ["product_name","Nama produk"],["quantity","Quantity"],["vendor","Vendor"],["plate_number","Plat nomor"],
+      ["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"]
+    ];
+    const tableHead=fields.map(([,label])=>"<th>"+esc(label)+"</th>").join("");
+    const tableRows=rows.map((row,index)=>"<tr>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-revision-row='"+index+"' data-revision-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+"</tr>").join("");
+    const dialog=await Swal.fire({
+      title:"Buat revisi Plan v"+((Number(p.revision)||1)+1),
+      width:"min(1200px, 96vw)",
+      html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan, tanggal operasional, dan status sebelum menyimpan revisi.</div>"+
+        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='revision-operational-date'>Tanggal operasional</label><input id='revision-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div>"+
+        "<div class='col-md-7'><span class='form-label d-block fw-semibold'>Status Plan baru</span><div class='d-flex flex-wrap gap-3'>"+
+        ["active","draft","cancelled"].map((s,i)=>"<label class='form-check'><input class='form-check-input' type='radio' name='revision-status' value='"+s+"' "+(s==="active"?"checked":"")+"><span class='form-check-label'>"+({active:"Aktif",draft:"Draft",cancelled:"Dibatalkan"}[s])+"</span></label>").join("")+
+        "</div></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
+        "<div class='small text-secondary text-start mt-2'>Perubahan disimpan sebagai revisi baru; versi sumber tetap tersimpan sebagai riwayat.</div>",
+      showCancelButton:true,confirmButtonText:"Simpan revisi",cancelButtonText:"Batal",
+      confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
+      didOpen:()=>{const el=document.getElementById("revision-operational-date");if(el)el.focus();},
+      preConfirm:()=>{
+        const date=document.getElementById("revision-operational-date")?.value;
+        const status=document.querySelector("input[name='revision-status']:checked")?.value;
+        if(!date){Swal.showValidationMessage("Tanggal operasional wajib diisi.");return false;}
+        if(!["active","draft","cancelled"].includes(status)){Swal.showValidationMessage("Pilih status Plan.");return false;}
+        const payload=rows.map((row,index)=>{
+          const value={};
+          fields.forEach(([field])=>{const input=document.querySelector("[data-revision-row='"+index+"'][data-revision-field='"+field+"']");value[field]=input?input.value.trim():"";});
+          value.quantity=Number(value.quantity);
+          return value;
+        });
+        for(let i=0;i<payload.length;i++){
+          const row=payload[i];
+          if(!Number.isFinite(row.quantity)||row.quantity<=0){Swal.showValidationMessage("Quantity pada baris "+(i+1)+" harus lebih dari nol.");return false;}
+          if(p.activity_type==="inbound"&&(!row.do_number||!row.part_number||!row.product_name)){Swal.showValidationMessage("DO, part number, dan nama produk wajib diisi pada baris "+(i+1)+".");return false;}
+          if(p.activity_type==="outbound"&&(!row.vendor||!row.plate_number||!row.driver_name||!row.truck_type||!row.destination||!row.shipment_number)){Swal.showValidationMessage("Seluruh kolom wajib Outbound harus terisi pada baris "+(i+1)+".");return false;}
+        }
+        return {date,status,rows:payload};
       }
     });
-    if(!dateDialog.isConfirmed)return;
-    const date=dateDialog.value,client=p.clients&&p.clients.name||"klien ini";
+    if(!dialog.isConfirmed||!dialog.value)return;
     const confirmation=await Swal.fire({
-      icon:"warning",title:"Buat revisi Plan?",
-      html:"Buat revisi untuk Plan <strong>"+esc(String(p.id).slice(0,6))+"…</strong> milik <strong>"+esc(client)+"</strong>?<br><br>Plan Aktif lama akan menjadi <strong>Digantikan</strong>. Rincian barang dan trip akan disalin ke revisi baru.",
-      showCancelButton:true,confirmButtonText:"Ya, buat revisi",cancelButtonText:"Batal",
+      icon:"warning",title:"Konfirmasi revisi",
+      html:"Simpan <strong>v"+((Number(p.revision)||1)+1)+"</strong> dengan status <strong>"+esc(({active:"Aktif",draft:"Draft",cancelled:"Dibatalkan"}[dialog.value.status]))+"</strong>?<br><br>Versi sebelumnya tidak akan ditimpa.",
+      showCancelButton:true,confirmButtonText:"Ya, simpan revisi",cancelButtonText:"Kembali",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true
     });
     if(!confirmation.isConfirmed)return;
     try{
       const result=await request("/rest/v1/rpc/create_import_plan_revision",{
         method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({p_source_plan_id:id,p_operational_date:date})
+        body:JSON.stringify({p_source_plan_id:id,p_operational_date:dialog.value.date,p_rows:dialog.value.rows,p_status:dialog.value.status})
       });
       const saved=Array.isArray(result)?result[0]:result;
       if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID revisi baru.");
-      toast("Revisi baru berhasil dibuat (v"+saved.revision+"). Plan lama disimpan sebagai Digantikan.","success");
+      toast("Revisi v"+saved.revision+" berhasil disimpan. Riwayat versi sebelumnya tetap tersedia.","success");
       await loadPlans();
     }catch(error){
       const message=String(error.message||"");
@@ -260,6 +297,7 @@
       else toast(message||"Gagal membuat revisi Plan.","error");
     }
   }
+  function labelFor(field){return ({do_number:"DO / Transport task",shipment_number:"Shipment",part_number:"Part number",product_name:"Nama produk",quantity:"Quantity",vendor:"Vendor",plate_number:"Plat nomor",driver_name:"Nama driver",truck_type:"Tipe truk",destination:"Tujuan"}[field]||field);}
   async function deletePlan(id){
     if(!state.canDelete)return;
     const p=state.plans.find(row=>row.id===id);if(!p)return;
@@ -301,7 +339,7 @@
         request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
       ]);
       if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Respons rincian Plan tidak valid.");
-      const confirmedTruckCount=trips.filter(trip=>String(trip.plate_number||"").trim()).length;
+      const confirmedTruckCount=p.activity_type==="inbound"?trips.filter(trip=>items.some(item=>item.trip_id===trip.id)).length:trips.filter(trip=>String(trip.plate_number||"").trim()).length;
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent=String(confirmedTruckCount);
       if(p.activity_type==="inbound"){
