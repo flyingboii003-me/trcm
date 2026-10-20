@@ -204,7 +204,7 @@
     }catch(error){toast(error.message||"Rincian Plan gagal dimuat.","error");return;}
     const tripById=new Map(trips.map(t=>[t.id,t]));
     const rows=items.map(item=>Object.assign({},item,tripById.get(item.trip_id)||{}));
-    if(!rows.length){toast("Plan ini belum memiliki shipment atau DO untuk direvisi.","warning");return;}
+    if(!rows.length){toast("Plan ini belum memiliki shipment atau DO untuk diubah.","warning");return;}
     const fields=[
       ["do_number","DO / Transport task"],["shipment_number","Shipment"],["part_number","Part number"],
       ["product_name","Nama produk"],["quantity","Quantity"],["vendor","Vendor"],["plate_number","Plat nomor"],
@@ -216,10 +216,7 @@
       title:"Ubah Plan",
       width:"min(1200px, 96vw)",
       html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
-        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='revision-operational-date'>Tanggal operasional</label><input id='revision-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div>"+
-        "<div class='col-md-7'><span class='form-label d-block fw-semibold'>Status Plan baru</span><div class='d-flex flex-wrap gap-3'>"+
-        ["active","draft","cancelled"].map((s,i)=>"<label class='form-check'><input class='form-check-input' type='radio' name='revision-status' value='"+s+"' "+(s==="active"?"checked":"")+"><span class='form-check-label'>"+({active:"Aktif",draft:"Draft",cancelled:"Dibatalkan"}[s])+"</span></label>").join("")+
-        "</div></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
+        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='revision-operational-date'>Tanggal operasional</label><input id='revision-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
         "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>",
       showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
@@ -255,8 +252,8 @@
     }catch(error){
       const message=String(error.message||"");
       if(message.includes("PLAN_HAS_VISIT_LINKS"))toast("Plan tidak dapat diubah karena detailnya sudah terhubung ke visit aktual.","error");
-      else if(message.includes("PERMISSION_DENIED")||message.includes("42501"))toast("Akun tidak memiliki permission yang diperlukan untuk membuat revisi.","error");
-      else toast(message||"Gagal membuat revisi Plan.","error");
+      else if(message.includes("PERMISSION_DENIED")||message.includes("42501"))toast("Akun tidak memiliki permission yang diperlukan untuk mengubah Plan.","error");
+      else toast(message||"Gagal memperbarui Plan.","error");
     }
   }
   function labelFor(field){return ({do_number:"DO / Transport task",shipment_number:"Shipment",part_number:"Part number",product_name:"Nama produk",quantity:"Quantity",vendor:"Vendor",plate_number:"Plat nomor",driver_name:"Nama driver",truck_type:"Tipe truk",destination:"Tujuan"}[field]||field);}
