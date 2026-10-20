@@ -33,8 +33,6 @@
     .list-plan-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;font-weight:700;color:var(--cj-blue)}
     .list-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:50rem;font-size:.7rem;font-weight:800;white-space:nowrap}
     .list-badge.active{background:#E7F7EE;color:#17663B}
-    .list-badge.draft{background:#EEF2F6;color:#526174}
-    .list-badge.superseded{background:#FFF4D9;color:#8A4B08}
     .list-badge.cancelled{background:#FDEBEC;color:#B4232A}
     .list-badge.inbound{background:#EAF3FC;color:#175A91}
     .list-badge.outbound{background:#F0EAFE;color:#6842A6}
@@ -211,22 +209,22 @@
       ["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"]
     ];
     const tableHead=fields.map(([,label])=>"<th>"+esc(label)+"</th>").join("");
-    const tableRows=rows.map((row,index)=>"<tr>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-revision-row='"+index+"' data-revision-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+"</tr>").join("");
+    const tableRows=rows.map((row,index)=>"<tr>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+"</tr>").join("");
     const dialog=await Swal.fire({
       title:"Ubah Plan",
       width:"min(1200px, 96vw)",
       html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
-        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='revision-operational-date'>Tanggal operasional</label><input id='revision-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
+        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
         "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>",
       showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
-      didOpen:()=>{const el=document.getElementById("revision-operational-date");if(el)el.focus();},
+      didOpen:()=>{const el=document.getElementById("edit-operational-date");if(el)el.focus();},
       preConfirm:()=>{
-        const date=document.getElementById("revision-operational-date")?.value;
+        const date=document.getElementById("edit-operational-date")?.value;
         if(!date){Swal.showValidationMessage("Tanggal operasional wajib diisi.");return false;}
         const payload=rows.map((row,index)=>{
           const value={};
-          fields.forEach(([field])=>{const input=document.querySelector("[data-revision-row='"+index+"'][data-revision-field='"+field+"']");value[field]=input?input.value.trim():"";});
+          fields.forEach(([field])=>{const input=document.querySelector("[data-edit-row='"+index+"'][data-edit-field='"+field+"']");value[field]=input?input.value.trim():"";});
           value.quantity=Number(value.quantity);
           return value;
         });
