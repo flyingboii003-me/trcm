@@ -126,7 +126,10 @@
 </div>
 <div class="list-toast" id="list-toast" role="status" aria-live="polite"><i class="bi bi-info-circle-fill"></i><div id="list-toast-message"></div></div>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
@@ -137,7 +140,8 @@
   const statusLabels={active:"Aktif",draft:"Draft",superseded:"Digantikan",cancelled:"Dibatalkan"};
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
   function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
-  function toast(message){$("list-toast-message").textContent=message;$("list-toast").classList.add("show");window.clearTimeout(toast.timer);toast.timer=window.setTimeout(()=>$("list-toast").classList.remove("show"),4200);}
+  const trcmToast=Swal.mixin({toast:true,position:"top-end",showConfirmButton:false,timer:4200,timerProgressBar:true});
+  function toast(message,icon="info"){trcmToast.fire({icon,title:String(message||"")});}
   function dateLabel(value){if(!value)return "—";const d=new Date(value+"T00:00:00");return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric"}).format(d);}
   function dateTimeLabel(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);}
   function statusBadge(status){const s=String(status||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="active"?"bi-check-circle-fill":s==="draft"?"bi-pencil-square":s==="superseded"?"bi-arrow-repeat":"bi-x-circle-fill")+'"></i>'+esc(statusLabels[s]||s||"Tidak diketahui")+'</span>';}
@@ -191,28 +195,56 @@
   async function editPlan(id){
     if(!state.canUpdate)return;
     const p=state.plans.find(row=>row.id===id);
-    if(!p||p.status!=="draft"){toast("Hanya Plan Draft yang dapat diubah langsung.");return;}
-    const date=window.prompt("Tanggal operasional (YYYY-MM-DD):",p.operational_date||"");
-    if(date===null)return;
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||Number.isNaN(Date.parse(date+"T00:00:00"))){toast("Format tanggal harus YYYY-MM-DD.");return;}
+    if(!p||p.status!=="draft"){toast("Hanya Plan Draft yang dapat diubah langsung.","warning");return;}
+    const dialog=await Swal.fire({
+      title:"Ubah tanggal operasional",
+      text:"Perubahan langsung hanya tersedia untuk Plan berstatus Draft.",
+      input:"date",inputLabel:"Tanggal operasional",inputValue:p.operational_date||"",
+      inputAttributes:{required:"true","aria-label":"Tanggal operasional"},
+      showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
+      confirmButtonColor:"#0d6efd",reverseButtons:true,
+      inputValidator:(value)=>{
+        if(!value)return "Tanggal operasional wajib diisi.";
+        const parsedDate=new Date(value+"T00:00:00");
+        if(Number.isNaN(parsedDate.getTime())||parsedDate.toISOString().slice(0,10)!==value)return "Pilih tanggal yang valid.";
+      }
+    });
+    if(!dialog.isConfirmed)return;
+    const date=dialog.value;
     try{
       const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id)+"&status=eq.draft",{
         method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
         body:JSON.stringify({operational_date:date,updated_at:new Date().toISOString()})
       });
       if(!Array.isArray(result)||result.length!==1)throw new Error("Plan Draft tidak diperbarui. Periksa permission atau status Plan.");
-      toast("Plan Draft berhasil diperbarui.");await loadPlans();
-    }catch(error){toast(error.message||"Gagal memperbarui Plan Draft.");}
+      toast("Plan Draft berhasil diperbarui.","success");await loadPlans();
+    }catch(error){toast(error.message||"Gagal memperbarui Plan Draft.","error");}
   }
   async function createRevision(id){
     if(!state.canUpdate)return;
     const p=state.plans.find(row=>row.id===id);
-    if(!p||p.status!=="active"){toast("Revisi hanya dapat dibuat dari Plan Aktif.");return;}
-    const date=window.prompt("Tanggal operasional untuk revisi baru (YYYY-MM-DD):",p.operational_date||"");
-    if(date===null)return;
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||Number.isNaN(Date.parse(date+"T00:00:00"))){toast("Format tanggal harus YYYY-MM-DD.");return;}
-    const client=p.clients&&p.clients.name||"klien ini";
-    if(!window.confirm("Buat revisi/pengganti untuk Plan "+String(p.id).slice(0,6)+"… milik "+client+"? Plan aktif lama akan menjadi Digantikan. Isi barang dan trip akan disalin ke revisi baru."))return;
+    if(!p||p.status!=="active"){toast("Revisi hanya dapat dibuat dari Plan Aktif.","warning");return;}
+    const dateDialog=await Swal.fire({
+      title:"Tanggal revisi Plan",text:"Revisi akan menjadi Plan baru dan menggantikan Plan Aktif saat ini.",
+      input:"date",inputLabel:"Tanggal operasional untuk revisi baru",inputValue:p.operational_date||"",
+      inputAttributes:{required:"true","aria-label":"Tanggal operasional revisi"},
+      showCancelButton:true,confirmButtonText:"Lanjutkan",cancelButtonText:"Batal",
+      confirmButtonColor:"#0d6efd",reverseButtons:true,
+      inputValidator:(value)=>{
+        if(!value)return "Tanggal operasional wajib diisi.";
+        const parsedDate=new Date(value+"T00:00:00");
+        if(Number.isNaN(parsedDate.getTime())||parsedDate.toISOString().slice(0,10)!==value)return "Pilih tanggal yang valid.";
+      }
+    });
+    if(!dateDialog.isConfirmed)return;
+    const date=dateDialog.value,client=p.clients&&p.clients.name||"klien ini";
+    const confirmation=await Swal.fire({
+      icon:"warning",title:"Buat revisi Plan?",
+      html:"Buat revisi untuk Plan <strong>"+esc(String(p.id).slice(0,6))+"…</strong> milik <strong>"+esc(client)+"</strong>?<br><br>Plan Aktif lama akan menjadi <strong>Digantikan</strong>. Rincian barang dan trip akan disalin ke revisi baru.",
+      showCancelButton:true,confirmButtonText:"Ya, buat revisi",cancelButtonText:"Batal",
+      confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true
+    });
+    if(!confirmation.isConfirmed)return;
     try{
       const result=await request("/rest/v1/rpc/create_import_plan_revision",{
         method:"POST",headers:{"Content-Type":"application/json"},
@@ -220,14 +252,14 @@
       });
       const saved=Array.isArray(result)?result[0]:result;
       if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID revisi baru.");
-      toast("Revisi baru berhasil dibuat (v"+saved.revision+"). Plan lama disimpan sebagai Digantikan.");
+      toast("Revisi baru berhasil dibuat (v"+saved.revision+"). Plan lama disimpan sebagai Digantikan.","success");
       await loadPlans();
     }catch(error){
       const message=String(error.message||"");
-      if(message.includes("PLAN_HAS_VISIT_LINKS"))toast("Revisi tidak dapat dibuat karena detail Plan sudah terhubung ke visit aktual.");
-      else if(message.includes("PLAN_ACTIVE_EXISTS"))toast("Sudah ada Plan Aktif pada klien, tanggal, dan jenis tersebut.");
-      else if(message.includes("PERMISSION_DENIED")||message.includes("42501"))toast("Akun tidak memiliki permission yang diperlukan untuk membuat revisi.");
-      else toast(message||"Gagal membuat revisi Plan.");
+      if(message.includes("PLAN_HAS_VISIT_LINKS"))toast("Revisi tidak dapat dibuat karena detail Plan sudah terhubung ke visit aktual.","error");
+      else if(message.includes("PLAN_ACTIVE_EXISTS"))toast("Sudah ada Plan Aktif pada klien, tanggal, dan jenis tersebut.","warning");
+      else if(message.includes("PERMISSION_DENIED")||message.includes("42501"))toast("Akun tidak memiliki permission yang diperlukan untuk membuat revisi.","error");
+      else toast(message||"Gagal membuat revisi Plan.","error");
     }
   }
   async function deletePlan(id){
@@ -235,15 +267,21 @@
     const p=state.plans.find(row=>row.id===id);if(!p)return;
     const client=p.clients&&p.clients.name||"Klien tidak tersedia";
     const warning=p.status==="active"?" Plan Aktif akan dihapus sehingga tidak ada Plan aktif untuk cakupan ini sampai Plan pengganti dibuat.":"";
-    if(!window.confirm("Hapus Plan "+String(p.id).slice(0,6)+"… milik "+client+"? Rincian barang dan trip ikut dihapus."+warning+" Tindakan ini tidak dapat dibatalkan."))return;
+    const confirmation=await Swal.fire({
+      icon:"warning",title:"Hapus Plan?",
+      html:"Hapus Plan <strong>"+esc(String(p.id).slice(0,6))+"…</strong> milik <strong>"+esc(client)+"</strong>?<br><br>Rincian barang dan trip ikut dihapus."+esc(warning)+"<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
+      showCancelButton:true,confirmButtonText:"Ya, hapus Plan",cancelButtonText:"Batal",
+      confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true
+    });
+    if(!confirmation.isConfirmed)return;
     try{
       const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=representation"}});
       if(!Array.isArray(result)||result.length!==1)throw new Error("Plan tidak terhapus. Periksa permission atau pastikan Plan belum terhubung ke visit.");
-      toast("Plan berhasil dihapus.");await loadPlans();
+      toast("Plan berhasil dihapus.","success");await loadPlans();
     }catch(error){
       const message=String(error.message||"");
-      if(message.includes("23503")||message.includes("foreign key"))toast("Plan tidak dapat dihapus karena detailnya sudah terhubung ke visit aktual.");
-      else toast(message||"Gagal menghapus Plan.");
+      if(message.includes("23503")||message.includes("foreign key"))toast("Plan tidak dapat dihapus karena detailnya sudah terhubung ke visit aktual.","error");
+      else toast(message||"Gagal menghapus Plan.","error");
     }
   }
   function detailCell(value){return esc(value||"—");}
