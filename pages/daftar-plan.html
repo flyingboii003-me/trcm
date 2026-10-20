@@ -45,8 +45,6 @@
     .list-detail-item{padding:.85rem;border:1px solid var(--list-line);border-radius:var(--radius-md);min-width:0}
     .list-detail-label{font-size:.7rem;color:var(--list-muted);font-weight:700}
     .list-detail-value{margin-top:.3rem;font-size:.84rem;font-weight:800;overflow-wrap:anywhere}
-    .list-toast{position:fixed;right:1.25rem;top:1.25rem;z-index:2000;max-width:min(420px,calc(100vw - 2rem));display:none;padding:1rem 1.1rem;border:1px solid #C9DFF4;border-radius:14px;background:#F0F7FF;color:#173E63;box-shadow:var(--shadow-lg);font-size:.85rem}
-    .list-toast.show{display:flex;gap:.65rem;align-items:flex-start}
     @media(max-width:767.98px){.list-card-head,.list-card-body{padding:1rem}.list-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.list-toolbar-button{width:100%}}
   </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -125,7 +123,6 @@
     <div class="modal-footer"><button class="btn btn-light border" type="button" data-bs-dismiss="modal">Tutup</button></div>
   </div></div>
 </div>
-<div class="list-toast" id="list-toast" role="status" aria-live="polite"><i class="bi bi-info-circle-fill"></i><div id="list-toast-message"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -140,8 +137,10 @@
   const statusLabels={active:"Aktif",draft:"Draft",superseded:"Digantikan",cancelled:"Dibatalkan"};
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
   function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
-  const trcmToast=Swal.mixin({toast:true,position:"top-end",showConfirmButton:false,timer:4200,timerProgressBar:true});
-  function toast(message,icon="info"){trcmToast.fire({icon,title:String(message||"")});}
+  function toast(message,icon="info"){
+    const titles={success:"Berhasil",error:"Terjadi kesalahan",warning:"Perlu diperiksa",info:"Informasi",question:"Konfirmasi"};
+    return Swal.fire({icon,title:titles[icon]||"Informasi",text:String(message||""),confirmButtonText:icon==="error"?"Tutup":"Mengerti",confirmButtonColor:"#006ECD"});
+  }
   function dateLabel(value){if(!value)return "—";const d=new Date(value+"T00:00:00");return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric"}).format(d);}
   function dateTimeLabel(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);}
   function statusBadge(status){const s=String(status||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="active"?"bi-check-circle-fill":s==="draft"?"bi-pencil-square":s==="superseded"?"bi-arrow-repeat":"bi-x-circle-fill")+'"></i>'+esc(statusLabels[s]||s||"Tidak diketahui")+'</span>';}
