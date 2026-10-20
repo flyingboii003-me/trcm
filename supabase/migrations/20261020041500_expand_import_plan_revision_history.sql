@@ -78,8 +78,9 @@ begin
   ) into v_source_snapshot;
 
   v_row_count := jsonb_array_length(p_rows);
-  select coalesce(max(revision),0)+1 into v_revision from public.import_plans
-    where client_id=v_source.client_id and operational_date=p_operational_date and activity_type=v_source.activity_type;
+  select greatest(v_source.revision+1,coalesce(max(revision),0)+1) into v_revision from public.import_plans
+    where client_id=v_source.client_id and activity_type=v_source.activity_type
+      and operational_date in (v_source.operational_date,p_operational_date);
 
   insert into public.import_plans (client_id,operational_date,activity_type,revision,status,row_count,created_by,activated_at)
   values (v_source.client_id,p_operational_date,v_source.activity_type,v_revision,p_status,v_row_count,auth.uid(),
