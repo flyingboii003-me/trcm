@@ -117,7 +117,7 @@
     <div class="modal-header"><div><h2 class="modal-title fs-5 fw-bold" id="plan-detail-title">Rincian Plan</h2><p class="small text-secondary mb-0 mt-1" id="detail-subtitle">Memuat rincian…</p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
     <div class="modal-body">
       <div class="list-detail-grid mb-4" id="detail-summary"></div>
-      <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-trips-title">Kelompok trip / truk</h3><span class="list-note" id="detail-trip-count"></span></div>
+      <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-trips-title">Kelompok trip / truk</h3></div>
       <div class="list-table-wrap"><table class="table list-table align-middle"><thead id="detail-trips-head"><tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr></thead><tbody id="detail-trips-body"></tbody></table></div>
     </div>
     <div class="modal-footer"><button class="btn btn-light border" type="button" data-bs-dismiss="modal">Tutup</button></div>
@@ -289,9 +289,8 @@
     $("plan-detail-title").textContent="Rincian Plan "+String(p.id).slice(0,6)+"…";
     $("detail-subtitle").textContent=(p.clients&&p.clients.name||"Klien tidak tersedia")+" · "+dateLabel(p.operational_date)+" · "+(activityLabels[p.activity_type]||p.activity_type);
     $("detail-summary").innerHTML=[
-      ["Status",statusLabels[p.status]||p.status],["Revisi","v"+(p.revision||1)],["Baris detail",countItems(p)],["Dibuat",dateTimeLabel(p.created_at)]
+      ["Status",statusLabels[p.status]||p.status],["Revisi","v"+(p.revision||1)],["Truk terkonfirmasi","Memuat…"],["Dibuat",dateTimeLabel(p.created_at)]
     ].map(([label,value])=>'<div class="list-detail-item"><div class="list-detail-label">'+esc(label)+'</div><div class="list-detail-value">'+esc(value)+'</div></div>').join("");
-    $("detail-trip-count").textContent="Memuat…";
     $("detail-trips-title").textContent=p.activity_type==="inbound"?"Kelompok trip inbound":"Kelompok trip / truk";
     $("detail-trips-head").innerHTML=p.activity_type==="inbound"?"<tr><th>No. trip</th><th>DO / Transport task</th><th>Part number</th><th>Nama produk</th><th>Total quantity</th></tr>":"<tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr>";
     $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:6)+'" class="text-center text-secondary py-3">Memuat trip…</td></tr>';
@@ -302,7 +301,9 @@
         request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
       ]);
       if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Respons rincian Plan tidak valid.");
-      $("detail-trip-count").textContent=trips.length+" kelompok";
+      const confirmedTruckCount=trips.filter(trip=>String(trip.plate_number||"").trim()).length;
+      const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
+      if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent=String(confirmedTruckCount);
       if(p.activity_type==="inbound"){
         $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{
           const groupItems=items.filter(item=>item.trip_id===trip.id);
@@ -314,7 +315,8 @@
         $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>"<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>").join(""):'<tr><td colspan="6"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
       }
     }catch(error){
-      $("detail-trip-count").textContent="Gagal memuat";
+      const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
+      if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent="—";
       $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:6)+'" class="text-danger p-3">'+esc(error.message||"Rincian trip gagal dimuat.")+'</td></tr>';
     }
   }
