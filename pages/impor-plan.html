@@ -427,7 +427,7 @@
     }).join("");
     $("confirm-button").disabled=errors>0||rows.length===0;
     renderTripGroups();
-    $("data-check-footer-note").textContent=errors?"Perbaiki semua kesalahan untuk mengaktifkan konfirmasi.":warnings?"Peringatan harus ditinjau sebelum impor sebenarnya.":"Validasi dasar lolos. Fitur simpan belum diaktifkan pada data ini.";
+    $("data-check-footer-note").textContent=errors?"Perbaiki semua kesalahan untuk mengaktifkan konfirmasi.":warnings?"Peringatan harus ditinjau sebelum impor sebenarnya.":"Validasi dasar lolos. Konfirmasi akan menyimpan Plan aktif ke database.";
     
   }
 
