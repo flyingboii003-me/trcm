@@ -151,3 +151,40 @@ $function$
 
 REVOKE ALL ON FUNCTION public.update_import_plan(uuid, date, jsonb) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.update_import_plan(uuid, date, jsonb) TO authenticated;
+
+-- Permit an authorized Plan editor to replace that Plan's own detail rows.
+DROP POLICY IF EXISTS import_plan_items_delete_permission ON public.import_plan_items;
+CREATE POLICY import_plan_items_delete_permission ON public.import_plan_items
+  FOR DELETE TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.import_plans p
+    WHERE p.id=import_plan_items.plan_id
+      AND (private.has_permission('daftar_plan','delete') OR private.has_permission('daftar_plan','update'))
+  ));
+
+DROP POLICY IF EXISTS import_plan_items_insert_permission ON public.import_plan_items;
+CREATE POLICY import_plan_items_insert_permission ON public.import_plan_items
+  FOR INSERT TO authenticated
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM public.import_plans p
+    WHERE p.id=import_plan_items.plan_id
+      AND (private.has_permission('import_plan','create') OR private.has_permission('daftar_plan','update'))
+  ));
+
+DROP POLICY IF EXISTS import_plan_trips_delete_permission ON public.import_plan_trips;
+CREATE POLICY import_plan_trips_delete_permission ON public.import_plan_trips
+  FOR DELETE TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.import_plans p
+    WHERE p.id=import_plan_trips.plan_id
+      AND (private.has_permission('daftar_plan','delete') OR private.has_permission('daftar_plan','update'))
+  ));
+
+DROP POLICY IF EXISTS import_plan_trips_insert_permission ON public.import_plan_trips;
+CREATE POLICY import_plan_trips_insert_permission ON public.import_plan_trips
+  FOR INSERT TO authenticated
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM public.import_plans p
+    WHERE p.id=import_plan_trips.plan_id
+      AND (private.has_permission('import_plan','create') OR private.has_permission('daftar_plan','update'))
+  ));
