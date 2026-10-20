@@ -129,7 +129,7 @@
               </div>
               <div class="col-md-3">
                 <label class="plan-field-label" for="operational-date">Tanggal operasional <span class="plan-required">*</span></label>
-                <input class="form-control plan-input" id="operational-date" type="date" value="2026-10-14" required>
+                <input class="form-control plan-input" id="operational-date" type="date" required>
                 <div class="plan-hint">Plan akan dikelompokkan berdasarkan tanggal ini.</div>
               </div>
               <div class="col-md-5">
@@ -496,7 +496,9 @@
     try{await navigator.clipboard.writeText(header);toast("Header template disalin.");}
     catch(e){$("paste-data").value=header+"\n"+$("paste-data").value.split("\n").slice(1).join("\n");toast("Header diletakkan di baris pertama area data.");}
   });
-  $("reset-button").addEventListener("click",()=>{ $("operational-date").value="2026-10-14";$("paste-data").value=schemas[type].sample;resetDataCheck();toast("Data diatur ulang.")});
+  function todayLocalDate(){const now=new Date();const year=now.getFullYear();const month=String(now.getMonth()+1).padStart(2,"0");const day=String(now.getDate()).padStart(2,"0");return year+"-"+month+"-"+day;}
+  $("operational-date").value=todayLocalDate();
+  $("reset-button").addEventListener("click",()=>{ $("operational-date").value=todayLocalDate();$("paste-data").value=schemas[type].sample;resetDataCheck();toast("Data diatur ulang.")});
   $("confirm-button").addEventListener("click",openFinalConfirmation);
   function buildPayloadRows(){
     return parsed.map(function(row){
