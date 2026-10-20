@@ -373,7 +373,7 @@
       $("data-check-body").innerHTML='<tr class="row-invalid"><td><span class="plan-status invalid">Header tidak cocok</span></td><td>'+schemas[type].headers.map(textSafe).join(" · ")+"</td></tr>";
       $("data-check-footer-note").textContent="Perbaiki header lalu jalankan data kembali.";return;
     }
-    $("header-mapping-body").innerHTML=result.mapping.map(item=>"<tr><td>"+textSafe(item.source)+"</td><td>"+textSafe(item.label)+"</td><td><span class=\\"plan-status valid\\"><i class=\\"bi bi-check-circle-fill\\"></i>Cocok</span></td></tr>").join("");
+    $("header-mapping-body").innerHTML=result.mapping.map(item=>"<tr><td>"+textSafe(item.source)+"</td><td>"+textSafe(item.label)+"</td><td><span class=\"plan-status valid\"><i class=\"bi bi-check-circle-fill\"></i>Cocok</span></td></tr>").join("");
     $("header-mapping-summary").classList.remove("d-none");
     const rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
     if(type==="inbound"){
