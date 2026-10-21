@@ -111,6 +111,37 @@
             </div>
           </div>
 
+          <section class="card border mb-4" aria-labelledby="plan-shipment-heading">
+            <div class="card-header bg-body-tertiary">
+              <h3 class="h6 mb-1" id="plan-shipment-heading"><i class="bi bi-clipboard-check me-2"></i>Plan dan Shipment</h3>
+              <p class="small text-muted mb-0">Pilih Plan operasional dan satu atau beberapa shipment yang akan dimuat oleh armada ini.</p>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12 col-md-5">
+                  <label class="form-label" for="plan-operational-date">Tanggal operasional</label>
+                  <input class="form-control" id="plan-operational-date" type="date">
+                </div>
+                <div class="col-12 col-md-7">
+                  <label class="form-label" for="plan-select">Plan aktif</label>
+                  <select class="form-select" id="plan-select">
+                    <option value="">Pilih tanggal terlebih dahulu</option>
+                  </select>
+                </div>
+              </div>
+              <div class="small text-muted mt-3" id="plan-selection-context" aria-live="polite">Plan akan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.</div>
+              <div class="mt-3" id="plan-shipment-list">
+                <div class="border rounded-3 p-3 text-muted small">Pilih tanggal untuk melihat Plan dan shipment yang tersedia.</div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center gap-2 mt-3">
+                <span class="small text-muted" id="plan-shipment-count" aria-live="polite">0 shipment dipilih</span>
+                <button class="btn btn-sm btn-outline-secondary" id="clear-plan-selection" type="button" disabled>
+                  <i class="bi bi-x-circle me-1"></i>Hapus pilihan
+                </button>
+              </div>
+            </div>
+          </section>
+
           <div class="row g-3">
             <div class="col-12 col-md-6">
               <label class="form-label" for="gate-select">Nomor gerbang <span class="text-danger">*</span></label>
@@ -175,6 +206,13 @@ window.trcmComponentsReady.then(async function () {
   const loadingNotes = document.getElementById("loading-notes");
   const form = document.getElementById("start-loading-form");
   const saveButton = document.getElementById("save-start-button");
+  const planDateInput = document.getElementById("plan-operational-date");
+  const planSelect = document.getElementById("plan-select");
+  const planShipmentList = document.getElementById("plan-shipment-list");
+  const planSelectionContext = document.getElementById("plan-selection-context");
+  const planShipmentCount = document.getElementById("plan-shipment-count");
+  const clearPlanSelection = document.getElementById("clear-plan-selection");
+
   const modalElement = document.getElementById("start-loading-modal");
   const modal = new bootstrap.Modal(modalElement);
 
@@ -182,6 +220,11 @@ window.trcmComponentsReady.then(async function () {
   let gates = [];
   let lines = [];
   let selectedVisit = null;
+  let availablePlans = [];
+  let availablePlanItems = [];
+  let selectedPlanItemIds = new Set();
+  let planLoadSequence = 0;
+
   async function request(path, options) {
     const response = await fetch(SUPABASE_URL + path, Object.assign({
       headers: {
@@ -312,6 +355,154 @@ window.trcmComponentsReady.then(async function () {
   }
 
 
+  function localDateInputValue(value) {
+    const date = value ? new Date(value) : new Date();
+    if (Number.isNaN(date.getTime())) return "";
+    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+  }
+
+  function formatPlanDate(value) {
+    if (!value) return "Tanggal tidak tersedia";
+    const parts = value.split("-");
+    if (parts.length !== 3) return value;
+    return parts[2] + "/" + parts[1] + "/" + parts[0];
+  }
+
+  function resetPlanShipmentSelection(message) {
+    availablePlanItems = [];
+    selectedPlanItemIds = new Set();
+    planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">' + escapeHtml(message) + '</div>';
+    updatePlanShipmentCount();
+  }
+
+  function updatePlanShipmentCount() {
+    const count = selectedPlanItemIds.size;
+    planShipmentCount.textContent = count + " shipment dipilih";
+    clearPlanSelection.disabled = count === 0;
+  }
+
+  function renderPlanShipments() {
+    if (!availablePlanItems.length) {
+      resetPlanShipmentSelection("Plan ini belum memiliki detail shipment atau DO.");
+      return;
+    }
+
+    const trips = new Map();
+    availablePlanItems.forEach(function (item) {
+      const trip = item.trip_id ? item.trip : null;
+      const tripLabel = trip
+        ? "Trip " + (trip.trip_number || "—") + " · " + (trip.plate_number || trip.vendor || "Armada Plan")
+        : "Detail Plan";
+      if (!trips.has(tripLabel)) trips.set(tripLabel, []);
+      trips.get(tripLabel).push(item);
+    });
+
+    planShipmentList.innerHTML = Array.from(trips.entries()).map(function (entry) {
+      const title = entry[0];
+      const rows = entry[1].map(function (item) {
+        const id = escapeHtml(item.id);
+        const checked = selectedPlanItemIds.has(item.id) ? " checked" : "";
+        const shipment = item.shipment_number || item.do_number || ("Baris " + item.row_number);
+        const meta = [
+          item.do_number && item.shipment_number ? "DO " + item.do_number : "",
+          item.part_number || "",
+          item.product_name || "",
+          item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
+        ].filter(Boolean).join(" · ");
+        return '<label class="d-flex align-items-start gap-3 border rounded-3 p-3 mb-2 plan-shipment-option" for="plan-item-' + id + '">' +
+          '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="plan-item-' + id + '" value="' + id + '" data-plan-item-id="' + id + '"' + checked + '>' +
+          '<span class="flex-grow-1 min-w-0"><span class="d-block fw-semibold text-break">' + escapeHtml(shipment) + '</span>' +
+          (meta ? '<span class="d-block small text-muted mt-1">' + escapeHtml(meta) + '</span>' : '') +
+          '</span></label>';
+      }).join("");
+      return '<div class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(title) + '</div>' + rows + '</div>';
+    }).join("");
+
+    planShipmentList.querySelectorAll("[data-plan-item-id]").forEach(function (checkbox) {
+      checkbox.addEventListener("change", function () {
+        if (checkbox.checked) selectedPlanItemIds.add(checkbox.value);
+        else selectedPlanItemIds.delete(checkbox.value);
+        updatePlanShipmentCount();
+      });
+    });
+    updatePlanShipmentCount();
+  }
+
+  async function loadPlansForSelectedVisit() {
+    const sequence = ++planLoadSequence;
+    const visit = selectedVisit;
+    const operationalDate = planDateInput.value;
+    availablePlans = [];
+    availablePlanItems = [];
+    selectedPlanItemIds = new Set();
+    planSelect.disabled = true;
+    planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
+    resetPlanShipmentSelection("Memuat Plan dan shipment…");
+
+    if (!visit || !operationalDate || !visit.client_id || !visit.activity_type) {
+      planSelect.innerHTML = '<option value="">Data klien, aktivitas, atau tanggal belum tersedia</option>';
+      planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.";
+      return;
+    }
+
+    try {
+      const filters = "&client_id=eq." + encodeURIComponent(visit.client_id) +
+        "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase()) +
+        "&operational_date=eq." + encodeURIComponent(operationalDate) +
+        "&status=eq.active&order=created_at.desc";
+      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count&" + filters);
+      if (sequence !== planLoadSequence) return;
+      if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
+      availablePlans = plans;
+      planSelect.innerHTML = '<option value="">Pilih Plan aktif</option>' + plans.map(function (plan) {
+        return '<option value="' + escapeHtml(plan.id) + '">Revisi ' + escapeHtml(plan.revision) + ' · ' + escapeHtml(plan.row_count || 0) + ' baris</option>';
+      }).join("");
+      planSelect.disabled = plans.length === 0;
+      planSelectionContext.textContent = plans.length
+        ? plans.length + " Plan aktif ditemukan untuk " + formatPlanDate(operationalDate) + "."
+        : "Tidak ada Plan aktif untuk klien, aktivitas, dan tanggal ini.";
+      if (!plans.length) resetPlanShipmentSelection("Tidak ada Plan aktif yang sesuai. Periksa tanggal operasional atau data Plan.");
+    } catch (error) {
+      if (sequence !== planLoadSequence) return;
+      planSelect.innerHTML = '<option value="">Plan gagal dimuat</option>';
+      planSelectionContext.textContent = error.message || "Plan tidak dapat dimuat.";
+      resetPlanShipmentSelection("Gagal memuat Plan. Silakan ubah tanggal atau coba kembali.");
+      console.error("TRCM Plan shipment picker:", error);
+    }
+  }
+
+  async function loadPlanItems(planId) {
+    const sequence = ++planLoadSequence;
+    const plan = availablePlans.find(function (item) { return item.id === planId; });
+    availablePlanItems = [];
+    selectedPlanItemIds = new Set();
+    updatePlanShipmentCount();
+    if (!plan) {
+      resetPlanShipmentSelection("Pilih Plan aktif untuk melihat shipment.");
+      return;
+    }
+
+    planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Memuat shipment dari Plan…</div>';
+    try {
+      const [items, trips] = await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,part_number,product_name,quantity&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
+        request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(planId) + "&order=trip_number.asc")
+      ]);
+      if (sequence !== planLoadSequence) return;
+      if (!Array.isArray(items) || !Array.isArray(trips)) throw new Error("Rincian shipment Plan tidak valid.");
+      const tripById = new Map(trips.map(function (trip) { return [trip.id, trip]; }));
+      availablePlanItems = items.map(function (item) {
+        return Object.assign({}, item, { trip: tripById.get(item.trip_id) || null });
+      });
+      renderPlanShipments();
+    } catch (error) {
+      if (sequence !== planLoadSequence) return;
+      resetPlanShipmentSelection("Rincian shipment gagal dimuat. Perbarui pilihan Plan untuk mencoba lagi.");
+      planSelectionContext.textContent = error.message || "Rincian shipment tidak dapat dimuat.";
+      console.error("TRCM Plan shipment details:", error);
+    }
+  }
+
   async function loadVisitActors(visitId) {
     const start = document.getElementById("detail-start-actor");
     const finish = document.getElementById("detail-finish-actor");
@@ -346,10 +537,16 @@ window.trcmComponentsReady.then(async function () {
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
     lineSelect.disabled = true;
+    planDateInput.value = localDateInputValue(visit.wh_in_at || visit.registered_at);
+    planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
+    planSelect.disabled = true;
+    planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.";
+    resetPlanShipmentSelection("Pilih tanggal untuk melihat Plan dan shipment yang tersedia.");
     sealNumber.value = visit.seal_number || "";
     loadingNotes.value = visit.notes || "";
     form.classList.remove("was-validated");
     modal.show();
+    loadPlansForSelectedVisit();
     loadVisitActors(visit.id);
   }
 
@@ -469,6 +666,15 @@ window.trcmComponentsReady.then(async function () {
       saveButton.disabled = false;
     }
   }
+
+  planDateInput.addEventListener("change", loadPlansForSelectedVisit);
+  planSelect.addEventListener("change", function () {
+    loadPlanItems(planSelect.value);
+  });
+  clearPlanSelection.addEventListener("click", function () {
+    selectedPlanItemIds = new Set();
+    renderPlanShipments();
+  });
 
   gateSelect.addEventListener("change", function () {
     populateLines(gateSelect.value);
