@@ -188,6 +188,7 @@ window.trcmComponentsReady.then(async function () {
   const modal = new bootstrap.Modal(modalElement);
 
   let visits = [];
+  const visitShipments = new Map();
   let selectedVisit = null;
   let selectedPhotoFiles = [];
 
@@ -324,6 +325,28 @@ window.trcmComponentsReady.then(async function () {
     return activityType || "—";
   }
 
+  async function loadVisitShipments(visitIds) {
+    visitShipments.clear();
+    if (!visitIds.length) return;
+    const path = "/rest/v1/visit_plan_items?select=visit_id,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const rows = await request(path);
+    if (!Array.isArray(rows)) return;
+    rows.forEach(function (row) {
+      const item = row.import_plan_items || {};
+      const label = String(item.do_number || item.shipment_number || "").trim();
+      if (!label || !row.visit_id) return;
+      if (!visitShipments.has(row.visit_id)) visitShipments.set(row.visit_id, []);
+      const list = visitShipments.get(row.visit_id);
+      if (!list.some(function (value) { return value.toLowerCase() === label.toLowerCase(); })) list.push(label);
+    });
+  }
+  function renderShipmentCell(visit) {
+    const labels = visitShipments.get(visit.id) || [];
+    if (!labels.length) return '<span class="text-muted">—</span>';
+    return '<div class="loading-shipment-list">' + labels.map(function (label) {
+      return '<span class="loading-shipment-chip" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</span>';
+    }).join("") + '</div>';
+  }
   function renderTable() {
     const needle = searchCard.value.trim().toLowerCase();
     const filtered = visits.filter(function (visit) {
@@ -347,7 +370,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
-        '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
+        '<td class="loading-shipment-cell">' + renderShipmentCell(visit) + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
         '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canFinish ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
       '</tr>';
@@ -369,6 +392,8 @@ window.trcmComponentsReady.then(async function () {
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
+      try { await loadVisitShipments(visits.map(function (visit) { return visit.id; })); }
+      catch (shipmentError) { console.warn("TRCM Selesai Loading shipments:", shipmentError); }
       renderTable();
     } catch (error) {
       console.error("TRCM Selesai Loading:", error);
