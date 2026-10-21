@@ -512,7 +512,7 @@ async function openVisitModal(visitId) {
           if (detail && !group.items.includes(detail)) group.items.push(detail);
         });
         const showTripColumns = visit.activity_type === "outbound";
-        selectedPlanShipmentHtml = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO/Shipment</th>' +
+        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO/Shipment</th>' +
           (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
           '<th>Item/Barang</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
@@ -521,11 +521,11 @@ async function openVisitModal(visitId) {
               '<td>' + (group.items.length ? '<ul class="mb-0 ps-3">' + group.items.map(function (detail) { return '<li>' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '—') + '</td></tr>';
           }).join("") + '</tbody></table></div>';
       } else {
-        selectedPlanShipmentHtml = '<div class="modal-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
+        selectedPlanShipmentHtml = '<div class="modal-empty visit-shipment-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
       }
     } catch (shipmentError) {
       console.warn("TRCM visit plan shipments:", shipmentError);
-      selectedPlanShipmentHtml = '<div class="modal-error">DO/Shipment pilihan tidak dapat dimuat.</div>';
+      selectedPlanShipmentHtml = '<div class="modal-error visit-shipment-empty">DO/Shipment pilihan tidak dapat dimuat. Coba buka kembali detail visit atau hubungi administrator jika masalah berlanjut.</div>';
     }
 
     const times = [
@@ -615,7 +615,7 @@ async function openVisitModal(visitId) {
         general + "</div></section>" +
       '<section class="detail-section"><h3>Shipment dan operasional</h3><div class="detail-grid">' +
         documents + "</div></section>" +
-      '<section class="detail-section"><h3>DO/Shipment yang dipilih saat Mulai Loading</h3>' + selectedPlanShipmentHtml + "</section>" +
+      '<section class="detail-section visit-shipment-section"><h3>DO/Shipment yang dipilih saat Mulai Loading</h3><p class="visit-shipment-caption">Daftar DO/Shipment yang ditautkan ke visit ini.</p>' + selectedPlanShipmentHtml + "</section>" +
       '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
         times + "</div></section>" +
       '<section class="detail-section"><h3>Aktivitas dan Checker</h3>' + actorHtml + "</section>" +
