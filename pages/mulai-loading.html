@@ -436,7 +436,9 @@ window.trcmComponentsReady.then(async function () {
           ].filter(Boolean).join(" · ");
           return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
         }).join("");
-        const tripName = group.trip ? "Trip " + (group.trip.trip_number || "—") : "";
+        const tripName = group.trip
+          ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
+          : "";
         return '<div class="border rounded-3 p-3 mb-2 plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '">' +
           '<div class="d-flex align-items-start gap-3">' +
           (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
@@ -512,6 +514,7 @@ window.trcmComponentsReady.then(async function () {
     const sequence = ++planLoadSequence;
     const plan = availablePlans.find(function (item) { return item.id === planId; });
     availablePlanItems = [];
+    processedPlanItemIds = new Set();
     selectedPlanItemIds = new Set();
     updatePlanShipmentCount();
     if (!plan) {
