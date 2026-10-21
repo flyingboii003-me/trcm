@@ -434,7 +434,7 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitPlanShipments(visitId) {
     const container = document.getElementById("finish-plan-shipments");
     try {
-      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items(do_number,shipment_number,part_number,product_name,quantity)&visit_id=eq." + encodeURIComponent(visitId));
+      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items(do_number,shipment_number,part_number,product_name,quantity,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
       if (!Array.isArray(rows) || !rows.length) {
         container.innerHTML = '<span class="text-muted">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</span>';
         return;
@@ -444,15 +444,21 @@ window.trcmComponentsReady.then(async function () {
         const item = row.import_plan_items || {};
         const label = item.do_number || item.shipment_number || "Shipment tanpa nomor";
         const key = String(label).trim().toLowerCase();
-        if (!groups.has(key)) groups.set(key, { label: label, items: [] });
-        const detail = [item.part_number ? "Part " + item.part_number : "", item.product_name || "", item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""].filter(Boolean).join(" · ");
-        if (detail && !groups.get(key).items.includes(detail)) groups.get(key).items.push(detail);
+        if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: item.import_plan_trips || null });
+        const group = groups.get(key);
+        if (!group.trip && item.import_plan_trips) group.trip = item.import_plan_trips;
+        const detail = [item.part_number ? "Part " + item.part_number : "", item.product_name || "", selectedVisit && selectedVisit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""].filter(Boolean).join(" · ");
+        if (detail && !group.items.includes(detail)) group.items.push(detail);
       });
-      container.innerHTML = '<div class="d-flex flex-column gap-3">' + Array.from(groups.values()).map(function (group) {
-        return '<div><div class="fw-semibold">' + escapeHtml(group.label) + '</div>' +
-          (group.items.length ? '<ul class="mb-0 mt-1 ps-3">' + group.items.map(function (detail) { return '<li class="text-muted">' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '') +
-          '</div>';
-      }).join("") + '</div>';
+      const showTripColumns = selectedVisit && selectedVisit.activity_type === "outbound";
+      container.innerHTML = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO/Shipment</th>' +
+        (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
+        '<th>Item/Barang</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+          const trip = group.trip || {};
+          return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
+            (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
+            '<td>' + (group.items.length ? '<ul class="mb-0 ps-3">' + group.items.map(function (detail) { return '<li>' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '—') + '</td></tr>';
+        }).join("") + '</tbody></table></div>';
     } catch (error) {
       console.error("TRCM finish loading plan shipments:", error);
       container.innerHTML = '<span class="text-danger">DO/Shipment gagal dimuat. Silakan tutup lalu buka kembali modal.</span>';
