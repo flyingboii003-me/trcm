@@ -231,8 +231,9 @@
             const shipmentRows=rows.map((row,rowIndex)=>({rowIndex,input:document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='shipment_number']")})).filter(entry=>!deletedRows.has(entry.rowIndex)&&normalized(entry.input?.value)===normalized(shipment));
             const remaining=new Set(rows.map((row,rowIndex)=>({rowIndex,input:document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='shipment_number']")})).filter(entry=>!deletedRows.has(entry.rowIndex)&&!shipmentRows.some(target=>target.rowIndex===entry.rowIndex)).map(entry=>normalized(entry.input?.value)).filter(Boolean));
             if(remaining.size===0){Swal.showValidationMessage("Plan harus memiliki minimal satu shipment. Hapus shipment terakhir tidak diperbolehkan.");return;}
-            const confirmation=Swal.fire({icon:"warning",title:"Hapus shipment?",text:"Semua baris untuk shipment "+shipment+" akan dihapus dari Plan.",showCancelButton:true,confirmButtonText:"Ya, hapus shipment",cancelButtonText:"Batal",confirmButtonColor:"#dc3545",reverseButtons:true});
-            confirmation.then(result=>{if(!result.isConfirmed)return;shipmentRows.forEach(entry=>{deletedRows.add(entry.rowIndex);document.querySelector("[data-edit-row-container='"+entry.rowIndex+"']")?.remove();});Swal.resetValidationMessage();});
+            if(!window.confirm("Hapus shipment "+shipment+" beserta semua baris detailnya dari Plan?"))return;
+            shipmentRows.forEach(entry=>{deletedRows.add(entry.rowIndex);document.querySelector("[data-edit-row-container='"+entry.rowIndex+"']")?.remove();});
+            Swal.resetValidationMessage();
           }));
         }
       },
