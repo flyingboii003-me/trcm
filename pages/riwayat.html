@@ -490,6 +490,36 @@ async function openVisitModal(visitId) {
       renderDetailItem("Status akhir", statusLabel(visit.final_status))
     ].join("");
 
+    let selectedPlanShipmentHtml = '<div class="modal-loading">Memuat DO/Shipment yang dipilih...</div>';
+    try {
+      const linkedItems = await fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items(do_number,shipment_number,part_number,product_name,quantity)&visit_id=eq." + encodeURIComponent(visit.id), {
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + trcmSession.access_token }
+      });
+      const linkedText = await linkedItems.text();
+      let linkedRows = [];
+      try { linkedRows = linkedText ? JSON.parse(linkedText) : []; } catch { linkedRows = []; }
+      if (!linkedItems.ok) throw new Error("DO/Shipment tidak dapat dimuat.");
+      if (Array.isArray(linkedRows) && linkedRows.length) {
+        const groups = new Map();
+        linkedRows.forEach(function (row) {
+          const item = row.import_plan_items || {};
+          const label = item.do_number || item.shipment_number || "Shipment tanpa nomor";
+          const key = String(label).trim().toLowerCase();
+          if (!groups.has(key)) groups.set(key, { label: label, items: [] });
+          const detail = [item.part_number ? "Part " + item.part_number : "", item.product_name || "", item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""].filter(Boolean).join(" · ");
+          if (detail && !groups.get(key).items.includes(detail)) groups.get(key).items.push(detail);
+        });
+        selectedPlanShipmentHtml = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO/Shipment</th><th>Item/Barang</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+          return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td><td>' + (group.items.length ? '<ul class="mb-0 ps-3">' + group.items.map(function (detail) { return '<li>' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '—') + '</td></tr>';
+        }).join("") + '</tbody></table></div>';
+      } else {
+        selectedPlanShipmentHtml = '<div class="modal-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
+      }
+    } catch (shipmentError) {
+      console.warn("TRCM visit plan shipments:", shipmentError);
+      selectedPlanShipmentHtml = '<div class="modal-error">DO/Shipment pilihan tidak dapat dimuat.</div>';
+    }
+
     const times = [
       renderDetailItem("WH In", formatDateTime(visit.wh_in_at), true),
       renderDetailItem("Terdaftar", formatDateTime(visit.registered_at), true),
@@ -577,6 +607,7 @@ async function openVisitModal(visitId) {
         general + "</div></section>" +
       '<section class="detail-section"><h3>Shipment dan operasional</h3><div class="detail-grid">' +
         documents + "</div></section>" +
+      '<section class="detail-section"><h3>DO/Shipment yang dipilih saat Mulai Loading</h3>' + selectedPlanShipmentHtml + "</section>" +
       '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
         times + "</div></section>" +
       '<section class="detail-section"><h3>Aktivitas dan Checker</h3>' + actorHtml + "</section>" +
