@@ -120,7 +120,6 @@
       <div class="list-detail-grid mb-4" id="detail-summary"></div>
       <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-trips-title">Kelompok trip / truk</h3></div>
       <div class="list-table-wrap"><table class="table list-table align-middle"><thead id="detail-trips-head"><tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr></thead><tbody id="detail-trips-body"></tbody></table></div>
-      <section class="mt-4" aria-labelledby="detail-item-status-title"><div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-item-status-title">Status DO / Shipment</h3><span class="list-note">Status aktual mengikuti proses loading; admin dapat mengubah status manual untuk item yang belum terhubung ke visit.</span></div><div class="list-table-wrap"><table class="table list-table align-middle mb-0"><thead id="detail-item-status-head"><tr><th>DO / Shipment</th><th>Jumlah baris</th><th>Status</th><th>Ubah</th></tr></thead><tbody id="detail-item-status-body"><tr><td colspan="4" class="text-secondary text-center py-3">Memuat status…</td></tr></tbody></table></div></section>
     </div>
     <div class="modal-footer"><button class="btn btn-light border" type="button" data-bs-dismiss="modal">Tutup</button></div>
   </div></div>
@@ -202,7 +201,7 @@
       let items,trips;
       try{
         [items,trips]=await Promise.all([
-          request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+          request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id,manual_processed&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
           request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
         ]);
         if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Rincian shipment/DO gagal dimuat.");
@@ -211,6 +210,20 @@
       rows=items.map(item=>Object.assign({},item,tripById.get(item.trip_id)||{}));
     }
     if(!rows.length){toast("Plan ini belum memiliki shipment atau DO untuk diubah.","warning");return;}
+    let statusItems=[],linkedStatusIds=new Set();
+    try{
+      const [loadedStatusItems,linkedStatusItems]=await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,do_number,shipment_number,manual_processed&plan_id=eq."+encodeURIComponent(id)),
+        request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq."+encodeURIComponent(id))
+      ]);
+      if(!Array.isArray(loadedStatusItems)||!Array.isArray(linkedStatusItems))throw new Error("Status DO / Shipment gagal dimuat.");
+      statusItems=loadedStatusItems;
+      linkedStatusIds=new Set(linkedStatusItems.map(item=>item.plan_item_id).filter(Boolean));
+    }catch(error){toast(error.message||"Status DO / Shipment gagal dimuat.","error");return;}
+    const statusGroups=itemStatusGroups(p,statusItems,linkedStatusIds);
+    const statusEditor=statusGroups.length
+      ? "<section class='text-start mt-4'><h3 class='fs-6 fw-bold mb-1'>Status DO / Shipment</h3><p class='small text-secondary mb-2'>Perubahan status manual hanya tersedia di modal Ubah. Status yang sudah terhubung ke proses loading aktual tidak dapat diubah.</p><div class='table-responsive border rounded'><table class='table table-sm align-middle mb-0'><thead class='table-light'><tr><th>"+(p.activity_type==="outbound"?"Shipment":"DO / Transport task")+"</th><th>Jumlah baris</th><th>Status</th></tr></thead><tbody>"+statusGroups.map((group,index)=>"<tr><td>"+esc(group.label)+"</td><td>"+group.items.length+"</td><td>"+(group.linked?"<span class='badge text-bg-success'>Sudah diproses (aktual)</span>":"<select class='form-select form-select-sm' data-manual-status='"+index+"' data-status-key='"+esc(group.key)+"'><option value='false' "+(!group.processed?"selected":"")+">Belum diproses</option><option value='true' "+(group.processed?"selected":"")+">Sudah diproses</option></select>")+"</td></tr>").join("")+"</tbody></table></div></section>"
+      : "";
     const fields=[
       ["do_number","DO / Transport task"],["shipment_number","Shipment"],["part_number","Part number"],
       ["product_name","Nama produk"],["quantity","Quantity"],["vendor","Vendor"],["plate_number","Plat nomor"],
@@ -224,7 +237,7 @@
       width:"min(1200px, 96vw)",
       html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
         "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(workingDate||p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+(p.activity_type==="outbound"?"<th class='text-center' style='width:48px'>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
-        "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>",
+        "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>"+statusEditor,
       showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
       didOpen:()=>{
@@ -270,7 +283,9 @@
           if(p.activity_type==="inbound"&&(!row.do_number||!row.part_number||!row.product_name)){Swal.showValidationMessage("DO, part number, dan nama produk wajib diisi pada baris "+(i+1)+".");return false;}
           if(p.activity_type==="outbound"&&(!row.vendor||!row.plate_number||!row.driver_name||!row.truck_type||!row.destination||!row.shipment_number)){Swal.showValidationMessage("Seluruh kolom wajib Outbound harus terisi pada baris "+(i+1)+".");return false;}
         }
-        return {date,rows:activePayload};
+        const manualStatuses={};
+        document.querySelectorAll("[data-manual-status]").forEach(select=>{manualStatuses[select.dataset.statusKey]=select.value==="true";});
+        return {date,rows:activePayload,manualStatuses};
       }
     });
     if(!dialog.isConfirmed||!dialog.value)return;
@@ -281,7 +296,17 @@
       });
       const saved=Array.isArray(result)?result[0]:result;
       if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID Plan.");
-      toast("Plan berhasil diperbarui.","success");
+      const savedItems=await request("/rest/v1/import_plan_items?select=id,do_number,shipment_number&plan_id=eq."+encodeURIComponent(id));
+      if(!Array.isArray(savedItems))throw new Error("Plan tersimpan, tetapi status DO / Shipment gagal dimuat ulang.");
+      const normalizedStatusKey=value=>String(value||"").trim().toLocaleLowerCase("id-ID");
+      for(const [statusKey,processed] of Object.entries(dialog.value.manualStatuses||{})){
+        const matchingIds=savedItems.filter(item=>normalizedStatusKey(p.activity_type==="outbound"?item.shipment_number:item.do_number)===statusKey).map(item=>item.id);
+        if(!matchingIds.length)continue;
+        await request("/rest/v1/import_plan_items?id=in.("+matchingIds.map(encodeURIComponent).join(",")+")&plan_id=eq."+encodeURIComponent(id),{
+          method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({manual_processed:processed})
+        });
+      }
+      toast("Plan dan status DO / Shipment berhasil diperbarui.","success");
       await loadPlans();
     }catch(error){
       const message=String(error.message||"");
@@ -334,51 +359,6 @@
       ? '<span class="list-badge processed"><i class="bi bi-check-circle-fill"></i>Sudah diproses</span>'
       : '<span class="list-badge pending"><i class="bi bi-hourglass-split"></i>Belum diproses</span>';
   }
-  function renderItemStatuses(plan,items,linkedIds){
-    const outbound=plan.activity_type==="outbound";
-    $("detail-item-status-head").innerHTML="<tr><th>"+(outbound?"Shipment":"DO / Transport task")+"</th><th>Jumlah baris</th><th>Status</th><th>Ubah</th></tr>";
-    const groups=itemStatusGroups(plan,items,linkedIds);
-    if(!groups.length){
-      $("detail-item-status-body").innerHTML='<tr><td colspan="4"><div class="list-empty">Belum ada DO / Shipment pada Plan ini.</div></td></tr>';
-      return;
-    }
-    $("detail-item-status-body").innerHTML=groups.map(group=>{
-      const locked=group.linked||!state.canUpdate;
-      const button=locked
-        ? '<button type="button" class="btn btn-sm btn-outline-secondary status-edit-btn" disabled title="'+(group.linked?"Status berasal dari proses loading aktual":"Perlu permission Ubah Plan")+'">Ubah</button>'
-        : '<button type="button" class="btn btn-sm btn-outline-primary status-edit-btn" data-item-status="'+esc(group.key)+'">Ubah</button>';
-      return '<tr><td><span class="fw-semibold text-break">'+esc(group.label)+'</span></td><td>'+group.items.length+'</td><td>'+itemStatusBadge(group.processed)+'</td><td>'+button+'</td></tr>';
-    }).join("");
-    $("detail-item-status-body").querySelectorAll("[data-item-status]").forEach(button=>{
-      button.addEventListener("click",()=>editItemStatus(button.dataset.itemStatus));
-    });
-  }
-  async function editItemStatus(groupKey){
-    const plan=state.detailPlan;
-    if(!state.canUpdate||!plan)return;
-    const group=itemStatusGroups(plan,state.detailItems,state.linkedItemIds).find(item=>item.key===groupKey);
-    if(!group||group.linked){toast("Status item yang sudah terhubung ke proses loading aktual tidak dapat diubah manual.","warning");return;}
-    const result=await Swal.fire({
-      title:"Ubah status "+(plan.activity_type==="outbound"?"Shipment":"DO"),
-      html:"<div class='text-start mb-2'>"+esc(group.label)+"</div><label class='form-label' for='manual-item-status'>Status</label><select id='manual-item-status' class='form-select'><option value='false' "+(!group.processed?"selected":"")+">Belum diproses</option><option value='true' "+(group.processed?"selected":"")+">Sudah diproses</option></select>",
-      showCancelButton:true,confirmButtonText:"Simpan status",cancelButtonText:"Batal",confirmButtonColor:"#006ECD",reverseButtons:true,
-      preConfirm:()=>document.getElementById("manual-item-status")?.value
-    });
-    if(!result.isConfirmed||result.value==null)return;
-    try{
-      const ids=group.items.map(item=>item.id);
-      const path="/rest/v1/import_plan_items?id=in.("+ids.map(encodeURIComponent).join(",")+")&plan_id=eq."+encodeURIComponent(plan.id);
-      const updated=await request(path,{method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({manual_processed:result.value==="true"})});
-      if(!Array.isArray(updated)||updated.length!==ids.length)throw new Error("Status tidak berhasil diperbarui untuk semua baris DO / Shipment.");
-      state.detailItems=state.detailItems.map(item=>ids.includes(item.id)?Object.assign({},item,{manual_processed:result.value==="true"}):item);
-      renderItemStatuses(plan,state.detailItems,state.linkedItemIds);
-      await loadPlans();
-      toast("Status "+group.label+" berhasil diperbarui.","success");
-    }catch(error){
-      toast(error.message||"Status DO / Shipment gagal diperbarui.","error");
-    }
-  }
-
   function detailCell(value){return esc(value||"—");}
   async function openDetail(id){
     const p=state.plans.find(row=>row.id===id);if(!p)return;
@@ -404,7 +384,6 @@
       const confirmedTruckCount=p.activity_type==="inbound"?trips.filter(trip=>items.some(item=>item.trip_id===trip.id)).length:trips.filter(trip=>String(trip.plate_number||"").trim()).length;
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent=String(confirmedTruckCount);
-      renderItemStatuses(p,items,state.linkedItemIds);
       if(p.activity_type==="inbound"){
         $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{
           const groupItems=items.filter(item=>item.trip_id===trip.id);
