@@ -39,6 +39,8 @@
     .list-empty{padding:3rem 1rem;text-align:center;color:var(--list-muted)}
     .list-empty i{display:block;margin-bottom:.7rem;font-size:1.8rem}
     .list-note{color:var(--list-muted);font-size:.76rem}
+    .shipment-delete-btn{display:inline-grid;width:32px;height:32px;place-items:center;padding:0;border-radius:.45rem}
+    .shipment-delete-btn i{font-size:.9rem;line-height:1}
     .list-detail-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
     .list-detail-item{padding:.85rem;border:1px solid var(--list-line);border-radius:var(--radius-md);min-width:0}
     .list-detail-label{font-size:.7rem;color:var(--list-muted);font-weight:700}
@@ -188,20 +190,23 @@
       $("result-count").textContent="Gagal memuat data";toast(error.message||"Daftar Plan gagal dimuat.");
     }finally{button.disabled=false;button.innerHTML='<i class="bi bi-arrow-clockwise me-1"></i>Perbarui';}
   }
-  async function editPlan(id){
+  async function editPlan(id, workingRows=null, workingDate=null){
     if(!state.canUpdate)return;
     const p=state.plans.find(row=>row.id===id);
     if(!p||p.status!=="active"){toast("Hanya Plan Aktif yang dapat diubah.","warning");return;}
-    let items,trips;
-    try{
-      [items,trips]=await Promise.all([
-        request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
-        request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
-      ]);
-      if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Rincian shipment/DO gagal dimuat.");
-    }catch(error){toast(error.message||"Rincian Plan gagal dimuat.","error");return;}
-    const tripById=new Map(trips.map(t=>[t.id,t]));
-    const rows=items.map(item=>Object.assign({},item,tripById.get(item.trip_id)||{}));
+    let rows=workingRows;
+    if(!Array.isArray(rows)){
+      let items,trips;
+      try{
+        [items,trips]=await Promise.all([
+          request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+          request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
+        ]);
+        if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Rincian shipment/DO gagal dimuat.");
+      }catch(error){toast(error.message||"Rincian Plan gagal dimuat.","error");return;}
+      const tripById=new Map(trips.map(t=>[t.id,t]));
+      rows=items.map(item=>Object.assign({},item,tripById.get(item.trip_id)||{}));
+    }
     if(!rows.length){toast("Plan ini belum memiliki shipment atau DO untuk diubah.","warning");return;}
     const fields=[
       ["do_number","DO / Transport task"],["shipment_number","Shipment"],["part_number","Part number"],
@@ -209,31 +214,38 @@
       ["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"]
     ];
     const tableHead=fields.map(([,label])=>"<th>"+esc(label)+"</th>").join("");
-    const tableRows=rows.map((row,index)=>"<tr data-edit-row-container='"+index+"'>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+(p.activity_type==="outbound"?"<td><button type='button' class='btn btn-sm btn-outline-danger' data-remove-shipment='"+index+"' aria-label='Hapus shipment "+esc(row.shipment_number||"")+"'><i class='bi bi-trash'></i> Hapus</button></td>":"")+"</tr>").join("");
+    const tableRows=rows.map((row,index)=>"<tr data-edit-row-container='"+index+"'>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+(p.activity_type==="outbound"?"<td class='text-center text-nowrap' style='width:48px;min-width:48px'><button type='button' class='btn btn-sm btn-outline-danger shipment-delete-btn' data-remove-shipment='"+index+"' title='Hapus shipment "+esc(row.shipment_number||"")+"' aria-label='Hapus shipment "+esc(row.shipment_number||"")+"'><i class='bi bi-trash' aria-hidden='true'></i></button></td>":"")+"</tr>").join("");
     const deletedRows=new Set();
     const dialog=await Swal.fire({
       title:"Ubah Plan",
       width:"min(1200px, 96vw)",
       html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
-        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+(p.activity_type==="outbound"?"<th>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
+        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(workingDate||p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+(p.activity_type==="outbound"?"<th class='text-center' style='width:48px'>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
         "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>",
       showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
       didOpen:()=>{
         const el=document.getElementById("edit-operational-date");if(el)el.focus();
         if(p.activity_type==="outbound"){
-          document.querySelectorAll("[data-remove-shipment]").forEach(button=>button.addEventListener("click",()=>{
+          document.querySelectorAll("[data-remove-shipment]").forEach(button=>button.addEventListener("click",async()=>{
             const index=Number(button.dataset.removeShipment);
-            const input=document.querySelector("[data-edit-row='"+index+"'][data-edit-field='shipment_number']");
-            const shipment=(input?.value||"").trim();
-            if(!shipment){Swal.showValidationMessage("Isi nomor shipment sebelum menghapusnya.");return;}
             const normalized=value=>String(value||"").trim().toLocaleLowerCase();
-            const shipmentRows=rows.map((row,rowIndex)=>({rowIndex,input:document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='shipment_number']")})).filter(entry=>!deletedRows.has(entry.rowIndex)&&normalized(entry.input?.value)===normalized(shipment));
-            const remaining=new Set(rows.map((row,rowIndex)=>({rowIndex,input:document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='shipment_number']")})).filter(entry=>!deletedRows.has(entry.rowIndex)&&!shipmentRows.some(target=>target.rowIndex===entry.rowIndex)).map(entry=>normalized(entry.input?.value)).filter(Boolean));
+            const currentRows=rows.map((row,rowIndex)=>{
+              if(deletedRows.has(rowIndex))return null;
+              const value={};
+              fields.forEach(([field])=>{const input=document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='"+field+"']");value[field]=input?input.value.trim():"";});
+              value.quantity=Number(value.quantity);
+              return value;
+            }).filter(Boolean);
+            const shipment=(document.querySelector("[data-edit-row='"+index+"'][data-edit-field='shipment_number']")?.value||rows[index]?.shipment_number||"").trim();
+            if(!shipment){Swal.showValidationMessage("Isi nomor shipment sebelum menghapusnya.");return;}
+            const shipmentRows=currentRows.filter(row=>normalized(row.shipment_number)===normalized(shipment));
+            const remaining=new Set(currentRows.filter(row=>normalized(row.shipment_number)!==normalized(shipment)).map(row=>normalized(row.shipment_number)).filter(Boolean));
             if(remaining.size===0){Swal.showValidationMessage("Plan harus memiliki minimal satu shipment. Hapus shipment terakhir tidak diperbolehkan.");return;}
-            if(!window.confirm("Hapus shipment "+shipment+" beserta semua baris detailnya dari Plan?"))return;
-            shipmentRows.forEach(entry=>{deletedRows.add(entry.rowIndex);document.querySelector("[data-edit-row-container='"+entry.rowIndex+"']")?.remove();});
-            Swal.resetValidationMessage();
+            const operationalDate=document.getElementById("edit-operational-date")?.value||p.operational_date||"";
+            const confirmation=await Swal.fire({title:"Hapus shipment?",text:"Shipment "+shipment+" beserta "+shipmentRows.length+" baris detailnya akan dihapus dari perubahan Plan ini.",icon:"warning",showCancelButton:true,confirmButtonText:"Ya, hapus",cancelButtonText:"Batal",confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true});
+            const nextRows=confirmation.isConfirmed?currentRows.filter(row=>normalized(row.shipment_number)!==normalized(shipment)):currentRows;
+            await editPlan(p.id,nextRows,operationalDate);
           }));
         }
       },
