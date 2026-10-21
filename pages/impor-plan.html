@@ -97,8 +97,7 @@
             <p class="page-subtitle">Siapkan Plan Inbound atau Outbound dari Excel, periksa data, lalu konfirmasi sebelum diaktifkan.</p>
           </div>
           <div class="d-flex flex-column align-items-end gap-2">
-            
-            <div class="plan-mode-switch" role="group" aria-label="Jenis Plan">
+                <div class="plan-mode-switch" role="group" aria-label="Jenis Plan">
               <button type="button" class="plan-mode-btn active" data-plan-type="inbound" aria-pressed="true"><i class="bi bi-box-arrow-in-down"></i>Plan Inbound</button>
               <button type="button" class="plan-mode-btn" data-plan-type="outbound" aria-pressed="false"><i class="bi bi-box-arrow-up"></i>Plan Outbound</button>
             </div>
@@ -351,7 +350,7 @@
       $("data-check-state").className="plan-status invalid";$("data-check-state").innerHTML='<i class="bi bi-x-circle-fill"></i>Header tidak valid';
       $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-exclamation-circle-fill" style="color:#B4232A"></i><div>'+textSafe(result.fatal)+'</div>';
       $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="1 kesalahan";$("warning-count").textContent="0 peringatan";
-      $("data-check-footer-note").textContent="Perbaiki header lalu jalankan data kembali.";return;
+      $("data-check-footer-note").textContent="Perbaiki header lalu jalankan pemeriksaan data kembali.";return;
     }
     
     const rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
