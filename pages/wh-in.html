@@ -47,6 +47,27 @@
  .wh-in-swal-actions{flex-direction:column-reverse;align-items:stretch;margin-top:.85rem}
  .wh-in-swal-confirm,.wh-in-swal-cancel{width:100%;margin:0!important}
 }
+/* Keep the WH In row action identical in sizing and alignment to WH Out. */
+.wh-in-button{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:.25rem;
+  min-width:84px;
+  min-height:34px!important;
+  padding:.4rem .65rem!important;
+  border-radius:8px!important;
+  font-size:.775rem!important;
+  font-weight:700;
+  line-height:1!important;
+  white-space:nowrap;
+  vertical-align:middle;
+}
+.wh-in-button i{display:inline-block;flex:0 0 auto;margin:0!important;line-height:1}
+.action-cell .wh-in-button{margin:0}
+@media(max-width:480px){
+  .wh-in-button{min-height:32px!important;min-width:76px;padding:.38rem .55rem!important;font-size:.7rem!important}
+}
 </style>
 
 </head>
