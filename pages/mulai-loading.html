@@ -432,7 +432,7 @@ window.trcmComponentsReady.then(async function () {
           const detail = [
             item.part_number ? "Part " + item.part_number : "",
             item.product_name || "",
-            item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
+            selectedVisit && selectedVisit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
           ].filter(Boolean).join(" · ");
           return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
         }).join("");
