@@ -142,28 +142,36 @@
             </div>
           </section>
 
-          <div class="row g-3">
-            <div class="col-12 col-md-6">
-              <label class="form-label" for="gate-select">Nomor gerbang <span class="text-danger">*</span></label>
-              <select class="form-select" id="gate-select" required>
-                <option value="">Pilih gerbang</option>
-              </select>
+          <section class="card border-0 bg-body-tertiary mb-0" aria-labelledby="loading-location-heading">
+            <div class="card-body">
+              <h3 class="h6 mb-3" id="loading-location-heading"><i class="bi bi-geo-alt me-2"></i>Lokasi dan catatan loading</h3>
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="gate-select">Nomor gerbang <span class="text-danger">*</span></label>
+                  <select class="form-select" id="gate-select" required>
+                    <option value="">Pilih gerbang</option>
+                  </select>
+                  <div class="form-text">Pilih gerbang tempat truck melakukan loading.</div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="line-select">Nomor line <span class="text-danger">*</span></label>
+                  <select class="form-select" id="line-select" required disabled>
+                    <option value="">Pilih gerbang terlebih dahulu</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="seal-number">Nomor segel <span class="text-muted fw-normal">(opsional)</span></label>
+                  <input class="form-control" id="seal-number" type="text" maxlength="100" placeholder="Contoh: SL-123456">
+                  <div class="form-text">Isi nomor segel jika sudah tersedia.</div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="loading-notes">Catatan <span class="text-muted fw-normal">(opsional)</span></label>
+                  <textarea class="form-control" id="loading-notes" rows="3" maxlength="1000" placeholder="Tambahkan catatan pemeriksaan atau proses loading..."></textarea>
+                  <div class="form-text text-end"><span id="loading-notes-count">0</span>/1000 karakter</div>
+                </div>
+              </div>
             </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label" for="line-select">Nomor line <span class="text-danger">*</span></label>
-              <select class="form-select" id="line-select" required disabled>
-                <option value="">Pilih gerbang terlebih dahulu</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <label class="form-label" for="seal-number">Nomor segel</label>
-              <input class="form-control" id="seal-number" type="text" maxlength="100" placeholder="Masukkan nomor segel jika tersedia">
-            </div>
-<div class="col-12">
-              <label class="form-label" for="loading-notes">Catatan</label>
-              <textarea class="form-control" id="loading-notes" rows="4" maxlength="1000" placeholder="Catatan pemeriksaan atau loading"></textarea>
-            </div>
-          </div>
+          </section>
         </form>
       </div>
       <div class="modal-footer">
@@ -375,10 +383,25 @@ window.trcmComponentsReady.then(async function () {
     updatePlanShipmentCount();
   }
 
+  function getPlanShipmentGroups(items) {
+    const groups = new Map();
+    items.forEach(function (item) {
+      const rawKey = item.do_number || item.shipment_number || ("item:" + item.id);
+      const key = String(rawKey).trim().toLowerCase();
+      if (!groups.has(key)) groups.set(key, { key: key, label: item.do_number || item.shipment_number || ("Baris " + item.row_number), items: [], trip: item.trip || null });
+      const group = groups.get(key);
+      group.items.push(item);
+      if (!group.trip && item.trip) group.trip = item.trip;
+    });
+    return Array.from(groups.values());
+  }
+
   function updatePlanShipmentCount() {
-    const count = selectedPlanItemIds.size;
-    planShipmentCount.textContent = count + " shipment dipilih";
-    clearPlanSelection.disabled = count === 0;
+    const selectedGroups = getPlanShipmentGroups(availablePlanItems).filter(function (group) {
+      return group.items.some(function (item) { return selectedPlanItemIds.has(item.id); });
+    }).length;
+    planShipmentCount.textContent = selectedGroups + " DO/Shipment dipilih · " + selectedPlanItemIds.size + " item";
+    clearPlanSelection.disabled = selectedPlanItemIds.size === 0;
   }
 
   function renderPlanShipments() {
@@ -388,41 +411,50 @@ window.trcmComponentsReady.then(async function () {
     }
 
     const trips = new Map();
-    availablePlanItems.forEach(function (item) {
-      const trip = item.trip_id ? item.trip : null;
+    getPlanShipmentGroups(availablePlanItems).forEach(function (group) {
+      const trip = group.trip;
       const tripLabel = trip
         ? "Trip " + (trip.trip_number || "—") + " · " + (trip.plate_number || trip.vendor || "Armada Plan")
         : "Detail Plan";
       if (!trips.has(tripLabel)) trips.set(tripLabel, []);
-      trips.get(tripLabel).push(item);
+      trips.get(tripLabel).push(group);
     });
 
     planShipmentList.innerHTML = Array.from(trips.entries()).map(function (entry) {
-      const title = entry[0];
-      const rows = entry[1].map(function (item) {
-        const id = escapeHtml(item.id);
-        const checked = selectedPlanItemIds.has(item.id) ? " checked" : "";
-        const shipment = item.shipment_number || item.do_number || ("Baris " + item.row_number);
-        const meta = [
-          item.do_number && item.shipment_number ? "DO " + item.do_number : "",
-          item.part_number || "",
-          item.product_name || "",
-          item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
-        ].filter(Boolean).join(" · ");
-        return '<label class="d-flex align-items-start gap-3 border rounded-3 p-3 mb-2 plan-shipment-option" for="plan-item-' + id + '">' +
-          '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="plan-item-' + id + '" value="' + id + '" data-plan-item-id="' + id + '"' + checked + '>' +
-          '<span class="flex-grow-1 min-w-0"><span class="d-block fw-semibold text-break">' + escapeHtml(shipment) + '</span>' +
-          (meta ? '<span class="d-block small text-muted mt-1">' + escapeHtml(meta) + '</span>' : '') +
-          '</span></label>';
+      const rows = entry[1].map(function (group, index) {
+        const groupId = "shipment-group-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
+        const allSelected = group.items.every(function (item) { return selectedPlanItemIds.has(item.id); });
+        const someSelected = group.items.some(function (item) { return selectedPlanItemIds.has(item.id); });
+        const details = group.items.map(function (item) {
+          const detail = [
+            item.part_number ? "Part " + item.part_number : "",
+            item.product_name || "",
+            item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
+          ].filter(Boolean).join(" · ");
+          return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
+        }).join("");
+        const tripName = group.trip ? "Trip " + (group.trip.trip_number || "—") : "";
+        return '<div class="border rounded-3 p-3 mb-2 plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + '">' +
+          '<div class="d-flex align-items-start gap-3">' +
+          '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">' +
+          '<label class="flex-grow-1 min-w-0 mb-0" for="' + escapeHtml(groupId) + '">' +
+          '<span class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
+          '<span class="badge text-bg-light border">' + group.items.length + ' item</span>' +
+          (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</span>' +
+          '<ul class="list-unstyled mb-0 mt-2">' + details + '</ul></label></div></div>';
       }).join("");
-      return '<div class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(title) + '</div>' + rows + '</div>';
+      return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</section>';
     }).join("");
 
-    planShipmentList.querySelectorAll("[data-plan-item-id]").forEach(function (checkbox) {
+    planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(function (checkbox) {
       checkbox.addEventListener("change", function () {
-        if (checkbox.checked) selectedPlanItemIds.add(checkbox.value);
-        else selectedPlanItemIds.delete(checkbox.value);
-        updatePlanShipmentCount();
+        const group = getPlanShipmentGroups(availablePlanItems).find(function (item) { return item.key === checkbox.dataset.planGroupKey; });
+        if (!group) return;
+        group.items.forEach(function (item) {
+          if (checkbox.checked) selectedPlanItemIds.add(item.id);
+          else selectedPlanItemIds.delete(item.id);
+        });
+        renderPlanShipments();
       });
     });
     updatePlanShipmentCount();
@@ -702,6 +734,10 @@ window.trcmComponentsReady.then(async function () {
   searchCard.addEventListener("input", renderTable);
   clientFilter.addEventListener("change", renderTable);
   refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
+  const loadingNotesCount = document.getElementById("loading-notes-count");
+  loadingNotes.addEventListener("input", function () {
+    if (loadingNotesCount) loadingNotesCount.textContent = String(loadingNotes.value.length);
+  });
   form.addEventListener("submit", saveStart);
 
   table.addEventListener("click", function (event) {
