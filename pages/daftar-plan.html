@@ -209,32 +209,52 @@
       ["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"]
     ];
     const tableHead=fields.map(([,label])=>"<th>"+esc(label)+"</th>").join("");
-    const tableRows=rows.map((row,index)=>"<tr>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+"</tr>").join("");
+    const tableRows=rows.map((row,index)=>"<tr data-edit-row-container='"+index+"'>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+(p.activity_type==="outbound"?"<td><button type='button' class='btn btn-sm btn-outline-danger' data-remove-shipment='"+index+"' aria-label='Hapus shipment "+esc(row.shipment_number||"")+"'><i class='bi bi-trash'></i> Hapus</button></td>":"")+"</tr>").join("");
+    const deletedRows=new Set();
     const dialog=await Swal.fire({
       title:"Ubah Plan",
       width:"min(1200px, 96vw)",
       html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
-        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
+        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+(p.activity_type==="outbound"?"<th>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
         "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>",
       showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
-      didOpen:()=>{const el=document.getElementById("edit-operational-date");if(el)el.focus();},
+      didOpen:()=>{
+        const el=document.getElementById("edit-operational-date");if(el)el.focus();
+        if(p.activity_type==="outbound"){
+          document.querySelectorAll("[data-remove-shipment]").forEach(button=>button.addEventListener("click",()=>{
+            const index=Number(button.dataset.removeShipment);
+            const input=document.querySelector("[data-edit-row='"+index+"'][data-edit-field='shipment_number']");
+            const shipment=(input?.value||"").trim();
+            if(!shipment){Swal.showValidationMessage("Isi nomor shipment sebelum menghapusnya.");return;}
+            const normalized=value=>String(value||"").trim().toLocaleLowerCase();
+            const shipmentRows=rows.map((row,rowIndex)=>({rowIndex,input:document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='shipment_number']")})).filter(entry=>!deletedRows.has(entry.rowIndex)&&normalized(entry.input?.value)===normalized(shipment));
+            const remaining=new Set(rows.map((row,rowIndex)=>({rowIndex,input:document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='shipment_number']")})).filter(entry=>!deletedRows.has(entry.rowIndex)&&!shipmentRows.some(target=>target.rowIndex===entry.rowIndex)).map(entry=>normalized(entry.input?.value)).filter(Boolean));
+            if(remaining.size===0){Swal.showValidationMessage("Plan harus memiliki minimal satu shipment. Hapus shipment terakhir tidak diperbolehkan.");return;}
+            const confirmation=Swal.fire({icon:"warning",title:"Hapus shipment?",text:"Semua baris untuk shipment "+shipment+" akan dihapus dari Plan.",showCancelButton:true,confirmButtonText:"Ya, hapus shipment",cancelButtonText:"Batal",confirmButtonColor:"#dc3545",reverseButtons:true});
+            confirmation.then(result=>{if(!result.isConfirmed)return;shipmentRows.forEach(entry=>{deletedRows.add(entry.rowIndex);document.querySelector("[data-edit-row-container='"+entry.rowIndex+"']")?.remove();});Swal.resetValidationMessage();});
+          }));
+        }
+      },
       preConfirm:()=>{
         const date=document.getElementById("edit-operational-date")?.value;
         if(!date){Swal.showValidationMessage("Tanggal operasional wajib diisi.");return false;}
         const payload=rows.map((row,index)=>{
+          if(deletedRows.has(index))return null;
           const value={};
           fields.forEach(([field])=>{const input=document.querySelector("[data-edit-row='"+index+"'][data-edit-field='"+field+"']");value[field]=input?input.value.trim():"";});
           value.quantity=Number(value.quantity);
           return value;
         });
-        for(let i=0;i<payload.length;i++){
-          const row=payload[i];
+        const activePayload=payload.filter(Boolean);
+        if(!activePayload.length){Swal.showValidationMessage("Plan harus memiliki minimal satu shipment/baris.");return false;}
+        for(let i=0;i<activePayload.length;i++){
+          const row=activePayload[i];
           if(!Number.isFinite(row.quantity)||row.quantity<=0){Swal.showValidationMessage("Quantity pada baris "+(i+1)+" harus lebih dari nol.");return false;}
           if(p.activity_type==="inbound"&&(!row.do_number||!row.part_number||!row.product_name)){Swal.showValidationMessage("DO, part number, dan nama produk wajib diisi pada baris "+(i+1)+".");return false;}
           if(p.activity_type==="outbound"&&(!row.vendor||!row.plate_number||!row.driver_name||!row.truck_type||!row.destination||!row.shipment_number)){Swal.showValidationMessage("Seluruh kolom wajib Outbound harus terisi pada baris "+(i+1)+".");return false;}
         }
-        return {date,rows:payload};
+        return {date,rows:activePayload};
       }
     });
     if(!dialog.isConfirmed||!dialog.value)return;
