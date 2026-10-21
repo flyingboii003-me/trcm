@@ -325,7 +325,7 @@ window.trcmComponentsReady.then(async function () {
 
     try {
       const select = [
-        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number","destination_city",
+        "id","card_id","client_id","plate_number","activity_type","vendor","shipment_type","shipment_number","destination_city",
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
@@ -622,6 +622,26 @@ window.trcmComponentsReady.then(async function () {
         });
         visitStatusUpdated = false;
         throw eventError;
+      }
+
+      if (selectedPlanItemIds.size > 0) {
+        const planLinks = Array.from(selectedPlanItemIds).map(function (planItemId) {
+          return {
+            visit_id: selectedVisit.id,
+            plan_item_id: planItemId,
+            linked_by: session.user.id
+          };
+        });
+        await request("/rest/v1/visit_plan_items", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify(planLinks)
+        });
       }
 
       modal.hide();
