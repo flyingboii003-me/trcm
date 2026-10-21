@@ -332,7 +332,7 @@
       const source=line.split("\t");
       return {line:index+2,cells:fields.map(field=>(source[indexByKey[field.key]]||"").trim())};
     });
-    return {headers,rows,mapping:fields.map(field=>({label:field.label,source:headers[indexByKey[field.key]]}))};
+    return {headers,rows};
   }
   function validate(){
     if(!$("plan-client").value){
