@@ -351,8 +351,6 @@
       $("data-check-state").className="plan-status invalid";$("data-check-state").innerHTML='<i class="bi bi-x-circle-fill"></i>Header tidak valid';
       $("validation-message").className="plan-callout mb-3";$("validation-message").innerHTML='<i class="bi bi-exclamation-circle-fill" style="color:#B4232A"></i><div>'+textSafe(result.fatal)+'</div>';
       $("row-count").textContent="0 baris";$("group-count").textContent="0 kelompok";$("error-count").textContent="1 kesalahan";$("warning-count").textContent="0 peringatan";
-      
-      $("data-check-body").innerHTML='<tr class="row-invalid"><td><span class="plan-status invalid">Header tidak cocok</span></td><td>'+schemas[type].headers.map(textSafe).join(" · ")+"</td></tr>";
       $("data-check-footer-note").textContent="Perbaiki header lalu jalankan data kembali.";return;
     }
     
