@@ -230,6 +230,7 @@ window.trcmComponentsReady.then(async function () {
   let selectedVisit = null;
   let availablePlans = [];
   let availablePlanItems = [];
+  let processedPlanItemIds = new Set();
   let selectedPlanItemIds = new Set();
   let planLoadSequence = 0;
 
@@ -414,7 +415,7 @@ window.trcmComponentsReady.then(async function () {
     getPlanShipmentGroups(availablePlanItems).forEach(function (group) {
       const trip = group.trip;
       const tripLabel = trip
-        ? "Trip " + (trip.trip_number || "—") + " · " + (trip.plate_number || trip.vendor || "Armada Plan")
+        ? ["Trip " + (trip.trip_number || "—"), trip.plate_number || "Armada Plan", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ")
         : "Detail Plan";
       if (!trips.has(tripLabel)) trips.set(tripLabel, []);
       trips.get(tripLabel).push(group);
@@ -423,8 +424,10 @@ window.trcmComponentsReady.then(async function () {
     planShipmentList.innerHTML = Array.from(trips.entries()).map(function (entry) {
       const rows = entry[1].map(function (group, index) {
         const groupId = "shipment-group-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
-        const allSelected = group.items.every(function (item) { return selectedPlanItemIds.has(item.id); });
-        const someSelected = group.items.some(function (item) { return selectedPlanItemIds.has(item.id); });
+        const alreadyProcessed = group.items.some(function (item) { return processedPlanItemIds.has(item.id); });
+        const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
+        const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
+        const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
         const details = group.items.map(function (item) {
           const detail = [
             item.part_number ? "Part " + item.part_number : "",
@@ -434,14 +437,15 @@ window.trcmComponentsReady.then(async function () {
           return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
         }).join("");
         const tripName = group.trip ? "Trip " + (group.trip.trip_number || "—") : "";
-        return '<div class="border rounded-3 p-3 mb-2 plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + '">' +
+        return '<div class="border rounded-3 p-3 mb-2 plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '">' +
           '<div class="d-flex align-items-start gap-3">' +
-          '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">' +
-          '<label class="flex-grow-1 min-w-0 mb-0" for="' + escapeHtml(groupId) + '">' +
-          '<span class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
+          (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
+          '<div class="flex-grow-1 min-w-0">' +
+          '<div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
           '<span class="badge text-bg-light border">' + group.items.length + ' item</span>' +
-          (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</span>' +
-          '<ul class="list-unstyled mb-0 mt-2">' + details + '</ul></label></div></div>';
+          (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
+          (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div>' +
+          '<ul class="list-unstyled mb-0 mt-2">' + details + '</ul></div></div></div>';
       }).join("");
       return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</section>';
     }).join("");
@@ -451,6 +455,7 @@ window.trcmComponentsReady.then(async function () {
         const group = getPlanShipmentGroups(availablePlanItems).find(function (item) { return item.key === checkbox.dataset.planGroupKey; });
         if (!group) return;
         group.items.forEach(function (item) {
+          if (processedPlanItemIds.has(item.id)) return;
           if (checkbox.checked) selectedPlanItemIds.add(item.id);
           else selectedPlanItemIds.delete(item.id);
         });
@@ -516,13 +521,15 @@ window.trcmComponentsReady.then(async function () {
 
     planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Memuat shipment dari Plan…</div>';
     try {
-      const [items, trips] = await Promise.all([
+      const [items, trips, linkedItems] = await Promise.all([
         request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,part_number,product_name,quantity&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
-        request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(planId) + "&order=trip_number.asc")
+        request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(planId) + "&order=trip_number.asc"),
+        request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq." + encodeURIComponent(planId))
       ]);
       if (sequence !== planLoadSequence) return;
-      if (!Array.isArray(items) || !Array.isArray(trips)) throw new Error("Rincian shipment Plan tidak valid.");
+      if (!Array.isArray(items) || !Array.isArray(trips) || !Array.isArray(linkedItems)) throw new Error("Rincian shipment Plan tidak valid.");
       const tripById = new Map(trips.map(function (trip) { return [trip.id, trip]; }));
+      processedPlanItemIds = new Set(linkedItems.map(function (link) { return link.plan_item_id; }).filter(Boolean));
       availablePlanItems = items.map(function (item) {
         return Object.assign({}, item, { trip: tripById.get(item.trip_id) || null });
       });
