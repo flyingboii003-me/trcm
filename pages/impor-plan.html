@@ -407,6 +407,7 @@
     card.classList.remove("d-none");
     const groups=new Map();
     if(type==="inbound"){
+      $("truk-group-head").innerHTML="<tr>"+["No.","DO / Transport task","Part number","Nama produk","QTY","Kelompok truk otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
       parsed.forEach((r,i)=>{
         const cells=r.cells,doNumber=(cells[0]||"").trim(),key=doNumber.toUpperCase().replace(/\s+/g," ");
         if(doNumber&&!groups.has(key))groups.set(key,{doNumber,rows:[]});
