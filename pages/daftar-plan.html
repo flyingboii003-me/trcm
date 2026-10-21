@@ -288,13 +288,24 @@
       }
     });
     if(!dialog.isConfirmed||!dialog.value)return;
+    const hasLinkedItems=linkedStatusIds.size>0;
+    const detailsChanged=Array.isArray(workingRows)
+      || dialog.value.date!==(p.operational_date||"")
+      || dialog.value.rows.length!==rows.length
+      || dialog.value.rows.some((next,index)=>fields.some(([field])=>String(next[field]??"").trim()!==String(rows[index]?.[field]??"").trim()));
+    if(hasLinkedItems&&detailsChanged){
+      toast("Sebagian detail Plan sudah terhubung ke visit aktual. Perubahan tanggal atau detail tidak diizinkan; simpan hanya perubahan status manual untuk DO / Shipment yang belum terhubung.","error");
+      return;
+    }
     try{
-     const result=await request("/rest/v1/rpc/update_import_plan",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({p_plan_id:id,p_operational_date:dialog.value.date,p_rows:dialog.value.rows})
-      });
-      const saved=Array.isArray(result)?result[0]:result;
-      if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID Plan.");
+      if(!hasLinkedItems){
+        const result=await request("/rest/v1/rpc/update_import_plan",{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({p_plan_id:id,p_operational_date:dialog.value.date,p_rows:dialog.value.rows})
+        });
+        const saved=Array.isArray(result)?result[0]:result;
+        if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID Plan.");
+      }
       const savedItems=await request("/rest/v1/import_plan_items?select=id,do_number,shipment_number&plan_id=eq."+encodeURIComponent(id));
       if(!Array.isArray(savedItems))throw new Error("Plan tersimpan, tetapi status DO / Shipment gagal dimuat ulang.");      const normalizedStatusKey=value=>String(value||"").trim().toLocaleLowerCase("id-ID");
       for(const [statusKey,processed] of Object.entries(dialog.value.manualStatuses||{})){
