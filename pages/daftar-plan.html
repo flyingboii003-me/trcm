@@ -364,8 +364,7 @@
 
         <section class="list-card">
           <div class="list-card-head">
-            <div><h2 class="list-card-title">Seluruh Plan terimpor</h2><p class="list-card-subtitle">Data diambil langsung dari database. Aksi Ubah, Buat revisi, dan Hapus mengikuti permission Supabase.</p></div>
-            <span class="list-note align-self-center" id="result-count">Menyiapkan daftar…</span>
+            <div><h2 class="list-card-title">Seluruh Plan terimpor</h2><p class="list-card-subtitle">Kelola plan inbound dan outbound.</p></div>
           </div>
           <div class="list-card-body">
             <div class="row g-3 mb-4">
@@ -389,7 +388,6 @@
               <span class="list-note" id="page-info">—</span>
               <div class="d-flex align-items-center gap-2"><label for="page-size" class="list-note">Baris per halaman</label><select id="page-size" class="form-select form-select-sm" style="width:auto"><option>10</option><option>25</option><option>50</option></select><button id="prev-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><button id="next-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div>
             </div>
-            <p class="list-note mt-3 mb-0"><i class="bi bi-shield-check me-1"></i>Plan Aktif dapat diperbarui langsung. Perubahan disimpan pada Plan yang sama tanpa mencatat histori.</p>
           </div>
         </section>
       </div>
@@ -448,7 +446,8 @@
     const size=Number($("page-size").value)||10,total=state.filtered.length,pages=Math.max(1,Math.ceil(total/size));
     state.page=Math.min(state.page,pages);
     const start=(state.page-1)*size,rows=state.filtered.slice(start,start+size);
-    $("result-count").textContent=total+" Plan ditemukan";
+    const resultCount = $("result-count");
+    if (resultCount) resultCount.textContent=total+" Plan ditemukan";
     $("page-info").textContent=total?("Menampilkan "+(start+1)+"–"+Math.min(start+size,total)+" dari "+total+" Plan"):"Tidak ada Plan yang cocok";
     $("prev-page").disabled=state.page<=1;$("next-page").disabled=state.page>=pages;
     if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
