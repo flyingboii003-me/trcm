@@ -1,0 +1,2 @@
+alter table public.import_plans
+  drop constraint if exists import_plans_client_id_operational_date_activity_type_revis_key;

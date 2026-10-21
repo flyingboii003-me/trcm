@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Daftar Plan operasional yang telah diimpor ke TRCM">
+  <title>Daftar Plan — TRCM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/trcm.css">
+  <style>
+    .plan-list-page{--list-line:var(--border);--list-muted:var(--text-muted)}
+    .list-kicker{display:block;margin-bottom:.45rem;color:var(--cj-blue);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .list-card{overflow:hidden;border:1px solid var(--list-line);border-radius:var(--radius-xl);background:var(--card-bg,#fff);box-shadow:var(--shadow-sm)}
+    .list-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.2rem 1.4rem;border-bottom:1px solid var(--list-line)}
+    .list-card-title{margin:0 0 .25rem;font-size:1rem;font-weight:800}
+    .list-card-subtitle{margin:0;color:var(--list-muted);font-size:.82rem;line-height:1.5}
+    .list-card-body{padding:1.25rem 1.4rem}
+    .list-stat{height:100%;padding:1rem 1.1rem;border:1px solid var(--list-line);border-radius:var(--radius-lg);background:var(--card-bg,#fff)}
+    .list-stat-label{color:var(--list-muted);font-size:.76rem;font-weight:700}
+    .list-stat-value{margin-top:.35rem;font-size:1.55rem;font-weight:800;line-height:1.2}
+    .list-stat-icon{display:grid;width:40px;height:40px;place-items:center;border-radius:12px;background:#EEF5FB;color:var(--cj-blue);font-size:1.1rem}
+    .list-filter-label{display:block;margin-bottom:.4rem;font-size:.76rem;font-weight:800}
+    .list-filter{min-height:42px;border:1px solid var(--list-line);border-radius:var(--radius-md);font-size:.84rem}
+    .list-table-wrap{overflow:auto;border:1px solid var(--list-line);border-radius:var(--radius-lg)}
+    .list-table{min-width:930px;margin:0;font-size:.82rem}
+    .list-table thead th{padding:.85rem 1rem;background:#F5F7FA;color:#55627A;font-size:.69rem;font-weight:800;letter-spacing:.035em;white-space:nowrap;border-bottom:1px solid var(--list-line)}
+    .list-table tbody td{padding:.9rem 1rem;vertical-align:middle;border-color:#E8EDF3}
+    .list-table tbody tr:hover td{background:rgba(0,110,205,.025)}
+    .list-plan-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;font-weight:700;color:var(--cj-blue)}
+    .list-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:50rem;font-size:.7rem;font-weight:800;white-space:nowrap}
+    .list-badge.active{background:#E7F7EE;color:#17663B}
+    .list-badge.cancelled{background:#FDEBEC;color:#B4232A}
+    .list-badge.inbound{background:#EAF3FC;color:#175A91}
+    .list-badge.outbound{background:#F0EAFE;color:#6842A6}
+    .list-empty{padding:3rem 1rem;text-align:center;color:var(--list-muted)}
+    .list-empty i{display:block;margin-bottom:.7rem;font-size:1.8rem}
+    .list-note{color:var(--list-muted);font-size:.76rem}
+    .shipment-delete-btn{display:inline-grid;width:32px;height:32px;place-items:center;padding:0;border-radius:.45rem}
+    .shipment-delete-btn i{font-size:.9rem;line-height:1}
+    .list-detail-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
+    .list-detail-item{padding:.85rem;border:1px solid var(--list-line);border-radius:var(--radius-md);min-width:0}
+    .list-detail-label{font-size:.7rem;color:var(--list-muted);font-weight:700}
+    .list-detail-value{margin-top:.3rem;font-size:.84rem;font-weight:800;overflow-wrap:anywhere}
+    @media(max-width:767.98px){.list-card-head,.list-card-body{padding:1rem}.list-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.list-toolbar-button{width:100%}}
+  </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body class="trcm-app" data-page-resource="daftar_plan">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper plan-list-page">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <span class="list-kicker">Administrasi · Rencana operasional</span>
+            <h1 class="page-title">Daftar Plan</h1>
+            <p class="page-subtitle">Lihat seluruh Plan yang telah diimpor, statusnya, dan rincian barang atau shipment.</p>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary" type="button" id="refresh-plans"><i class="bi bi-arrow-clockwise me-1"></i>Perbarui</button>
+            <a class="btn btn-primary" id="create-plan-link" href="impor-plan.html"><i class="bi bi-file-earmark-arrow-up me-1"></i>Impor Plan</a>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan</div><div class="list-stat-value" id="stat-total">—</div></div><span class="list-stat-icon"><i class="bi bi-files"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Plan Aktif</div><div class="list-stat-value" id="stat-active">—</div></div><span class="list-stat-icon"><i class="bi bi-check-circle"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Inbound</div><div class="list-stat-value" id="stat-inbound">—</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-in-down"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Outbound</div><div class="list-stat-value" id="stat-outbound">—</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-up"></i></span></div></div></div>
+        </div>
+
+        <section class="list-card">
+          <div class="list-card-head">
+            <div><h2 class="list-card-title">Seluruh Plan terimpor</h2><p class="list-card-subtitle">Data diambil langsung dari database. Aksi Ubah, Buat revisi, dan Hapus mengikuti permission Supabase.</p></div>
+            <span class="list-note align-self-center" id="result-count">Menyiapkan daftar…</span>
+          </div>
+          <div class="list-card-body">
+            <div class="row g-3 mb-4">
+              <div class="col-lg-4 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien, ID Plan, atau tanggal"></div></div>
+              <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-activity">Jenis aktivitas</label><select class="form-select list-filter" id="filter-activity"><option value="">Semua jenis</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select></div>
+              <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-status">Status</label><select class="form-select list-filter" id="filter-status"><option value="">Semua status</option><option value="active">Aktif</option><option value="cancelled">Dibatalkan</option></select></div>
+              <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-from">Tanggal operasional dari</label><input class="form-control list-filter" id="filter-from" type="date"></div>
+              <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-to">Sampai tanggal</label><input class="form-control list-filter" id="filter-to" type="date"></div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div class="list-note" id="filter-summary">Semua status dan jenis Plan.</div>
+              <button class="btn btn-sm btn-light border" id="clear-filters" type="button"><i class="bi bi-x-circle me-1"></i>Hapus filter</button>
+            </div>
+            <div class="list-table-wrap">
+              <table class="table list-table align-middle">
+                <thead><tr><th>Klien</th><th>Tanggal operasional</th><th>Jenis</th><th>Detail</th><th>Trip</th><th>Status</th><th>Diimpor pada</th><th>Aksi</th></tr></thead>
+                <tbody id="plan-table-body"><tr><td colspan="8"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr></tbody>
+              </table>
+            </div>
+            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mt-3">
+              <span class="list-note" id="page-info">—</span>
+              <div class="d-flex align-items-center gap-2"><label for="page-size" class="list-note">Baris per halaman</label><select id="page-size" class="form-select form-select-sm" style="width:auto"><option>10</option><option>25</option><option>50</option></select><button id="prev-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><button id="next-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div>
+            </div>
+            <p class="list-note mt-3 mb-0"><i class="bi bi-shield-check me-1"></i>Plan Aktif dapat diperbarui langsung. Perubahan disimpan pada Plan yang sama tanpa mencatat histori.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal fade" id="plan-detail-modal" tabindex="-1" aria-labelledby="plan-detail-title" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content border-0 shadow">
+    <div class="modal-header"><div><h2 class="modal-title fs-5 fw-bold" id="plan-detail-title">Rincian Plan</h2><p class="small text-secondary mb-0 mt-1" id="detail-subtitle">Memuat rincian…</p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+    <div class="modal-body">
+      <div class="list-detail-grid mb-4" id="detail-summary"></div>
+      <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-trips-title">Kelompok trip / truk</h3></div>
+      <div class="list-table-wrap"><table class="table list-table align-middle"><thead id="detail-trips-head"><tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr></thead><tbody id="detail-trips-body"></tbody></table></div>
+      
+    </div>
+    <div class="modal-footer"><button class="btn btn-light border" type="button" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+(function(){
+  "use strict";
+  const $=id=>document.getElementById(id);
+  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,canUpdate:false,canCreatePlan:false,canDelete:false};
+  const statusLabels={active:"Aktif",cancelled:"Dibatalkan"};
+  const activityLabels={inbound:"Inbound",outbound:"Outbound"};
+  function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+  function toast(message,icon="info"){
+    const titles={success:"Berhasil",error:"Terjadi kesalahan",warning:"Perlu diperiksa",info:"Informasi",question:"Konfirmasi"};
+    return Swal.fire({icon,title:titles[icon]||"Informasi",text:String(message||""),confirmButtonText:icon==="error"?"Tutup":"Mengerti",confirmButtonColor:"#006ECD"});
+  }
+  function dateLabel(value){if(!value)return "—";const d=new Date(value+"T00:00:00");return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric"}).format(d);}
+  function dateTimeLabel(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);}
+  function statusBadge(status){const s=String(status||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="active"?"bi-check-circle-fill":"bi-x-circle-fill")+'"></i>'+esc(statusLabels[s]||s||"Tidak diketahui")+'</span>';}
+  function activityBadge(type){const s=String(type||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="inbound"?"bi-box-arrow-in-down":"bi-box-arrow-up")+'"></i>'+esc(activityLabels[s]||s||"—")+'</span>';}
+  function countItems(plan){return Array.isArray(plan.import_plan_items)?plan.import_plan_items.length:Number(plan.row_count)||0;}
+  function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}
+  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token},options&&options.headers||{});const response=await fetch(SUPABASE_URL+path,config);const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)?(data.message||data.details||data.hint):"Permintaan database gagal ("+response.status+").");return data;}
+  function updateStats(plans){$("stat-total").textContent=plans.length;$("stat-active").textContent=plans.filter(p=>p.status==="active").length;$("stat-inbound").textContent=plans.filter(p=>p.activity_type==="inbound").length;$("stat-outbound").textContent=plans.filter(p=>p.activity_type==="outbound").length;}
+  function applyFilters(){
+    const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,status=$("filter-status").value,from=$("filter-from").value,to=$("filter-to").value;
+    state.filtered=state.plans.filter(p=>{
+      const client=p.clients&&p.clients.name||"";
+      const hay=[client,p.id,p.operational_date,p.activity_type,p.status].join(" ").toLowerCase();
+      return (!q||hay.includes(q))&&(!activity||p.activity_type===activity)&&(!status||p.status===status)&&(!from||p.operational_date>=from)&&(!to||p.operational_date<=to);
+    });
+    state.page=1;
+    $("filter-summary").textContent=[activity?activityLabels[activity]:"Semua jenis",status?statusLabels[status]:"Semua status",from?"Dari "+dateLabel(from):"",to?"sampai "+dateLabel(to):""].filter(Boolean).join(" · ");
+    renderTable();
+  }
+  function renderTable(){
+    const size=Number($("page-size").value)||10,total=state.filtered.length,pages=Math.max(1,Math.ceil(total/size));
+    state.page=Math.min(state.page,pages);
+    const start=(state.page-1)*size,rows=state.filtered.slice(start,start+size);
+    $("result-count").textContent=total+" Plan ditemukan";
+    $("page-info").textContent=total?("Menampilkan "+(start+1)+"–"+Math.min(start+size,total)+" dari "+total+" Plan"):"Tidak ada Plan yang cocok";
+    $("prev-page").disabled=state.page<=1;$("next-page").disabled=state.page>=pages;
+    if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
+    $("plan-table-body").innerHTML=rows.map(p=>{
+      const client=p.clients&&p.clients.name||"Klien tidak tersedia";
+      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td><span class="fw-semibold">'+esc(countItems(p))+'</span><span class="text-secondary small"> baris</span></td><td>'+esc(countTrips(p)||"—")+'</td><td>'+statusBadge(p.status)+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
+    }).join("");
+    $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));
+    $("plan-table-body").querySelectorAll("[data-plan-edit]").forEach(button=>button.addEventListener("click",()=>editPlan(button.dataset.planEdit)));
+    
+    $("plan-table-body").querySelectorAll("[data-plan-delete]").forEach(button=>button.addEventListener("click",()=>deletePlan(button.dataset.planDelete)));
+  }
+  async function loadPlans(){
+    const button=$("refresh-plans");button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memuat…';
+    $("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
+    try{
+      const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id)";
+      const data=await request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc");
+      if(!Array.isArray(data))throw new Error("Respons daftar Plan tidak valid.");
+      state.plans=data;updateStats(data);applyFilters();
+    }catch(error){
+      console.error("TRCM daftar Plan:",error);
+      $("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
+      $("result-count").textContent="Gagal memuat data";toast(error.message||"Daftar Plan gagal dimuat.");
+    }finally{button.disabled=false;button.innerHTML='<i class="bi bi-arrow-clockwise me-1"></i>Perbarui';}
+  }
+  async function editPlan(id, workingRows=null, workingDate=null){
+    if(!state.canUpdate)return;
+    const p=state.plans.find(row=>row.id===id);
+    if(!p||p.status!=="active"){toast("Hanya Plan Aktif yang dapat diubah.","warning");return;}
+    let rows=workingRows;
+    if(!Array.isArray(rows)){
+      let items,trips;
+      try{
+        [items,trips]=await Promise.all([
+          request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+          request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
+        ]);
+        if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Rincian shipment/DO gagal dimuat.");
+      }catch(error){toast(error.message||"Rincian Plan gagal dimuat.","error");return;}
+      const tripById=new Map(trips.map(t=>[t.id,t]));
+      rows=items.map(item=>Object.assign({},item,tripById.get(item.trip_id)||{}));
+    }
+    if(!rows.length){toast("Plan ini belum memiliki shipment atau DO untuk diubah.","warning");return;}
+    const fields=[
+      ["do_number","DO / Transport task"],["shipment_number","Shipment"],["part_number","Part number"],
+      ["product_name","Nama produk"],["quantity","Quantity"],["vendor","Vendor"],["plate_number","Plat nomor"],
+      ["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"]
+    ];
+    const tableHead=fields.map(([,label])=>"<th>"+esc(label)+"</th>").join("");
+    const tableRows=rows.map((row,index)=>"<tr data-edit-row-container='"+index+"'>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+(p.activity_type==="outbound"?"<td class='text-center text-nowrap' style='width:48px;min-width:48px'><button type='button' class='btn btn-sm btn-outline-danger shipment-delete-btn' data-remove-shipment='"+index+"' title='Hapus shipment "+esc(row.shipment_number||"")+"' aria-label='Hapus shipment "+esc(row.shipment_number||"")+"'><i class='bi bi-trash' aria-hidden='true'></i></button></td>":"")+"</tr>").join("");
+    const deletedRows=new Set();
+    const dialog=await Swal.fire({
+      title:"Ubah Plan",
+      width:"min(1200px, 96vw)",
+      html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
+        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(workingDate||p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+(p.activity_type==="outbound"?"<th class='text-center' style='width:48px'>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
+        "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>",
+      showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
+      confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
+      didOpen:()=>{
+        const el=document.getElementById("edit-operational-date");if(el)el.focus();
+        if(p.activity_type==="outbound"){
+          document.querySelectorAll("[data-remove-shipment]").forEach(button=>button.addEventListener("click",async()=>{
+            const index=Number(button.dataset.removeShipment);
+            const normalized=value=>String(value||"").trim().toLocaleLowerCase();
+            const currentRows=rows.map((row,rowIndex)=>{
+              if(deletedRows.has(rowIndex))return null;
+              const value={};
+              fields.forEach(([field])=>{const input=document.querySelector("[data-edit-row='"+rowIndex+"'][data-edit-field='"+field+"']");value[field]=input?input.value.trim():"";});
+              value.quantity=Number(value.quantity);
+              return value;
+            }).filter(Boolean);
+            const shipment=(document.querySelector("[data-edit-row='"+index+"'][data-edit-field='shipment_number']")?.value||rows[index]?.shipment_number||"").trim();
+            if(!shipment){Swal.showValidationMessage("Isi nomor shipment sebelum menghapusnya.");return;}
+            const shipmentRows=currentRows.filter(row=>normalized(row.shipment_number)===normalized(shipment));
+            const remaining=new Set(currentRows.filter(row=>normalized(row.shipment_number)!==normalized(shipment)).map(row=>normalized(row.shipment_number)).filter(Boolean));
+            if(remaining.size===0){Swal.showValidationMessage("Plan harus memiliki minimal satu shipment. Hapus shipment terakhir tidak diperbolehkan.");return;}
+            const operationalDate=document.getElementById("edit-operational-date")?.value||p.operational_date||"";
+            const confirmation=await Swal.fire({title:"Hapus shipment?",text:"Shipment "+shipment+" beserta "+shipmentRows.length+" baris detailnya akan dihapus dari perubahan Plan ini.",icon:"warning",showCancelButton:true,confirmButtonText:"Ya, hapus",cancelButtonText:"Batal",confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true});
+            const nextRows=confirmation.isConfirmed?currentRows.filter(row=>normalized(row.shipment_number)!==normalized(shipment)):currentRows;
+            await editPlan(p.id,nextRows,operationalDate);
+          }));
+        }
+      },
+      preConfirm:()=>{
+        const date=document.getElementById("edit-operational-date")?.value;
+        if(!date){Swal.showValidationMessage("Tanggal operasional wajib diisi.");return false;}
+        const payload=rows.map((row,index)=>{
+          if(deletedRows.has(index))return null;
+          const value={};
+          fields.forEach(([field])=>{const input=document.querySelector("[data-edit-row='"+index+"'][data-edit-field='"+field+"']");value[field]=input?input.value.trim():"";});
+          value.quantity=Number(value.quantity);
+          return value;
+        });
+        const activePayload=payload.filter(Boolean);
+        if(!activePayload.length){Swal.showValidationMessage("Plan harus memiliki minimal satu shipment/baris.");return false;}
+        for(let i=0;i<activePayload.length;i++){
+          const row=activePayload[i];
+          if(!Number.isFinite(row.quantity)||row.quantity<=0){Swal.showValidationMessage("Quantity pada baris "+(i+1)+" harus lebih dari nol.");return false;}
+          if(p.activity_type==="inbound"&&(!row.do_number||!row.part_number||!row.product_name)){Swal.showValidationMessage("DO, part number, dan nama produk wajib diisi pada baris "+(i+1)+".");return false;}
+          if(p.activity_type==="outbound"&&(!row.vendor||!row.plate_number||!row.driver_name||!row.truck_type||!row.destination||!row.shipment_number)){Swal.showValidationMessage("Seluruh kolom wajib Outbound harus terisi pada baris "+(i+1)+".");return false;}
+        }
+        return {date,rows:activePayload};
+      }
+    });
+    if(!dialog.isConfirmed||!dialog.value)return;
+    try{
+     const result=await request("/rest/v1/rpc/update_import_plan",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({p_plan_id:id,p_operational_date:dialog.value.date,p_rows:dialog.value.rows})
+      });
+      const saved=Array.isArray(result)?result[0]:result;
+      if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID Plan.");
+      toast("Plan berhasil diperbarui.","success");
+      await loadPlans();
+    }catch(error){
+      const message=String(error.message||"");
+      if(message.includes("PLAN_HAS_VISIT_LINKS"))toast("Plan tidak dapat diubah karena detailnya sudah terhubung ke visit aktual.","error");
+      else if(message.includes("PERMISSION_DENIED")||message.includes("42501"))toast("Akun tidak memiliki permission yang diperlukan untuk mengubah Plan.","error");
+      else toast(message||"Gagal memperbarui Plan.","error");
+    }
+  }
+  function labelFor(field){return ({do_number:"DO / Transport task",shipment_number:"Shipment",part_number:"Part number",product_name:"Nama produk",quantity:"Quantity",vendor:"Vendor",plate_number:"Plat nomor",driver_name:"Nama driver",truck_type:"Tipe truk",destination:"Tujuan"}[field]||field);}
+  async function deletePlan(id){
+    if(!state.canDelete)return;
+    const p=state.plans.find(row=>row.id===id);if(!p)return;
+    const client=p.clients&&p.clients.name||"Klien tidak tersedia";
+    const warning=p.status==="active"?" Plan Aktif akan dihapus sehingga tidak ada Plan aktif untuk cakupan ini sampai Plan pengganti dibuat.":"";
+    const confirmation=await Swal.fire({
+      icon:"warning",title:"Hapus Plan?",
+      html:"Hapus Plan <strong>"+esc(String(p.id).slice(0,6))+"…</strong> milik <strong>"+esc(client)+"</strong>?<br><br>Rincian barang dan trip ikut dihapus."+esc(warning)+"<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
+      showCancelButton:true,confirmButtonText:"Ya, hapus Plan",cancelButtonText:"Batal",
+      confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true
+    });
+    if(!confirmation.isConfirmed)return;
+    try{
+      const result=await request("/rest/v1/import_plans?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=representation"}});
+      if(!Array.isArray(result)||result.length!==1)throw new Error("Plan tidak terhapus. Periksa permission atau pastikan Plan belum terhubung ke visit.");
+      toast("Plan berhasil dihapus.","success");await loadPlans();
+    }catch(error){
+      const message=String(error.message||"");
+      if(message.includes("23503")||message.includes("foreign key"))toast("Plan tidak dapat dihapus karena detailnya sudah terhubung ke visit aktual.","error");
+      else toast(message||"Gagal menghapus Plan.","error");
+    }
+  }
+  function detailCell(value){return esc(value||"—");}
+  async function openDetail(id){
+    const p=state.plans.find(row=>row.id===id);if(!p)return;
+    state.detailPlan=p;
+    $("plan-detail-title").textContent="Rincian Plan "+String(p.id).slice(0,6)+"…";
+    $("detail-subtitle").textContent=(p.clients&&p.clients.name||"Klien tidak tersedia")+" · "+dateLabel(p.operational_date)+" · "+(activityLabels[p.activity_type]||p.activity_type);
+    $("detail-summary").innerHTML=[
+      ["Status",statusLabels[p.status]||p.status],["Truk terkonfirmasi","Memuat…"],["Dibuat",dateTimeLabel(p.created_at)]
+    ].map(([label,value])=>'<div class="list-detail-item"><div class="list-detail-label">'+esc(label)+'</div><div class="list-detail-value">'+esc(value)+'</div></div>').join("");
+    $("detail-trips-title").textContent=p.activity_type==="inbound"?"Kelompok trip inbound":"Kelompok trip / truk";
+    $("detail-trips-head").innerHTML=p.activity_type==="inbound"?"<tr><th>No. trip</th><th>DO / Transport task</th><th>Part number</th><th>Nama produk</th><th>Total quantity</th></tr>":"<tr><th>No. trip</th><th>Shipment</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr>";
+    $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:7)+'" class="text-center text-secondary py-3">Memuat trip…</td></tr>';
+    bootstrap.Modal.getOrCreateInstance($("plan-detail-modal")).show();
+    try{
+      const [items,trips]=await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+        request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
+      ]);
+      if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Respons rincian Plan tidak valid.");
+      const confirmedTruckCount=p.activity_type==="inbound"?trips.filter(trip=>items.some(item=>item.trip_id===trip.id)).length:trips.filter(trip=>String(trip.plate_number||"").trim()).length;
+      const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
+      if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent=String(confirmedTruckCount);
+      if(p.activity_type==="inbound"){
+        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{
+          const groupItems=items.filter(item=>item.trip_id===trip.id);
+          const uniqueValues=key=>[...new Set(groupItems.map(item=>String(item[key]||"").trim()).filter(Boolean))];
+          const quantity=groupItems.reduce((sum,item)=>sum+(Number(item.quantity)||0),0);
+          return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(uniqueValues("do_number").join(", "))+"</td><td>"+detailCell(uniqueValues("part_number").join(", "))+"</td><td>"+detailCell(uniqueValues("product_name").join(", "))+"</td><td>"+(groupItems.length?esc(quantity):"—")+"</td></tr>";
+        }).join(""):'<tr><td colspan="5"><div class="list-empty">Belum ada kelompok trip inbound.</div></td></tr>';
+      }else{
+        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{const groupItems=items.filter(item=>item.trip_id===trip.id);const shipments=[...new Set(groupItems.map(item=>String(item.shipment_number||"").trim()).filter(Boolean))];return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(shipments.join(", "))+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>";}).join(""):'<tr><td colspan="7"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
+      }
+    }catch(error){
+      const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
+      if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent="—";
+      $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:7)+'" class="text-danger p-3">'+esc(error.message||"Rincian trip gagal dimuat.")+'</td></tr>';
+    }
+  }
+  $("plan-search").addEventListener("input",applyFilters);
+  ["filter-activity","filter-status","filter-from","filter-to"].forEach(id=>$(id).addEventListener("change",applyFilters));
+  $("clear-filters").addEventListener("click",()=>{["plan-search","filter-activity","filter-status","filter-from","filter-to"].forEach(id=>$(id).value="");applyFilters();});
+  $("page-size").addEventListener("change",()=>{state.page=1;renderTable();});
+  $("prev-page").addEventListener("click",()=>{state.page=Math.max(1,state.page-1);renderTable();});
+  $("next-page").addEventListener("click",()=>{state.page++;renderTable();});
+  $("refresh-plans").addEventListener("click",loadPlans);
+  window.trcmComponentsReady.then(async()=>{
+    const title=document.querySelector("[data-page-title]");if(title)title.textContent="Daftar Plan";
+    const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";
+    state.session=typeof getTrcmSession==="function"?getTrcmSession():null;
+    if(!state.session||!state.session.access_token){window.location.replace("../index.html");return;}
+    const permissions=window.trcmPermissions;
+    state.canUpdate=!!(permissions&&permissions.can("daftar_plan","update"));
+    state.canCreatePlan=!!(permissions&&permissions.can("import_plan","create"));
+    state.canDelete=!!(permissions&&permissions.can("daftar_plan","delete"));
+    const canImport = permissions && permissions.can("import_plan_upload", "view");
+    const createLink = $("create-plan-link");
+    if (createLink && !canImport) createLink.hidden = true;
+    await loadPlans();
+  });
+})();
+</script>
+</body>
+</html>

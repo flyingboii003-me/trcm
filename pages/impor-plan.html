@@ -62,8 +62,6 @@
     .plan-callout i{margin-top:.1rem;color:var(--cj-blue);font-size:1rem}
     .plan-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem 1.5rem;border-top:1px solid var(--plan-line);background:#FBFCFE}
     .plan-demo-note{color:var(--plan-muted);font-size:.75rem}
-    .plan-toast{position:fixed;right:1.25rem;top:1.25rem;z-index:2000;max-width:min(420px,calc(100vw - 2rem));display:none;padding:1rem 1.1rem;border:1px solid #C9DFF4;border-radius:14px;background:#F0F7FF;color:#173E63;box-shadow:var(--shadow-lg);font-size:.85rem}
-    .plan-toast.show{display:flex;gap:.65rem;align-items:flex-start}
     .plan-empty{padding:2.5rem 1rem;text-align:center;color:var(--plan-muted)}
     .plan-empty i{display:block;margin-bottom:.65rem;font-size:1.7rem}
     .plan-bottom-actions{display:flex;justify-content:flex-end;gap:.65rem;flex-wrap:wrap}
@@ -89,8 +87,9 @@
       #confirm-import-modal .plan-data-check-table{min-width:760px}
     }
   </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
-<body class="trcm-app" data-page-resource="master_data">
+<body class="trcm-app" data-page-resource="import_plan_upload">
 <div class="app-layout">
   <div id="sidebar-container"></div>
   <div class="main-wrapper">
@@ -103,9 +102,12 @@
             <h1 class="page-title">Impor Plan</h1>
             <p class="page-subtitle">Siapkan Plan Inbound atau Outbound dari Excel, periksa data, lalu konfirmasi sebelum diaktifkan.</p>
           </div>
-          <div class="plan-mode-switch" role="group" aria-label="Jenis Plan">
-            <button type="button" class="plan-mode-btn active" data-plan-type="inbound" aria-pressed="true"><i class="bi bi-box-arrow-in-down"></i>Plan Inbound</button>
-            <button type="button" class="plan-mode-btn" data-plan-type="outbound" aria-pressed="false"><i class="bi bi-box-arrow-up"></i>Plan Outbound</button>
+          <div class="d-flex flex-column align-items-end gap-2">
+            
+            <div class="plan-mode-switch" role="group" aria-label="Jenis Plan">
+              <button type="button" class="plan-mode-btn active" data-plan-type="inbound" aria-pressed="true"><i class="bi bi-box-arrow-in-down"></i>Plan Inbound</button>
+              <button type="button" class="plan-mode-btn" data-plan-type="outbound" aria-pressed="false"><i class="bi bi-box-arrow-up"></i>Plan Outbound</button>
+            </div>
           </div>
         </div>
 
@@ -127,7 +129,7 @@
               </div>
               <div class="col-md-3">
                 <label class="plan-field-label" for="operational-date">Tanggal operasional <span class="plan-required">*</span></label>
-                <input class="form-control plan-input" id="operational-date" type="date" value="2026-10-14" required>
+                <input class="form-control plan-input" id="operational-date" type="date" required>
                 <div class="plan-hint">Plan akan dikelompokkan berdasarkan tanggal ini.</div>
               </div>
               <div class="col-md-5">
@@ -147,10 +149,10 @@
               <div class="plan-hint mt-0" id="paste-hint">Nama dan urutan kolom boleh bervariasi selama setiap header dikenali. Nomor DO dan PART NUMBER dibaca sebagai teks.</div>
               <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-example"><i class="bi bi-arrow-counterclockwise me-1"></i>Muat contoh</button>
             </div>
-            <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Tahap validasi lokal.</strong> Header dipetakan berdasarkan alias terkontrol dan urutannya boleh berbeda. Keunikan dokumen global dan penyimpanan Plan memerlukan validasi server/database pada tahap berikutnya.</div></div>
+            <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Tahap validasi lokal.</strong> Header dipetakan berdasarkan alias terkontrol dan urutannya boleh berbeda. Keunikan Shipment dan penyimpanan Plan diverifikasi kembali oleh database saat konfirmasi.</div></div>
           </div>
           <div class="plan-footer">
-            <span class="plan-demo-note"><i class="bi bi-shield-check me-1"></i>Validasi header dan baris di browser · Belum ada simpan ke database</span>
+            <span class="plan-demo-note"><i class="bi bi-shield-check me-1"></i>Validasi browser + database · Plan aktif disimpan setelah konfirmasi</span>
             <div class="plan-bottom-actions"><button class="btn btn-primary" id="data-check-button" type="button"><i class="bi bi-search me-1"></i>Periksa data</button></div>
           </div>
         </section>
@@ -233,17 +235,18 @@
             <tbody id="confirm-table-body"></tbody>
           </table>
         </div>
-        <p class="small text-secondary mt-3 mb-0">Mode UI saja: tombol konfirmasi tidak mengirim atau menyimpan data ke database.</p>
+        <p class="small text-secondary mt-3 mb-0">Data akan disimpan sebagai Plan aktif setelah konfirmasi berhasil. Jika sudah ada Plan aktif pada klien, tanggal, dan jenis yang sama, impor ditolak tanpa menimpa data lama.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Kembali periksa</button>
-        <button type="button" class="btn btn-primary" id="confirm-import-final"><i class="bi bi-check2-circle me-1"></i>Konfirmasi tampilan</button>
+        <button type="button" class="btn btn-primary" id="confirm-import-final"><i class="bi bi-database-check me-1"></i>Simpan dan aktifkan Plan</button>
       </div>
     </div>
   </div>
 </div>
-<div class="plan-toast" id="plan-toast" role="status" aria-live="polite"><i class="bi bi-info-circle-fill"></i><div id="toast-message"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
@@ -278,7 +281,7 @@
       sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\tQUANTITY\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\t24\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288\t16\nVendor B\tD 8234 CJ\tAndi Pratama\tCDD\tBandung\tSH0001290\t12"
     }
   };
-  let type="inbound", checked=false, parsed=[];
+  let type="inbound", checked=false, parsed=[], saving=false;
   const $=id=>document.getElementById(id);
   const session=typeof getTrcmSession==="function"?getTrcmSession():null;
   async function loadClients(){
@@ -306,7 +309,10 @@
     }
   }
   const textSafe=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-  function toast(message){$("toast-message").textContent=message;$("plan-toast").classList.add("show");window.setTimeout(()=>$("plan-toast").classList.remove("show"),4200)}
+  function toast(message,icon="info"){
+    const titles={success:"Berhasil",error:"Terjadi kesalahan",warning:"Perlu diperiksa",info:"Informasi",question:"Konfirmasi"};
+    return Swal.fire({icon,title:titles[icon]||"Informasi",text:String(message||""),confirmButtonText:icon==="error"?"Tutup":"Mengerti",confirmButtonColor:"#006ECD"});
+  }
   function setType(next){
     type=next;checked=false;parsed=[];
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
@@ -329,7 +335,7 @@
   function normalizeHeader(value){return String(value||"").normalize("NFKC").trim().replace(/[._-]+/g," ").replace(/\s+/g," ").toUpperCase()}
   function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\s+/g," ").toUpperCase()}
   function parseRows(){
-    const lines=$("paste-data").value.replace(/\\r/g,"").split("\\n").filter(line=>line.trim()!=="");
+    const lines=$("paste-data").value.replace(/\r/g,"").split("\n").filter(line=>line.trim()!=="");
     if(lines.length<2) return {fatal:"Masukkan header dan minimal satu baris data."};
     const headers=lines[0].split("\t").map(normalizeHeader);
     const fields=schemas[type].fields;
@@ -389,15 +395,21 @@
         if(doNo&&part)seen.add(key);
       });
     } else {
-      const seenShipment=new Set(),plates=new Map();
+      const shipmentRows=new Map(),plates=new Map();
       rows.forEach(r=>{
         const [vendor,plate,driver,truck,destination,shipment,quantity]=r.cells;
         [["VENDOR",vendor],["PLAT NOMOR",plate],["NAMA DRIVER",driver],["TIPE TRUCK",truck],["TUJUAN",destination],["SHIPMENT",shipment]].forEach(([label,value])=>{if(!value)r.errors.push(label+" wajib diisi.")});
         if(!quantity||!Number.isFinite(Number(quantity))||Number(quantity)<=0)r.errors.push("QUANTITY harus berupa angka lebih dari nol.");
         const shipmentKey=normalizeDocument(shipment);
-        if(shipmentKey&&seenShipment.has(shipmentKey))r.errors.push("Nomor SHIPMENT terduplikasi di dalam file. Setiap dokumen harus unik.");
-        if(shipmentKey)seenShipment.add(shipmentKey);
+        if(shipmentKey){
+          if(!shipmentRows.has(shipmentKey))shipmentRows.set(shipmentKey,[]);
+          shipmentRows.get(shipmentKey).push(r);
+        }
         if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
+      });
+      shipmentRows.forEach((shipmentGroup,shipmentKey)=>{
+        const tripKeys=new Set(shipmentGroup.map(r=>[r.cells[0],r.cells[1],r.cells[4]].map(normalizeDocument).join("|")));
+        if(tripKeys.size>1)shipmentGroup.forEach(r=>r.errors.push("SHIPMENT "+shipmentKey+" muncul pada lebih dari satu trip. Shipment yang sama hanya boleh berada pada trip dengan plat nomor, vendor, dan tujuan yang sama."));
       });
       plates.forEach(group=>{if(new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," "))).size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."))});
     }
@@ -421,11 +433,11 @@
     }).join("");
     $("confirm-button").disabled=errors>0||rows.length===0;
     renderTripGroups();
-    $("data-check-footer-note").textContent=errors?"Perbaiki semua kesalahan untuk mengaktifkan konfirmasi.":warnings?"Peringatan harus ditinjau sebelum impor sebenarnya.":"Validasi dasar lolos. Fitur simpan belum diaktifkan pada data ini.";
+    $("data-check-footer-note").textContent=errors?"Perbaiki semua kesalahan untuk mengaktifkan konfirmasi.":warnings?"Peringatan harus ditinjau sebelum impor sebenarnya.":"Validasi dasar lolos. Konfirmasi akan menyimpan Plan aktif ke database.";
     
   }
 
-  function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\\s+/g," ").toUpperCase()}\n  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
+  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
   function renderTripGroups(){
     const card=$("truk-group-card");
     if(type!=="outbound"||!checked||!parsed.length){card.classList.add("d-none");return;}
@@ -464,7 +476,7 @@
     $("confirm-rows").textContent=String(parsed.length);
     const groups=type==="inbound"?new Set(parsed.map(r=>(r.cells[0]||"").trim().toUpperCase()).filter(Boolean)).size:new Set(parsed.filter(r=>(r.cells[1]||"").trim()&&(r.cells[2]||"").trim()).map(r=>truckKey(r))).size;
     $("confirm-groups").textContent=String(groups);
-    $("confirm-warning").innerHTML='<i class="bi bi-exclamation-triangle-fill me-2"></i>Ini adalah konfirmasi UI. Tidak ada data yang disimpan atau Plan yang diaktifkan.';
+    $("confirm-warning").innerHTML='<i class="bi bi-exclamation-triangle-fill me-2"></i>Plan dapat aktif berdampingan untuk klien, tanggal, dan jenis yang sama selama nomor DO (Inbound) atau Shipment (Outbound) belum digunakan pada Plan aktif lain.';
     const headers=type==="inbound"?["DO / Transport task","Part number","Nama produk","QTY","Status"]:["Truk","Plat nomor","Nama driver","Shipment","Vendor","Tipe truck","Tujuan","Quantity","Status"];
     $("confirm-table-head").innerHTML="<tr>"+headers.map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("confirm-table-body").innerHTML=parsed.map((r,i)=>{
@@ -484,9 +496,74 @@
     try{await navigator.clipboard.writeText(header);toast("Header template disalin.");}
     catch(e){$("paste-data").value=header+"\n"+$("paste-data").value.split("\n").slice(1).join("\n");toast("Header diletakkan di baris pertama area data.");}
   });
-  $("reset-button").addEventListener("click",()=>{ $("operational-date").value="2026-10-14";$("paste-data").value=schemas[type].sample;resetDataCheck();toast("Data diatur ulang.")});
+  function todayLocalDate(){const now=new Date();const year=now.getFullYear();const month=String(now.getMonth()+1).padStart(2,"0");const day=String(now.getDate()).padStart(2,"0");return year+"-"+month+"-"+day;}
+  $("operational-date").value=todayLocalDate();
+  // Pastikan tanggal default tetap mengikuti hari ini, termasuk saat halaman dipulihkan dari cache browser.
+  window.addEventListener("pageshow",()=>{$("operational-date").value=todayLocalDate();});
+  $("reset-button").addEventListener("click",()=>{ $("operational-date").value=todayLocalDate();$("paste-data").value=schemas[type].sample;resetDataCheck();toast("Data diatur ulang.")});
   $("confirm-button").addEventListener("click",openFinalConfirmation);
-  $("confirm-import-final").addEventListener("click",()=>{bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).hide();toast("Konfirmasi UI selesai. Data belum disimpan dan Plan belum diaktifkan.");$("data-check-footer-note").textContent="Validasi lokal selesai. Belum ada perubahan database.";});
+  function buildPayloadRows(){
+    return parsed.map(function(row){
+      const c=row.cells;
+      if(type==="inbound") return {do_number:c[0],part_number:c[1],product_name:c[2],quantity:Number(c[3])};
+      return {vendor:c[0],plate_number:c[1],driver_name:c[2],truck_type:c[3],destination:c[4],shipment_number:c[5],quantity:Number(c[6])};
+    });
+  }
+  function describeSaveError(message){
+    const text=String(message||"");
+    if(text.includes("PLAN_DO_EXISTS")) return "Nomor DO tersebut sudah digunakan pada Plan Inbound aktif untuk klien dan tanggal yang sama. Gunakan DO berbeda atau periksa Plan yang sudah ada.";
+    if(text.includes("PLAN_SHIPMENT_EXISTS")) return "Nomor Shipment tersebut sudah digunakan pada Plan Outbound aktif untuk klien dan tanggal yang sama. Gunakan Shipment berbeda atau periksa Plan yang sudah ada.";
+    if(text.includes("PLAN_ACTIVE_EXISTS")) return "Plan aktif untuk cakupan ini sudah ada. Periksa nomor DO atau Shipment yang digunakan.";
+    if(text.includes("PERMISSION_DENIED")||text.includes("42501")) return "Akun Anda tidak memiliki izin untuk membuat Plan. Pastikan Anda masuk sebagai Admin.";
+    if(text.includes("AUTH_REQUIRED")||text.includes("401")) return "Sesi masuk tidak valid atau sudah berakhir. Masuk kembali lalu ulangi.";
+    if(text.includes("validate_import_plan_shipment_trip")||text.includes("Shipment yang sama")) return "Shipment yang sama terdeteksi pada vendor, plat, atau tujuan berbeda. Perbaiki data Excel lalu periksa ulang.";
+    if(text.includes("QUANTITY")||text.includes("quantity")) return "Nilai quantity tidak valid. Pastikan setiap quantity berupa angka lebih dari nol.";
+    if(text.includes("CLIENT_NOT_FOUND")) return "Klien yang dipilih tidak ditemukan atau sudah tidak tersedia.";
+    return text.slice(0,500)||"Database gagal menyimpan Plan. Periksa koneksi dan coba kembali.";
+  }
+  async function saveAndActivatePlan(){
+    if(saving||!checked||!parsed.length||parsed.some(function(row){return row.errors.length;})) return;
+    const sessionNow=typeof getTrcmSession==="function"?getTrcmSession():null;
+    if(!sessionNow||!sessionNow.access_token){toast("Sesi masuk tidak tersedia. Masuk kembali sebelum menyimpan Plan.");return;}
+    if(!$("plan-client").value||!$("operational-date").value){toast("Pilih klien dan tanggal operasional sebelum menyimpan.");return;}
+    saving=true;
+    const button=$("confirm-import-final");
+    const original=button.innerHTML;
+    button.disabled=true;
+    button.innerHTML='<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyimpan Plan...';
+    try{
+      const response=await fetch(SUPABASE_URL+"/rest/v1/rpc/save_import_plan",{
+        method:"POST",
+        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+sessionNow.access_token,"Content-Type":"application/json"},
+        body:JSON.stringify({p_client_id:$("plan-client").value,p_operational_date:$("operational-date").value,p_activity_type:type,p_rows:buildPayloadRows()})
+      });
+      const raw=await response.text();
+      let result=null;
+      try{result=raw?JSON.parse(raw):null}catch(_){result={message:raw}}
+      if(!response.ok){
+        const detail=[result&&result.message,result&&result.details,result&&result.hint].filter(Boolean).join(" · ");
+        throw new Error(describeSaveError(detail||raw||("HTTP "+response.status)));
+      }
+      const saved=Array.isArray(result)?result[0]:result;
+      if(!saved||!saved.plan_id) throw new Error("Respons database tidak menyertakan ID Plan. Periksa data Plan sebelum mencoba ulang.");
+      bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).hide();
+      $("data-check-state").className="plan-status valid";
+      $("data-check-state").innerHTML='<i class="bi bi-check-circle-fill"></i>Plan tersimpan';
+      $("data-check-footer-note").textContent="Plan aktif · "+saved.row_count+" baris · "+saved.trip_count+" trip · ID "+saved.plan_id;
+      $("confirm-button").disabled=true;
+      toast("Plan "+(type==="inbound"?"Inbound":"Outbound")+" berhasil disimpan dan diaktifkan ("+saved.row_count+" baris).");
+    }catch(error){
+      console.error("TRCM save import plan:",error);
+      $("confirm-warning").className="alert alert-danger small";
+      $("confirm-warning").textContent=error.message||"Gagal menyimpan Plan.";
+      toast(error.message||"Gagal menyimpan Plan.");
+    }finally{
+      saving=false;
+      button.disabled=false;
+      button.innerHTML=original;
+    }
+  }
+  $("confirm-import-final").addEventListener("click",saveAndActivatePlan);
   $("paste-data").value=schemas.inbound.sample;
   loadClients();
   if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function")window.trcmComponentsReady.then(()=>{const title=document.querySelector("[data-page-title]");if(title)title.textContent="Impor Plan";const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";});
