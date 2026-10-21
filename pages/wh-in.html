@@ -10,11 +10,11 @@
 
 <style>
 /* Modal konfirmasi WH In mengikuti pola card, heading, dan warna Spark Admin/TRCM. */
-.wh-in-swal-popup{width:min(760px,calc(100% - 1.5rem));padding:1.5rem;border:1px solid #e5eaf0;border-radius:16px;box-shadow:0 18px 55px rgba(22,34,51,.16);font-family:"Plus Jakarta Sans",sans-serif}
+.wh-in-swal-popup{width:min(760px,calc(100% - 2rem));max-width:calc(100vw - 2rem);max-height:calc(100vh - 2rem);max-height:calc(100dvh - 2rem);margin:1rem auto;padding:clamp(.85rem,2.5vw,1.5rem);overflow:hidden;border:1px solid #e5eaf0;border-radius:16px;box-shadow:0 18px 55px rgba(22,34,51,.16);font-family:"Plus Jakarta Sans",sans-serif;display:flex;flex-direction:column}
 .wh-in-swal-title{margin:0;padding:0;color:#1d2939;font-size:1.2rem;font-weight:700}
-.wh-in-swal-html{margin:1rem 0 0!important;padding:0!important;text-align:left!important}
-.wh-in-modal-content{display:grid;gap:1rem}
-.wh-in-detail-section{padding:1rem;border:1px solid #e6ebf0;border-radius:12px;background:#fff}
+.wh-in-swal-html{margin:1rem 0 0!important;padding:0 .15rem .15rem 0!important;text-align:left!important;overflow-y:auto;overscroll-behavior:contain;min-height:0;max-height:calc(100dvh - 12rem)}
+.wh-in-modal-content{display:grid;gap:.85rem}
+.wh-in-detail-section{padding:clamp(.75rem,2vw,1rem);border:1px solid #e6ebf0;border-radius:12px;background:#fff}
 .wh-in-detail-heading{display:flex;align-items:center;gap:.55rem;margin:0 0 .85rem;color:#344054;font-size:.82rem;font-weight:700}
 .wh-in-detail-heading i{color:#0066b3;font-size:1rem}
 .wh-in-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem 1rem}
@@ -28,7 +28,7 @@
 .wh-in-checklist small{color:#667085;font-size:.72rem;line-height:1.5}
 .wh-in-swal-actions{gap:.5rem;margin-top:1.25rem}
 .wh-in-swal-confirm,.wh-in-swal-cancel{min-height:40px;padding:.65rem 1rem;border-radius:8px;font-size:.8rem;font-weight:700}
-@media(max-width:575.98px){.wh-in-swal-popup{width:calc(100% - 1rem);padding:1rem;border-radius:14px}.wh-in-detail-section{padding:.8rem}.wh-in-detail-grid{grid-template-columns:minmax(0,1fr);gap:.75rem}.wh-in-detail-item{padding-bottom:.6rem;border-bottom:1px solid #f0f2f5}.wh-in-detail-item:last-child{padding-bottom:0;border-bottom:0}.wh-in-swal-actions{flex-direction:column-reverse;width:100%}.wh-in-swal-confirm,.wh-in-swal-cancel{width:100%;margin:0!important}}
+@media(max-width:575.98px){.wh-in-swal-popup{width:calc(100vw - 1rem);max-width:calc(100vw - 1rem);max-height:calc(100vh - 1rem);max-height:calc(100dvh - 1rem);margin:.5rem auto;padding:.85rem;border-radius:14px}.wh-in-swal-title{font-size:1.05rem}.wh-in-swal-html{margin:.75rem 0 0!important;max-height:calc(100dvh - 10.5rem)}.wh-in-modal-content{gap:.65rem}.wh-in-detail-section{padding:.75rem}.wh-in-detail-heading{margin-bottom:.65rem;font-size:.78rem}.wh-in-detail-grid{grid-template-columns:minmax(0,1fr);gap:.65rem}.wh-in-detail-item{padding-bottom:.55rem;border-bottom:1px solid #f0f2f5}.wh-in-detail-item:last-child{padding-bottom:0;border-bottom:0}.wh-in-detail-item strong{font-size:.8rem}.wh-in-checklist{padding:.75rem;gap:.6rem}.wh-in-checklist strong{font-size:.78rem}.wh-in-swal-actions{flex-direction:column-reverse;width:100%;margin-top:.85rem}.wh-in-swal-confirm,.wh-in-swal-cancel{width:100%;margin:0!important}}
 </style>
 
 </head>
