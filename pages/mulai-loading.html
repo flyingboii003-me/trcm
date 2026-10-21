@@ -446,7 +446,7 @@ window.trcmComponentsReady.then(async function () {
     }
 
     try {
-      const filters = "&client_id=eq." + encodeURIComponent(visit.client_id) +
+      const filters = "client_id=eq." + encodeURIComponent(visit.client_id) +
         "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase()) +
         "&operational_date=eq." + encodeURIComponent(operationalDate) +
         "&status=eq.active&order=created_at.desc";
