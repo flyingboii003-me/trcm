@@ -36,6 +36,9 @@
     .list-badge.cancelled{background:#FDEBEC;color:#B4232A}
     .list-badge.inbound{background:#EAF3FC;color:#175A91}
     .list-badge.outbound{background:#F0EAFE;color:#6842A6}
+    .list-badge.processed{background:#E7F7EE;color:#17663B}
+    .list-badge.pending{background:#FFF4D6;color:#8A5700}
+    .status-edit-btn{white-space:nowrap}
     .list-empty{padding:3rem 1rem;text-align:center;color:var(--list-muted)}
     .list-empty i{display:block;margin-bottom:.7rem;font-size:1.8rem}
     .list-note{color:var(--list-muted);font-size:.76rem}
@@ -117,7 +120,7 @@
       <div class="list-detail-grid mb-4" id="detail-summary"></div>
       <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-trips-title">Kelompok trip / truk</h3></div>
       <div class="list-table-wrap"><table class="table list-table align-middle"><thead id="detail-trips-head"><tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr></thead><tbody id="detail-trips-body"></tbody></table></div>
-      
+      <section class="mt-4" aria-labelledby="detail-item-status-title"><div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-item-status-title">Status DO / Shipment</h3><span class="list-note">Status aktual mengikuti proses loading; admin dapat mengubah status manual untuk item yang belum terhubung ke visit.</span></div><div class="list-table-wrap"><table class="table list-table align-middle mb-0"><thead id="detail-item-status-head"><tr><th>DO / Shipment</th><th>Jumlah baris</th><th>Status</th><th>Ubah</th></tr></thead><tbody id="detail-item-status-body"><tr><td colspan="4" class="text-secondary text-center py-3">Memuat status…</td></tr></tbody></table></div></section>
     </div>
     <div class="modal-footer"><button class="btn btn-light border" type="button" data-bs-dismiss="modal">Tutup</button></div>
   </div></div>
@@ -132,7 +135,7 @@
 (function(){
   "use strict";
   const $=id=>document.getElementById(id);
-  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,canUpdate:false,canCreatePlan:false,canDelete:false};
+  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,detailItems:[],linkedItemIds:new Set(),canUpdate:false,canCreatePlan:false,canDelete:false};
   const statusLabels={active:"Aktif",cancelled:"Dibatalkan"};
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
   function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
@@ -310,6 +313,72 @@
       else toast(message||"Gagal menghapus Plan.","error");
     }
   }
+
+  function itemStatusGroups(plan,items,linkedIds){
+    const groups=new Map();
+    items.forEach(item=>{
+      const raw=plan.activity_type==="outbound"?item.shipment_number:item.do_number;
+      const label=String(raw||"").trim()||"(Tanpa nomor "+(plan.activity_type==="outbound"?"Shipment":"DO")+")";
+      const key=label.toLocaleLowerCase("id-ID");
+      if(!groups.has(key))groups.set(key,{key,label,items:[]});
+      groups.get(key).items.push(item);
+    });
+    return Array.from(groups.values()).map(group=>{
+      group.linked=group.items.some(item=>linkedIds.has(item.id));
+      group.processed=group.linked||group.items.some(item=>item.manual_processed===true);
+      return group;
+    });
+  }
+  function itemStatusBadge(processed){
+    return processed
+      ? '<span class="list-badge processed"><i class="bi bi-check-circle-fill"></i>Sudah diproses</span>'
+      : '<span class="list-badge pending"><i class="bi bi-hourglass-split"></i>Belum diproses</span>';
+  }
+  function renderItemStatuses(plan,items,linkedIds){
+    const outbound=plan.activity_type==="outbound";
+    $("detail-item-status-head").innerHTML="<tr><th>"+(outbound?"Shipment":"DO / Transport task")+"</th><th>Jumlah baris</th><th>Status</th><th>Ubah</th></tr>";
+    const groups=itemStatusGroups(plan,items,linkedIds);
+    if(!groups.length){
+      $("detail-item-status-body").innerHTML='<tr><td colspan="4"><div class="list-empty">Belum ada DO / Shipment pada Plan ini.</div></td></tr>';
+      return;
+    }
+    $("detail-item-status-body").innerHTML=groups.map(group=>{
+      const locked=group.linked||!state.canUpdate;
+      const button=locked
+        ? '<button type="button" class="btn btn-sm btn-outline-secondary status-edit-btn" disabled title="'+(group.linked?"Status berasal dari proses loading aktual":"Perlu permission Ubah Plan")+'">Ubah</button>'
+        : '<button type="button" class="btn btn-sm btn-outline-primary status-edit-btn" data-item-status="'+esc(group.key)+'">Ubah</button>';
+      return '<tr><td><span class="fw-semibold text-break">'+esc(group.label)+'</span></td><td>'+group.items.length+'</td><td>'+itemStatusBadge(group.processed)+'</td><td>'+button+'</td></tr>';
+    }).join("");
+    $("detail-item-status-body").querySelectorAll("[data-item-status]").forEach(button=>{
+      button.addEventListener("click",()=>editItemStatus(button.dataset.itemStatus));
+    });
+  }
+  async function editItemStatus(groupKey){
+    const plan=state.detailPlan;
+    if(!state.canUpdate||!plan)return;
+    const group=itemStatusGroups(plan,state.detailItems,state.linkedItemIds).find(item=>item.key===groupKey);
+    if(!group||group.linked){toast("Status item yang sudah terhubung ke proses loading aktual tidak dapat diubah manual.","warning");return;}
+    const result=await Swal.fire({
+      title:"Ubah status "+(plan.activity_type==="outbound"?"Shipment":"DO"),
+      html:"<div class='text-start mb-2'>"+esc(group.label)+"</div><label class='form-label' for='manual-item-status'>Status</label><select id='manual-item-status' class='form-select'><option value='false' "+(!group.processed?"selected":"")+">Belum diproses</option><option value='true' "+(group.processed?"selected":"")+">Sudah diproses</option></select>",
+      showCancelButton:true,confirmButtonText:"Simpan status",cancelButtonText:"Batal",confirmButtonColor:"#006ECD",reverseButtons:true,
+      preConfirm:()=>document.getElementById("manual-item-status")?.value
+    });
+    if(!result.isConfirmed||result.value==null)return;
+    try{
+      const ids=group.items.map(item=>item.id);
+      const path="/rest/v1/import_plan_items?id=in.("+ids.map(encodeURIComponent).join(",")+")&plan_id=eq."+encodeURIComponent(plan.id);
+      const updated=await request(path,{method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({manual_processed:result.value==="true"})});
+      if(!Array.isArray(updated)||updated.length!==ids.length)throw new Error("Status tidak berhasil diperbarui untuk semua baris DO / Shipment.");
+      state.detailItems=state.detailItems.map(item=>ids.includes(item.id)?Object.assign({},item,{manual_processed:result.value==="true"}):item);
+      renderItemStatuses(plan,state.detailItems,state.linkedItemIds);
+      await loadPlans();
+      toast("Status "+group.label+" berhasil diperbarui.","success");
+    }catch(error){
+      toast(error.message||"Status DO / Shipment gagal diperbarui.","error");
+    }
+  }
+
   function detailCell(value){return esc(value||"—");}
   async function openDetail(id){
     const p=state.plans.find(row=>row.id===id);if(!p)return;
@@ -324,14 +393,18 @@
     $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:7)+'" class="text-center text-secondary py-3">Memuat trip…</td></tr>';
     bootstrap.Modal.getOrCreateInstance($("plan-detail-modal")).show();
     try{
-      const [items,trips]=await Promise.all([
-        request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
-        request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
+      const [items,trips,linkedItems]=await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id,manual_processed&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+        request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc"),
+        request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq."+encodeURIComponent(id))
       ]);
-      if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Respons rincian Plan tidak valid.");
+      if(!Array.isArray(items)||!Array.isArray(trips)||!Array.isArray(linkedItems))throw new Error("Respons rincian Plan tidak valid.");
+      state.detailItems=items;
+      state.linkedItemIds=new Set(linkedItems.map(link=>link.plan_item_id).filter(Boolean));
       const confirmedTruckCount=p.activity_type==="inbound"?trips.filter(trip=>items.some(item=>item.trip_id===trip.id)).length:trips.filter(trip=>String(trip.plate_number||"").trim()).length;
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent=String(confirmedTruckCount);
+      renderItemStatuses(p,items,state.linkedItemIds);
       if(p.activity_type==="inbound"){
         $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{
           const groupItems=items.filter(item=>item.trip_id===trip.id);
