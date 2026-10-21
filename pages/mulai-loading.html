@@ -525,7 +525,7 @@ window.trcmComponentsReady.then(async function () {
     planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Memuat shipment dari Plan…</div>';
     try {
       const [items, trips, linkedItems] = await Promise.all([
-        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,part_number,product_name,quantity&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
+        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,part_number,product_name,quantity,manual_processed&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
         request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(planId) + "&order=trip_number.asc"),
         request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq." + encodeURIComponent(planId))
       ]);
@@ -533,6 +533,7 @@ window.trcmComponentsReady.then(async function () {
       if (!Array.isArray(items) || !Array.isArray(trips) || !Array.isArray(linkedItems)) throw new Error("Rincian shipment Plan tidak valid.");
       const tripById = new Map(trips.map(function (trip) { return [trip.id, trip]; }));
       processedPlanItemIds = new Set(linkedItems.map(function (link) { return link.plan_item_id; }).filter(Boolean));
+      items.forEach(function (item) { if (item.manual_processed === true) processedPlanItemIds.add(item.id); });
       availablePlanItems = items.map(function (item) {
         return Object.assign({}, item, { trip: tripById.get(item.trip_id) || null });
       });
