@@ -923,3 +923,274 @@ button,input,select{font:inherit}
   flex:0 0 8px;
   border-radius:50%;
 }
+
+
+/* Spark Admin / TRCM: consistent responsive modal primitives */
+:root,
+:root[data-theme="dark"]{
+  --trcm-ui-bg:#0B1322;
+  --trcm-ui-surface:#121C30;
+  --trcm-ui-surface-2:#1A2742;
+  --trcm-ui-border:#27365A;
+  --trcm-ui-input-border:#6B7DA3;
+  --trcm-ui-text:#F1F5FB;
+  --trcm-ui-muted:#A9B5CB;
+  --trcm-ui-primary:#006ECD;
+  --trcm-ui-primary-hover:#0B6FC4;
+  --trcm-ui-primary-text:#4DA3F0;
+  --trcm-ui-accent:#FF9700;
+  --trcm-ui-accent-text:#FF9700;
+  --trcm-ui-danger:#EF151E;
+  --trcm-ui-danger-solid:#C8101A;
+  --trcm-ui-danger-text:#FF6B70;
+  --trcm-ui-overlay:rgba(8,16,30,.6);
+  --trcm-ui-shadow:0 20px 50px rgba(4,9,20,.6);
+}
+:root[data-theme="light"]{
+  --trcm-ui-bg:#F2F5FA;
+  --trcm-ui-surface:#FFFFFF;
+  --trcm-ui-surface-2:#F6F8FC;
+  --trcm-ui-border:#DFE5EF;
+  --trcm-ui-input-border:#7C889F;
+  --trcm-ui-text:#0F1A2E;
+  --trcm-ui-muted:#55627A;
+  --trcm-ui-primary:#006ECD;
+  --trcm-ui-primary-hover:#005BA8;
+  --trcm-ui-primary-text:#0060B3;
+  --trcm-ui-accent:#FF9700;
+  --trcm-ui-accent-text:#9A5000;
+  --trcm-ui-danger:#EF151E;
+  --trcm-ui-danger-solid:#C8101A;
+  --trcm-ui-danger-text:#C70E17;
+  --trcm-ui-overlay:rgba(8,16,30,.6);
+  --trcm-ui-shadow:0 20px 50px rgba(15,26,46,.12);
+}
+
+/* Applies to Bootstrap modal surfaces without changing application layout. */
+.trcm-app .modal-backdrop.show{
+  opacity:1;
+  background:var(--trcm-ui-overlay);
+  backdrop-filter:blur(3px);
+}
+.trcm-app .modal-content{
+  color:var(--text-main);
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius-xxl);
+  box-shadow:var(--shadow-lg);
+  overflow:hidden;
+}
+.trcm-app .modal-header,
+.trcm-app .modal-footer{
+  border-color:var(--border);
+  background:var(--card-bg);
+  padding:1.25rem 1.5rem;
+}
+.trcm-app .modal-body{
+  color:var(--text-main);
+  background:var(--card-bg);
+  padding:1.5rem;
+}
+.trcm-app .modal-title,
+.trcm-app .modal-body h2,
+.trcm-app .modal-body h3,
+.trcm-app .modal-body h4{
+  color:var(--text-main);
+}
+.trcm-app .modal-header p,
+.trcm-app .modal-body .text-muted,
+.trcm-app .modal-body .text-secondary,
+.trcm-app .modal-footer .text-muted,
+.trcm-app .modal-body .form-text{
+  color:var(--text-muted)!important;
+}
+.trcm-app .modal-dialog{
+  width:calc(100% - 2rem);
+  max-width:var(--bs-modal-width,500px);
+  margin:1rem auto;
+}
+.trcm-app .modal-dialog.modal-xl{--bs-modal-width:1140px;max-width:1140px}
+.trcm-app .modal-dialog.modal-lg{--bs-modal-width:800px;max-width:800px}
+.trcm-app .modal-dialog-scrollable{
+  height:calc(100% - 2rem);
+  max-height:calc(100% - 2rem);
+}
+.trcm-app .modal-dialog-scrollable .modal-content{
+  max-height:100%;
+  min-height:0;
+}
+.trcm-app .modal-dialog-scrollable .modal-body{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.trcm-app .modal-footer{
+  position:sticky;
+  bottom:0;
+  z-index:2;
+  gap:.5rem;
+  flex-wrap:wrap;
+}
+.trcm-app .modal-footer .btn{
+  min-height:40px;
+  border-radius:var(--radius-lg);
+  font-weight:600;
+}
+.trcm-app .modal-footer .btn-primary{
+  --bs-btn-color:#fff;
+  --bs-btn-bg:#006ECD;
+  --bs-btn-border-color:#006ECD;
+  --bs-btn-hover-color:#fff;
+  --bs-btn-hover-bg:#005BA8;
+  --bs-btn-hover-border-color:#005BA8;
+}
+.trcm-app .form-control,
+.trcm-app .form-select,
+.trcm-app textarea.form-control{
+  min-height:44px;
+  border-radius:var(--radius-lg);
+  border-color:var(--trcm-ui-input-border,var(--border));
+}
+.trcm-app .form-control:focus,
+.trcm-app .form-select:focus,
+.trcm-app textarea.form-control:focus{
+  border-color:#006ECD;
+  box-shadow:0 0 0 3px rgba(0,110,205,.2);
+}
+.trcm-app .modal .form-label{
+  color:var(--text-main);
+  font-size:.85rem;
+  font-weight:700;
+}
+.trcm-app .modal .form-text{
+  font-size:.75rem;
+  line-height:1.5;
+}
+.trcm-app .modal .btn-light,
+.trcm-app .modal .btn-outline-secondary{
+  border-color:var(--border);
+  color:var(--text-main);
+}
+.trcm-app .modal .btn-close{
+  opacity:.8;
+}
+:root[data-theme="dark"] .trcm-app .modal .btn-close{
+  filter:invert(1) grayscale(100%) brightness(200%);
+}
+.trcm-app .modal .alert{
+  border-radius:var(--radius-lg);
+}
+.trcm-app .modal :is(button,a,input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid var(--trcm-ui-primary-text);
+  outline-offset:2px;
+}
+.trcm-app .modal-card-custom{
+  max-height:calc(100vh - 2rem);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.trcm-app .modal-card-custom .modal-card-header,
+.trcm-app .modal-card-custom .modal-card-footer{
+  flex:0 0 auto;
+}
+.trcm-app .modal-card-custom .modal-card-body{
+  min-height:0;
+  flex:1 1 auto;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.trcm-app .modal-card-footer{
+  background:var(--card-bg);
+  border-top:1px solid var(--border);
+}
+@media(max-width:767.98px){
+  .trcm-app .modal-dialog,
+  .trcm-app .modal-dialog.modal-xl,
+  .trcm-app .modal-dialog.modal-lg{
+    width:calc(100% - 1rem);
+    max-width:none;
+    margin:.5rem auto;
+  }
+  .trcm-app .modal-dialog-centered{min-height:calc(100% - 1rem)}
+  .trcm-app .modal-dialog-scrollable{
+    height:calc(100% - 1rem);
+    max-height:calc(100% - 1rem);
+  }
+  .trcm-app .modal-dialog-scrollable .modal-content{
+    max-height:100%;
+    border-radius:var(--radius-xl);
+  }
+  .trcm-app .modal-header,
+  .trcm-app .modal-body{
+    padding:1rem;
+  }
+  .trcm-app .modal-footer{
+    padding:.75rem 1rem;
+  }
+  .trcm-app .modal-footer .btn{
+    flex:1 1 auto;
+    min-width:0;
+    min-height:44px;
+  }
+  .trcm-app .modal-title{font-size:1.05rem}
+  .trcm-app .modal-card-custom{
+    width:calc(100% - 1rem);
+    max-height:calc(100vh - 1rem);
+    border-radius:var(--radius-lg);
+  }
+  .trcm-app .modal-card-header,
+  .trcm-app .modal-card-custom .modal-card-body{
+    padding:1rem;
+  }
+  .trcm-app .modal-card-footer{
+    position:sticky;
+    bottom:0;
+    z-index:2;
+    padding:.75rem 1rem;
+  }
+}
+@media(max-width:399.98px){
+  .trcm-app .modal-header{gap:.5rem}
+  .trcm-app .modal-header .btn-close{flex:0 0 auto}
+  .trcm-app .modal-footer .btn{flex:1 1 100%;width:100%}
+  .trcm-app .detail-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  .trcm-app .modal *,
+  .trcm-app .modal *::before,
+  .trcm-app .modal *::after{
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
+
+
+/* Shared button treatment aligned with Spark Admin: consistent sizing, weight and rounded corners. */
+.trcm-app .btn:not(.btn-close){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.4rem;
+  min-height:40px;
+  padding:.55rem .9rem;
+  border-radius:10px;
+  font-size:.825rem;
+  font-weight:700;
+  line-height:1.25;
+  white-space:normal;
+  transition:background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease;
+}
+.trcm-app .btn i{flex:0 0 auto;line-height:1}
+.trcm-app .btn.btn-sm:not(.btn-close){min-height:34px;padding:.4rem .65rem;font-size:.775rem;border-radius:8px}
+.trcm-app .btn.btn-lg:not(.btn-close){min-height:48px;padding:.7rem 1.1rem}
+.trcm-app .btn:focus-visible{outline:3px solid rgba(0,110,205,.28);outline-offset:2px}
+.trcm-app .btn:disabled,.trcm-app .btn.disabled{cursor:not-allowed;opacity:.58}
+@media(max-width:767.98px){
+  .trcm-app .btn:not(.btn-close){min-height:42px}
+  .trcm-app .btn.btn-sm:not(.btn-close){min-height:36px}
+}

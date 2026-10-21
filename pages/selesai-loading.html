@@ -117,6 +117,10 @@
                   <span class="small text-muted d-block">Tujuan (Gudang / Kota)</span>
                   <strong id="detail-destination">—</strong>
                 </div>
+                <div class="col-12">
+                  <span class="small text-muted d-block mb-2">DO/Shipment yang dipilih saat Mulai Loading</span>
+                  <div id="finish-plan-shipments" class="border rounded-3 p-3 bg-body-tertiary small" aria-live="polite">Memuat DO/Shipment...</div>
+                </div>
                 <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker mulai loading</span><strong id="detail-start-actor">—</strong></div>
                 <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker selesai loading</span><strong id="detail-finish-actor">—</strong></div>
                 <div class="col-12">
@@ -419,10 +423,46 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("detail-activity").textContent = formatActivity(visit.activity_type);
     document.getElementById("detail-destination").textContent = visit.destination_city || "—";
     finishNotes.value = visit.notes || "";
+    document.getElementById("finish-plan-shipments").innerHTML = '<span class="text-muted">Memuat DO/Shipment...</span>';
     resetLoadingPhoto();
     form.classList.remove("was-validated");
     modal.show();
     loadVisitActors(visit.id);
+    loadVisitPlanShipments(visit.id);
+  }
+
+  async function loadVisitPlanShipments(visitId) {
+    const container = document.getElementById("finish-plan-shipments");
+    try {
+      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items(do_number,shipment_number,part_number,product_name,quantity,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
+      if (!Array.isArray(rows) || !rows.length) {
+        container.innerHTML = '<span class="text-muted">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</span>';
+        return;
+      }
+      const groups = new Map();
+      rows.forEach(function (row) {
+        const item = row.import_plan_items || {};
+        const label = item.do_number || item.shipment_number || "Shipment tanpa nomor";
+        const key = String(label).trim().toLowerCase();
+        if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: item.import_plan_trips || null });
+        const group = groups.get(key);
+        if (!group.trip && item.import_plan_trips) group.trip = item.import_plan_trips;
+        const detail = [item.part_number ? "Part " + item.part_number : "", item.product_name || "", selectedVisit && selectedVisit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""].filter(Boolean).join(" · ");
+        if (detail && !group.items.includes(detail)) group.items.push(detail);
+      });
+      const showTripColumns = selectedVisit && selectedVisit.activity_type === "outbound";
+      container.innerHTML = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO/Shipment</th>' +
+        (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
+        '<th>Item/Barang</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+          const trip = group.trip || {};
+          return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
+            (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
+            '<td>' + (group.items.length ? '<ul class="mb-0 ps-3">' + group.items.map(function (detail) { return '<li>' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '—') + '</td></tr>';
+        }).join("") + '</tbody></table></div>';
+    } catch (error) {
+      console.error("TRCM finish loading plan shipments:", error);
+      container.innerHTML = '<span class="text-danger">DO/Shipment gagal dimuat. Silakan tutup lalu buka kembali modal.</span>';
+    }
   }
 
   async function saveFinish(event) {

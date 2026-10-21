@@ -111,28 +111,67 @@
             </div>
           </div>
 
-          <div class="row g-3">
-            <div class="col-12 col-md-6">
-              <label class="form-label" for="gate-select">Nomor gerbang <span class="text-danger">*</span></label>
-              <select class="form-select" id="gate-select" required>
-                <option value="">Pilih gerbang</option>
-              </select>
+          <section class="card border mb-4" aria-labelledby="plan-shipment-heading">
+            <div class="card-header bg-body-tertiary">
+              <h3 class="h6 mb-1" id="plan-shipment-heading"><i class="bi bi-clipboard-check me-2"></i>Plan dan Shipment</h3>
+              <p class="small text-muted mb-0">Pilih Plan operasional dan satu atau beberapa shipment yang akan dimuat oleh armada ini.</p>
             </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label" for="line-select">Nomor line <span class="text-danger">*</span></label>
-              <select class="form-select" id="line-select" required disabled>
-                <option value="">Pilih gerbang terlebih dahulu</option>
-              </select>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12 col-md-5">
+                  <label class="form-label" for="plan-operational-date">Tanggal operasional</label>
+                  <input class="form-control" id="plan-operational-date" type="date">
+                </div>
+                <div class="col-12 col-md-7">
+                  <label class="form-label" for="plan-select">Plan aktif</label>
+                  <select class="form-select" id="plan-select">
+                    <option value="">Pilih tanggal terlebih dahulu</option>
+                  </select>
+                </div>
+              </div>
+              <div class="small text-muted mt-3" id="plan-selection-context" aria-live="polite">Plan akan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.</div>
+              <div class="mt-3" id="plan-shipment-list">
+                <div class="border rounded-3 p-3 text-muted small">Pilih tanggal untuk melihat Plan dan shipment yang tersedia.</div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center gap-2 mt-3">
+                <span class="small text-muted" id="plan-shipment-count" aria-live="polite">0 shipment dipilih</span>
+                <button class="btn btn-sm btn-outline-secondary" id="clear-plan-selection" type="button" disabled>
+                  <i class="bi bi-x-circle me-1"></i>Hapus pilihan
+                </button>
+              </div>
             </div>
-            <div class="col-12">
-              <label class="form-label" for="seal-number">Nomor segel</label>
-              <input class="form-control" id="seal-number" type="text" maxlength="100" placeholder="Masukkan nomor segel jika tersedia">
+          </section>
+
+          <section class="card border-0 bg-body-tertiary mb-0" aria-labelledby="loading-location-heading">
+            <div class="card-body">
+              <h3 class="h6 mb-3" id="loading-location-heading"><i class="bi bi-geo-alt me-2"></i>Lokasi dan catatan loading</h3>
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="gate-select">Nomor gerbang <span class="text-danger">*</span></label>
+                  <select class="form-select" id="gate-select" required>
+                    <option value="">Pilih gerbang</option>
+                  </select>
+                  <div class="form-text">Pilih gerbang tempat truck melakukan loading.</div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="line-select">Nomor line <span class="text-danger">*</span></label>
+                  <select class="form-select" id="line-select" required disabled>
+                    <option value="">Pilih gerbang terlebih dahulu</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="seal-number">Nomor segel <span class="text-muted fw-normal">(opsional)</span></label>
+                  <input class="form-control" id="seal-number" type="text" maxlength="100" placeholder="Contoh: SL-123456">
+                  <div class="form-text">Isi nomor segel jika sudah tersedia.</div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="loading-notes">Catatan <span class="text-muted fw-normal">(opsional)</span></label>
+                  <textarea class="form-control" id="loading-notes" rows="3" maxlength="1000" placeholder="Tambahkan catatan pemeriksaan atau proses loading..."></textarea>
+                  <div class="form-text text-end"><span id="loading-notes-count">0</span>/1000 karakter</div>
+                </div>
+              </div>
             </div>
-<div class="col-12">
-              <label class="form-label" for="loading-notes">Catatan</label>
-              <textarea class="form-control" id="loading-notes" rows="4" maxlength="1000" placeholder="Catatan pemeriksaan atau loading"></textarea>
-            </div>
-          </div>
+          </section>
         </form>
       </div>
       <div class="modal-footer">
@@ -175,6 +214,13 @@ window.trcmComponentsReady.then(async function () {
   const loadingNotes = document.getElementById("loading-notes");
   const form = document.getElementById("start-loading-form");
   const saveButton = document.getElementById("save-start-button");
+  const planDateInput = document.getElementById("plan-operational-date");
+  const planSelect = document.getElementById("plan-select");
+  const planShipmentList = document.getElementById("plan-shipment-list");
+  const planSelectionContext = document.getElementById("plan-selection-context");
+  const planShipmentCount = document.getElementById("plan-shipment-count");
+  const clearPlanSelection = document.getElementById("clear-plan-selection");
+
   const modalElement = document.getElementById("start-loading-modal");
   const modal = new bootstrap.Modal(modalElement);
 
@@ -182,6 +228,12 @@ window.trcmComponentsReady.then(async function () {
   let gates = [];
   let lines = [];
   let selectedVisit = null;
+  let availablePlans = [];
+  let availablePlanItems = [];
+  let processedPlanItemIds = new Set();
+  let selectedPlanItemIds = new Set();
+  let planLoadSequence = 0;
+
   async function request(path, options) {
     const response = await fetch(SUPABASE_URL + path, Object.assign({
       headers: {
@@ -282,7 +334,7 @@ window.trcmComponentsReady.then(async function () {
 
     try {
       const select = [
-        "id","card_id","plate_number","activity_type","vendor","shipment_type","shipment_number","destination_city",
+        "id","card_id","client_id","plate_number","activity_type","vendor","shipment_type","shipment_number","destination_city",
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
@@ -311,6 +363,188 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
+
+  function localDateInputValue(value) {
+    const date = value ? new Date(value) : new Date();
+    if (Number.isNaN(date.getTime())) return "";
+    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+  }
+
+  function formatPlanDate(value) {
+    if (!value) return "Tanggal tidak tersedia";
+    const parts = value.split("-");
+    if (parts.length !== 3) return value;
+    return parts[2] + "/" + parts[1] + "/" + parts[0];
+  }
+
+  function resetPlanShipmentSelection(message) {
+    availablePlanItems = [];
+    selectedPlanItemIds = new Set();
+    planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">' + escapeHtml(message) + '</div>';
+    updatePlanShipmentCount();
+  }
+
+  function getPlanShipmentGroups(items) {
+    const groups = new Map();
+    items.forEach(function (item) {
+      const rawKey = item.do_number || item.shipment_number || ("item:" + item.id);
+      const key = String(rawKey).trim().toLowerCase();
+      if (!groups.has(key)) groups.set(key, { key: key, label: item.do_number || item.shipment_number || ("Baris " + item.row_number), items: [], trip: item.trip || null });
+      const group = groups.get(key);
+      group.items.push(item);
+      if (!group.trip && item.trip) group.trip = item.trip;
+    });
+    return Array.from(groups.values());
+  }
+
+  function updatePlanShipmentCount() {
+    const selectedGroups = getPlanShipmentGroups(availablePlanItems).filter(function (group) {
+      return group.items.some(function (item) { return selectedPlanItemIds.has(item.id); });
+    }).length;
+    planShipmentCount.textContent = selectedGroups + " DO/Shipment dipilih · " + selectedPlanItemIds.size + " item";
+    clearPlanSelection.disabled = selectedPlanItemIds.size === 0;
+  }
+
+  function renderPlanShipments() {
+    if (!availablePlanItems.length) {
+      resetPlanShipmentSelection("Plan ini belum memiliki detail shipment atau DO.");
+      return;
+    }
+
+    const trips = new Map();
+    getPlanShipmentGroups(availablePlanItems).forEach(function (group) {
+      const trip = group.trip;
+      const tripLabel = trip
+        ? ["Trip " + (trip.trip_number || "—"), trip.plate_number || "Armada Plan", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ")
+        : "Detail Plan";
+      if (!trips.has(tripLabel)) trips.set(tripLabel, []);
+      trips.get(tripLabel).push(group);
+    });
+
+    planShipmentList.innerHTML = Array.from(trips.entries()).map(function (entry) {
+      const rows = entry[1].map(function (group, index) {
+        const groupId = "shipment-group-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
+        const alreadyProcessed = group.items.some(function (item) { return processedPlanItemIds.has(item.id); });
+        const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
+        const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
+        const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
+        const details = group.items.map(function (item) {
+          const detail = [
+            item.part_number ? "Part " + item.part_number : "",
+            item.product_name || "",
+            selectedVisit && selectedVisit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
+          ].filter(Boolean).join(" · ");
+          return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
+        }).join("");
+        const tripName = group.trip
+          ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
+          : "";
+        return '<div class="border rounded-3 p-3 mb-2 plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '">' +
+          '<div class="d-flex align-items-start gap-3">' +
+          (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
+          '<div class="flex-grow-1 min-w-0">' +
+          '<div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
+          '<span class="badge text-bg-light border">' + group.items.length + ' item</span>' +
+          (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
+          (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div>' +
+          '<ul class="list-unstyled mb-0 mt-2">' + details + '</ul></div></div></div>';
+      }).join("");
+      return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</section>';
+    }).join("");
+
+    planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(function (checkbox) {
+      checkbox.addEventListener("change", function () {
+        const group = getPlanShipmentGroups(availablePlanItems).find(function (item) { return item.key === checkbox.dataset.planGroupKey; });
+        if (!group) return;
+        group.items.forEach(function (item) {
+          if (processedPlanItemIds.has(item.id)) return;
+          if (checkbox.checked) selectedPlanItemIds.add(item.id);
+          else selectedPlanItemIds.delete(item.id);
+        });
+        renderPlanShipments();
+      });
+    });
+    updatePlanShipmentCount();
+  }
+
+  async function loadPlansForSelectedVisit() {
+    const sequence = ++planLoadSequence;
+    const visit = selectedVisit;
+    const operationalDate = planDateInput.value;
+    availablePlans = [];
+    availablePlanItems = [];
+    selectedPlanItemIds = new Set();
+    planSelect.disabled = true;
+    planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
+    resetPlanShipmentSelection("Memuat Plan dan shipment…");
+
+    if (!visit || !operationalDate || !visit.client_id || !visit.activity_type) {
+      planSelect.innerHTML = '<option value="">Data klien, aktivitas, atau tanggal belum tersedia</option>';
+      planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.";
+      return;
+    }
+
+    try {
+      const filters = "client_id=eq." + encodeURIComponent(visit.client_id) +
+        "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase()) +
+        "&operational_date=eq." + encodeURIComponent(operationalDate) +
+        "&status=eq.active&order=created_at.desc";
+      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count&" + filters);
+      if (sequence !== planLoadSequence) return;
+      if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
+      availablePlans = plans;
+      planSelect.innerHTML = '<option value="">Pilih Plan aktif</option>' + plans.map(function (plan) {
+        return '<option value="' + escapeHtml(plan.id) + '">Revisi ' + escapeHtml(plan.revision) + ' · ' + escapeHtml(plan.row_count || 0) + ' baris</option>';
+      }).join("");
+      planSelect.disabled = plans.length === 0;
+      planSelectionContext.textContent = plans.length
+        ? plans.length + " Plan aktif ditemukan untuk " + formatPlanDate(operationalDate) + "."
+        : "Tidak ada Plan aktif untuk klien, aktivitas, dan tanggal ini.";
+      if (!plans.length) resetPlanShipmentSelection("Tidak ada Plan aktif yang sesuai. Periksa tanggal operasional atau data Plan.");
+    } catch (error) {
+      if (sequence !== planLoadSequence) return;
+      planSelect.innerHTML = '<option value="">Plan gagal dimuat</option>';
+      planSelectionContext.textContent = error.message || "Plan tidak dapat dimuat.";
+      resetPlanShipmentSelection("Gagal memuat Plan. Silakan ubah tanggal atau coba kembali.");
+      console.error("TRCM Plan shipment picker:", error);
+    }
+  }
+
+  async function loadPlanItems(planId) {
+    const sequence = ++planLoadSequence;
+    const plan = availablePlans.find(function (item) { return item.id === planId; });
+    availablePlanItems = [];
+    processedPlanItemIds = new Set();
+    selectedPlanItemIds = new Set();
+    updatePlanShipmentCount();
+    if (!plan) {
+      resetPlanShipmentSelection("Pilih Plan aktif untuk melihat shipment.");
+      return;
+    }
+
+    planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Memuat shipment dari Plan…</div>';
+    try {
+      const [items, trips, linkedItems] = await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,part_number,product_name,quantity,manual_processed&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
+        request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(planId) + "&order=trip_number.asc"),
+        request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq." + encodeURIComponent(planId))
+      ]);
+      if (sequence !== planLoadSequence) return;
+      if (!Array.isArray(items) || !Array.isArray(trips) || !Array.isArray(linkedItems)) throw new Error("Rincian shipment Plan tidak valid.");
+      const tripById = new Map(trips.map(function (trip) { return [trip.id, trip]; }));
+      processedPlanItemIds = new Set(linkedItems.map(function (link) { return link.plan_item_id; }).filter(Boolean));
+      items.forEach(function (item) { if (item.manual_processed === true) processedPlanItemIds.add(item.id); });
+      availablePlanItems = items.map(function (item) {
+        return Object.assign({}, item, { trip: tripById.get(item.trip_id) || null });
+      });
+      renderPlanShipments();
+    } catch (error) {
+      if (sequence !== planLoadSequence) return;
+      resetPlanShipmentSelection("Rincian shipment gagal dimuat. Perbarui pilihan Plan untuk mencoba lagi.");
+      planSelectionContext.textContent = error.message || "Rincian shipment tidak dapat dimuat.";
+      console.error("TRCM Plan shipment details:", error);
+    }
+  }
 
   async function loadVisitActors(visitId) {
     const start = document.getElementById("detail-start-actor");
@@ -346,10 +580,16 @@ window.trcmComponentsReady.then(async function () {
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
     lineSelect.disabled = true;
+    planDateInput.value = localDateInputValue(visit.wh_in_at || visit.registered_at);
+    planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
+    planSelect.disabled = true;
+    planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.";
+    resetPlanShipmentSelection("Pilih tanggal untuk melihat Plan dan shipment yang tersedia.");
     sealNumber.value = visit.seal_number || "";
     loadingNotes.value = visit.notes || "";
     form.classList.remove("was-validated");
     modal.show();
+    loadPlansForSelectedVisit();
     loadVisitActors(visit.id);
   }
 
@@ -427,6 +667,26 @@ window.trcmComponentsReady.then(async function () {
         throw eventError;
       }
 
+      if (selectedPlanItemIds.size > 0) {
+        const planLinks = Array.from(selectedPlanItemIds).map(function (planItemId) {
+          return {
+            visit_id: selectedVisit.id,
+            plan_item_id: planItemId,
+            linked_by: session.user.id
+          };
+        });
+        await request("/rest/v1/visit_plan_items", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify(planLinks)
+        });
+      }
+
       modal.hide();
       await Swal.fire({
         icon: "success",
@@ -470,12 +730,25 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
+  planDateInput.addEventListener("change", loadPlansForSelectedVisit);
+  planSelect.addEventListener("change", function () {
+    loadPlanItems(planSelect.value);
+  });
+  clearPlanSelection.addEventListener("click", function () {
+    selectedPlanItemIds = new Set();
+    renderPlanShipments();
+  });
+
   gateSelect.addEventListener("change", function () {
     populateLines(gateSelect.value);
   });
   searchCard.addEventListener("input", renderTable);
   clientFilter.addEventListener("change", renderTable);
   refreshButton.addEventListener("click", function () { window.trcmRunRefresh(refreshButton, loadVisits); });
+  const loadingNotesCount = document.getElementById("loading-notes-count");
+  loadingNotes.addEventListener("input", function () {
+    if (loadingNotesCount) loadingNotesCount.textContent = String(loadingNotes.value.length);
+  });
   form.addEventListener("submit", saveStart);
 
   table.addEventListener("click", function (event) {

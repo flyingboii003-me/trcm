@@ -36,6 +36,9 @@
     .list-badge.cancelled{background:#FDEBEC;color:#B4232A}
     .list-badge.inbound{background:#EAF3FC;color:#175A91}
     .list-badge.outbound{background:#F0EAFE;color:#6842A6}
+    .list-badge.processed{background:#E7F7EE;color:#17663B}
+    .list-badge.pending{background:#FFF4D6;color:#8A5700}
+    .status-edit-btn{white-space:nowrap}
     .list-empty{padding:3rem 1rem;text-align:center;color:var(--list-muted)}
     .list-empty i{display:block;margin-bottom:.7rem;font-size:1.8rem}
     .list-note{color:var(--list-muted);font-size:.76rem}
@@ -46,6 +49,290 @@
     .list-detail-label{font-size:.7rem;color:var(--list-muted);font-weight:700}
     .list-detail-value{margin-top:.3rem;font-size:.84rem;font-weight:800;overflow-wrap:anywhere}
     @media(max-width:767.98px){.list-card-head,.list-card-body{padding:1rem}.list-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.list-toolbar-button{width:100%}}
+    /* Ubah Plan modal: readable columns with independent horizontal scrolling. */
+    .swal2-popup.trcm-edit-plan-popup{
+      width:min(1200px,96vw)!important;
+      max-width:calc(100vw - 2rem);
+      max-height:calc(100dvh - 2rem);
+      padding:1.25rem;
+      border:1px solid var(--border,#DFE5EF);
+      border-radius:24px;
+      background:var(--card-bg,#fff);
+      color:var(--text-main,#0F1A2E);
+      box-shadow:var(--shadow-lg);
+      overflow:hidden;
+    }
+    .trcm-edit-plan-popup .swal2-title{padding:0;margin:0 0 .75rem;color:var(--text-main,#0F1A2E);font-size:1.25rem;line-height:1.3;text-align:left}
+    .trcm-edit-plan-popup .swal2-html-container{min-width:0;max-width:100%;margin:0;padding:0 .1rem .25rem;overflow-x:hidden;color:var(--text-main,#0F1A2E);text-align:left}
+    .trcm-edit-plan-popup .trcm-edit-plan-date-row{display:grid;grid-template-columns:minmax(0,320px);gap:.75rem}
+    .trcm-edit-plan-popup .trcm-edit-plan-table-wrap{width:100%;max-width:100%;max-height:48vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--border,#DFE5EF);border-radius:14px;scrollbar-gutter:stable}
+    .trcm-edit-plan-popup .trcm-edit-plan-table{width:max-content;min-width:100%;table-layout:auto;margin:0;font-size:.8rem}
+    .trcm-edit-plan-popup .trcm-edit-plan-table th{position:sticky;top:0;z-index:2;padding:.7rem .75rem;background:#F5F7FA;color:#55627A;white-space:nowrap;vertical-align:middle;box-shadow:inset 0 -1px 0 #DFE5EF}
+    .trcm-edit-plan-popup .trcm-edit-plan-table td{padding:.55rem .6rem;vertical-align:middle;background:var(--card-bg,#fff)}
+    .trcm-edit-plan-popup .trcm-edit-plan-table input.form-control{width:100%;min-width:115px!important;min-height:40px;font-size:.8rem}
+    .trcm-edit-plan-popup .trcm-edit-plan-action-cell,.trcm-edit-plan-popup .trcm-edit-plan-table th:last-child{width:48px;min-width:48px;text-align:center}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-section{min-width:0;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border,#DFE5EF)}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table-wrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--border,#DFE5EF);border-radius:14px}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table{width:100%;min-width:0;table-layout:fixed;margin:0;font-size:.8rem}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th,.trcm-edit-plan-popup .trcm-edit-plan-status-table td{padding:.7rem .75rem;vertical-align:middle;overflow-wrap:anywhere}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th{background:#F5F7FA;color:#55627A;font-weight:700}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(1){width:48%}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(2){width:18%}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(3){width:34%}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-select{display:block;width:100%;min-width:0;min-height:40px;padding:.45rem 1.7rem .45rem .6rem;border-radius:10px;font-size:.78rem;white-space:normal}
+    .trcm-edit-plan-popup .trcm-edit-plan-linked-status{display:inline-flex;align-items:center;gap:.35rem;max-width:100%;white-space:normal;line-height:1.35}
+    .trcm-edit-plan-popup .swal2-actions{width:100%;gap:.5rem;margin:1rem 0 0}
+    .trcm-edit-plan-popup .swal2-actions .swal2-styled{min-height:44px;margin:0;border-radius:14px;font-size:.875rem;font-weight:700}
+    .trcm-edit-plan-popup .swal2-cancel{background:#F5F7FA!important;border:1px solid #DFE5EF!important;color:#344054!important}
+    @media(max-width:767.98px){
+      .swal2-popup.trcm-edit-plan-popup{width:calc(100vw - 1rem)!important;max-width:calc(100vw - 1rem);max-height:calc(100dvh - 1rem);margin:.5rem;padding:1rem;border-radius:18px}
+      .trcm-edit-plan-popup .swal2-title{font-size:1.1rem}
+      .trcm-edit-plan-popup .swal2-html-container{max-height:calc(100dvh - 11rem);overflow-y:auto;padding-right:.15rem;-webkit-overflow-scrolling:touch}
+      .trcm-edit-plan-popup .trcm-edit-plan-date-row{grid-template-columns:minmax(0,1fr)}
+      .trcm-edit-plan-popup .trcm-edit-plan-table-wrap{max-height:36vh}
+      .trcm-edit-plan-popup .trcm-edit-plan-table{min-width:1180px}
+      .trcm-edit-plan-popup .trcm-edit-plan-table th{padding:.6rem .55rem;font-size:.72rem}
+      .trcm-edit-plan-popup .trcm-edit-plan-table td{padding:.45rem}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table{table-layout:auto;min-width:0}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th,.trcm-edit-plan-popup .trcm-edit-plan-status-table td{padding:.55rem .45rem;font-size:.74rem}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(1){width:42%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(2){width:16%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(3){width:42%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-select{min-height:44px;padding:.5rem 1.45rem .5rem .45rem;font-size:.72rem}
+      .trcm-edit-plan-popup .swal2-actions{flex-direction:column-reverse;align-items:stretch}
+      .trcm-edit-plan-popup .swal2-actions .swal2-styled{width:100%;min-height:44px}
+    }
+    @media(max-width:380px){
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(1){width:40%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(2){width:14%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(3){width:46%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-select{font-size:.68rem}
+    }
+
+    /* Responsive modal Ubah Plan: keep wide editing tables usable on phones. */
+    .swal2-popup.trcm-edit-plan-popup{
+      width:min(1200px,96vw)!important;
+      max-width:calc(100vw - 2rem);
+      padding:1.25rem;
+      border:1px solid var(--border,#DFE5EF);
+      border-radius:24px;
+      background:var(--card-bg,#fff);
+      color:var(--text-main,#0F1A2E);
+      box-shadow:var(--shadow-lg);
+      overflow:hidden;
+    }
+    .trcm-edit-plan-popup .swal2-title{
+      padding:0;
+      margin:0 0 .75rem;
+      color:var(--text-main,#0F1A2E);
+      font-size:1.25rem;
+      line-height:1.3;
+      text-align:left;
+    }
+    .trcm-edit-plan-popup .swal2-html-container{
+      min-width:0;
+      max-width:100%;
+      margin:0;
+      padding:0 .1rem .25rem;
+      overflow-x:hidden;
+      color:var(--text-main,#0F1A2E);
+      text-align:left;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-date-row{
+      display:grid;
+      grid-template-columns:minmax(0,320px);
+      gap:.75rem;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-table-wrap{
+      width:100%;
+      max-width:100%;
+      max-height:48vh;
+      overflow:auto;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      border:1px solid var(--border,#DFE5EF);
+      border-radius:14px;
+      scrollbar-gutter:stable;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-table{
+      width:max-content;
+      min-width:100%;
+      table-layout:auto;
+      margin:0;
+      font-size:.8rem;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-table th{
+      position:sticky;
+      top:0;
+      z-index:2;
+      padding:.7rem .75rem;
+      background-color:#F5F7FA!important;
+      color:#55627A!important;
+      white-space:nowrap;
+      vertical-align:middle;
+      box-shadow:inset 0 -1px 0 #DFE5EF;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-table td{
+      padding:.55rem .6rem;
+      vertical-align:middle;
+      background:var(--card-bg,#fff);
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-table input.form-control{
+      width:100%;
+      min-width:115px!important;
+      min-height:40px;
+      font-size:.8rem;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-action-cell,
+    .trcm-edit-plan-popup .trcm-edit-plan-table th:last-child{
+      width:48px;
+      min-width:48px;
+      text-align:center;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-status-section{
+      min-width:0;
+      margin-top:1.25rem;
+      padding-top:1rem;
+      border-top:1px solid var(--border,#DFE5EF);
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table-wrap{
+      width:100%;
+      max-width:100%;
+      overflow-x:auto;
+      overscroll-behavior-x:contain;
+      -webkit-overflow-scrolling:touch;
+      border:1px solid var(--border,#DFE5EF);
+      border-radius:14px;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table{
+      width:100%;
+      min-width:0;
+      table-layout:fixed;
+      margin:0;
+      font-size:.8rem;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th,
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table td{
+      padding:.7rem .75rem;
+      vertical-align:middle;
+      overflow-wrap:anywhere;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th{
+      background-color:#F5F7FA!important;
+      color:#55627A!important;
+      font-weight:700;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(1){width:48%}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(2){width:18%}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(3){width:34%}
+    .trcm-edit-plan-popup .trcm-edit-plan-status-select{
+      width:100%;
+      min-width:0;
+      min-height:40px;
+      padding:.45rem 1.7rem .45rem .6rem;
+      border-radius:10px;
+      font-size:.78rem;
+      white-space:normal;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-linked-status{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      max-width:100%;
+      white-space:normal;
+      line-height:1.35;
+    }
+    .trcm-edit-plan-popup .swal2-actions{
+      width:100%;
+      gap:.5rem;
+      margin:1rem 0 0;
+    }
+    .trcm-edit-plan-popup .swal2-actions .swal2-styled{
+      min-height:44px;
+      margin:0;
+      border-radius:14px;
+      font-size:.875rem;
+      font-weight:700;
+    }
+    .trcm-edit-plan-popup .swal2-actions button.swal2-cancel,
+    .swal2-popup.trcm-edit-plan-popup button.swal2-cancel.swal2-styled{
+      background-color:#F5F7FA!important;
+      border:1px solid #DFE5EF!important;
+      color:#344054!important;
+      box-shadow:none!important;
+    }
+    @media(max-width:767.98px){
+      .swal2-popup.trcm-edit-plan-popup{
+        width:calc(100vw - 1rem)!important;
+        max-width:calc(100vw - 1rem);
+        max-height:calc(100dvh - 1rem);
+        margin:.5rem;
+        padding:1rem;
+        border-radius:18px;
+      }
+      .trcm-edit-plan-popup .swal2-title{
+        font-size:1.1rem;
+      }
+      .trcm-edit-plan-popup .swal2-html-container{
+        max-height:calc(100dvh - 11rem);
+        overflow-y:auto;
+        padding-right:.15rem;
+        -webkit-overflow-scrolling:touch;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-date-row{
+        grid-template-columns:minmax(0,1fr);
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-table-wrap{
+        max-height:36vh;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-table{
+        min-width:1180px;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-table th{
+        padding:.6rem .55rem;
+        font-size:.72rem;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-table td{
+        padding:.45rem;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table{
+        table-layout:auto;
+        min-width:0;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th,
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table td{
+        padding:.55rem .45rem;
+        font-size:.74rem;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(1){width:42%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(2){width:16%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(3){width:42%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-select{
+        min-height:44px;
+        padding:.5rem 1.45rem .5rem .45rem;
+        font-size:.72rem;
+      }
+      .trcm-edit-plan-popup .swal2-actions{
+        flex-direction:column-reverse;
+        align-items:stretch;
+      }
+      .trcm-edit-plan-popup .swal2-actions .swal2-styled{
+        width:100%;
+        min-height:44px;
+      }
+    }
+    @media(max-width:380px){
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table{
+        table-layout:auto;
+      }
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(1){width:40%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(2){width:14%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-table th:nth-child(3){width:46%}
+      .trcm-edit-plan-popup .trcm-edit-plan-status-select{
+        font-size:.68rem;
+      }
+    }
+
   </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
@@ -77,8 +364,7 @@
 
         <section class="list-card">
           <div class="list-card-head">
-            <div><h2 class="list-card-title">Seluruh Plan terimpor</h2><p class="list-card-subtitle">Data diambil langsung dari database. Aksi Ubah, Buat revisi, dan Hapus mengikuti permission Supabase.</p></div>
-            <span class="list-note align-self-center" id="result-count">Menyiapkan daftar…</span>
+            <div><h2 class="list-card-title">Seluruh Plan terimpor</h2><p class="list-card-subtitle">Kelola plan inbound dan outbound.</p></div>
           </div>
           <div class="list-card-body">
             <div class="row g-3 mb-4">
@@ -102,7 +388,6 @@
               <span class="list-note" id="page-info">—</span>
               <div class="d-flex align-items-center gap-2"><label for="page-size" class="list-note">Baris per halaman</label><select id="page-size" class="form-select form-select-sm" style="width:auto"><option>10</option><option>25</option><option>50</option></select><button id="prev-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><button id="next-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div>
             </div>
-            <p class="list-note mt-3 mb-0"><i class="bi bi-shield-check me-1"></i>Plan Aktif dapat diperbarui langsung. Perubahan disimpan pada Plan yang sama tanpa mencatat histori.</p>
           </div>
         </section>
       </div>
@@ -117,7 +402,6 @@
       <div class="list-detail-grid mb-4" id="detail-summary"></div>
       <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2"><h3 class="fs-6 fw-bold mb-0" id="detail-trips-title">Kelompok trip / truk</h3></div>
       <div class="list-table-wrap"><table class="table list-table align-middle"><thead id="detail-trips-head"><tr><th>No. trip</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr></thead><tbody id="detail-trips-body"></tbody></table></div>
-      
     </div>
     <div class="modal-footer"><button class="btn btn-light border" type="button" data-bs-dismiss="modal">Tutup</button></div>
   </div></div>
@@ -132,7 +416,7 @@
 (function(){
   "use strict";
   const $=id=>document.getElementById(id);
-  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,canUpdate:false,canCreatePlan:false,canDelete:false};
+  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,detailItems:[],linkedItemIds:new Set(),canUpdate:false,canCreatePlan:false,canDelete:false};
   const statusLabels={active:"Aktif",cancelled:"Dibatalkan"};
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
   function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
@@ -145,8 +429,7 @@
   function statusBadge(status){const s=String(status||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="active"?"bi-check-circle-fill":"bi-x-circle-fill")+'"></i>'+esc(statusLabels[s]||s||"Tidak diketahui")+'</span>';}
   function activityBadge(type){const s=String(type||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="inbound"?"bi-box-arrow-in-down":"bi-box-arrow-up")+'"></i>'+esc(activityLabels[s]||s||"—")+'</span>';}
   function countItems(plan){return Array.isArray(plan.import_plan_items)?plan.import_plan_items.length:Number(plan.row_count)||0;}
-  function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}
-  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token},options&&options.headers||{});const response=await fetch(SUPABASE_URL+path,config);const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)?(data.message||data.details||data.hint):"Permintaan database gagal ("+response.status+").");return data;}
+  function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token},options&&options.headers||{});const response=await fetch(SUPABASE_URL+path,config);const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)?(data.message||data.details||data.hint):"Permintaan database gagal ("+response.status+").");return data;}
   function updateStats(plans){$("stat-total").textContent=plans.length;$("stat-active").textContent=plans.filter(p=>p.status==="active").length;$("stat-inbound").textContent=plans.filter(p=>p.activity_type==="inbound").length;$("stat-outbound").textContent=plans.filter(p=>p.activity_type==="outbound").length;}
   function applyFilters(){
     const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,status=$("filter-status").value,from=$("filter-from").value,to=$("filter-to").value;
@@ -163,7 +446,8 @@
     const size=Number($("page-size").value)||10,total=state.filtered.length,pages=Math.max(1,Math.ceil(total/size));
     state.page=Math.min(state.page,pages);
     const start=(state.page-1)*size,rows=state.filtered.slice(start,start+size);
-    $("result-count").textContent=total+" Plan ditemukan";
+    const resultCount = $("result-count");
+    if (resultCount) resultCount.textContent=total+" Plan ditemukan";
     $("page-info").textContent=total?("Menampilkan "+(start+1)+"–"+Math.min(start+size,total)+" dari "+total+" Plan"):"Tidak ada Plan yang cocok";
     $("prev-page").disabled=state.page<=1;$("next-page").disabled=state.page>=pages;
     if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
@@ -199,7 +483,7 @@
       let items,trips;
       try{
         [items,trips]=await Promise.all([
-          request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+          request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id,manual_processed&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
           request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
         ]);
         if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Rincian shipment/DO gagal dimuat.");
@@ -208,20 +492,35 @@
       rows=items.map(item=>Object.assign({},item,tripById.get(item.trip_id)||{}));
     }
     if(!rows.length){toast("Plan ini belum memiliki shipment atau DO untuk diubah.","warning");return;}
+    let statusItems=[],linkedStatusIds=new Set();
+    try{
+      const [loadedStatusItems,linkedStatusItems]=await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,do_number,shipment_number,manual_processed&plan_id=eq."+encodeURIComponent(id)),
+        request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq."+encodeURIComponent(id))
+      ]);
+      if(!Array.isArray(loadedStatusItems)||!Array.isArray(linkedStatusItems))throw new Error("Status DO / Shipment gagal dimuat.");
+      statusItems=loadedStatusItems;
+      linkedStatusIds=new Set(linkedStatusItems.map(item=>item.plan_item_id).filter(Boolean));
+    }catch(error){toast(error.message||"Status DO / Shipment gagal dimuat.","error");return;}
+    const statusGroups=itemStatusGroups(p,statusItems,linkedStatusIds);
+    const statusEditor=statusGroups.length
+      ? "<section class='trcm-edit-plan-status-section text-start'><h3 class='fs-6 fw-bold mb-1'>Status DO / Shipment</h3><p class='small text-secondary mb-2'>Perubahan status manual hanya tersedia di modal Ubah. Status yang sudah terhubung ke proses loading aktual tidak dapat diubah.</p><div class='trcm-edit-plan-status-table-wrap'><table class='table table-sm align-middle trcm-edit-plan-status-table mb-0'><thead><tr><th>"+(p.activity_type==="outbound"?"Shipment":"DO / Transport task")+"</th><th>Jumlah baris</th><th>Ubah status proses</th></tr></thead><tbody>"+statusGroups.map((group,index)=>"<tr><td>"+esc(group.label)+"</td><td>"+group.items.length+"</td><td>"+(group.linked?"<span class='badge text-bg-success'>Sudah diproses (aktual)</span>":"<select class='form-select form-select-sm trcm-edit-plan-status-select' data-manual-status='"+index+"' data-status-key='"+esc(group.key)+"'><option value='false' "+(!group.processed?"selected":"")+">Belum diproses</option><option value='true' "+(group.processed?"selected":"")+">Sudah diproses</option></select>")+"</td></tr>").join("")+"</tbody></table></div></section>"
+      : "";
     const fields=[
       ["do_number","DO / Transport task"],["shipment_number","Shipment"],["part_number","Part number"],
       ["product_name","Nama produk"],["quantity","Quantity"],["vendor","Vendor"],["plate_number","Plat nomor"],
       ["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"]
     ];
     const tableHead=fields.map(([,label])=>"<th>"+esc(label)+"</th>").join("");
-    const tableRows=rows.map((row,index)=>"<tr data-edit-row-container='"+index+"'>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:130px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+(p.activity_type==="outbound"?"<td class='text-center text-nowrap' style='width:48px;min-width:48px'><button type='button' class='btn btn-sm btn-outline-danger shipment-delete-btn' data-remove-shipment='"+index+"' title='Hapus shipment "+esc(row.shipment_number||"")+"' aria-label='Hapus shipment "+esc(row.shipment_number||"")+"'><i class='bi bi-trash' aria-hidden='true'></i></button></td>":"")+"</tr>").join("");
+    const tableRows=rows.map((row,index)=>"<tr data-edit-row-container='"+index+"'>"+fields.map(([field])=>"<td><input class='form-control form-control-sm' style='min-width:115px' data-edit-row='"+index+"' data-edit-field='"+field+"' value='"+esc(row[field]??"")+"' aria-label='"+esc(labelFor(field))+" baris "+(index+1)+"'></td>").join("")+(p.activity_type==="outbound"?"<td class='text-center text-nowrap' style='width:48px;min-width:48px'><button type='button' class='btn btn-sm btn-outline-danger shipment-delete-btn' data-remove-shipment='"+index+"' title='Hapus shipment "+esc(row.shipment_number||"")+"' aria-label='Hapus shipment "+esc(row.shipment_number||"")+"'><i class='bi bi-trash' aria-hidden='true'></i></button></td>":"")+"</tr>").join("");
     const deletedRows=new Set();
     const dialog=await Swal.fire({
       title:"Ubah Plan",
       width:"min(1200px, 96vw)",
+      customClass:{popup:"trcm-edit-plan-popup"},
       html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
-        "<div class='row g-3 text-start mb-3'><div class='col-md-5'><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(workingDate||p.operational_date||"")+"' required></div></div><div class='table-responsive border rounded' style='max-height:48vh'><table class='table table-sm table-striped align-middle mb-0' style='min-width:1300px'><thead class='table-light sticky-top'><tr>"+tableHead+(p.activity_type==="outbound"?"<th class='text-center' style='width:48px'>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
-        "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>",
+        "<div class='trcm-edit-plan-date-row text-start mb-3'><div><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(workingDate||p.operational_date||"")+"' required></div></div><div class='trcm-edit-plan-table-wrap'><table class='table table-sm table-striped align-middle trcm-edit-plan-table mb-0'><thead><tr>"+tableHead+(p.activity_type==="outbound"?"<th class='text-center' style='width:48px'>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
+        "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>"+statusEditor,
       showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
       didOpen:()=>{
@@ -267,18 +566,40 @@
           if(p.activity_type==="inbound"&&(!row.do_number||!row.part_number||!row.product_name)){Swal.showValidationMessage("DO, part number, dan nama produk wajib diisi pada baris "+(i+1)+".");return false;}
           if(p.activity_type==="outbound"&&(!row.vendor||!row.plate_number||!row.driver_name||!row.truck_type||!row.destination||!row.shipment_number)){Swal.showValidationMessage("Seluruh kolom wajib Outbound harus terisi pada baris "+(i+1)+".");return false;}
         }
-        return {date,rows:activePayload};
+        const manualStatuses={};
+        document.querySelectorAll("[data-manual-status]").forEach(select=>{manualStatuses[select.dataset.statusKey]=select.value==="true";});
+        return {date,rows:activePayload,manualStatuses};
       }
     });
     if(!dialog.isConfirmed||!dialog.value)return;
+    const hasLinkedItems=linkedStatusIds.size>0;
+    const detailsChanged=Array.isArray(workingRows)
+      || dialog.value.date!==(p.operational_date||"")
+      || dialog.value.rows.length!==rows.length
+      || dialog.value.rows.some((next,index)=>fields.some(([field])=>String(next[field]??"").trim()!==String(rows[index]?.[field]??"").trim()));
+    if(hasLinkedItems&&detailsChanged){
+      toast("Sebagian detail Plan sudah terhubung ke visit aktual. Perubahan tanggal atau detail tidak diizinkan; simpan hanya perubahan status manual untuk DO / Shipment yang belum terhubung.","error");
+      return;
+    }
     try{
-     const result=await request("/rest/v1/rpc/update_import_plan",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({p_plan_id:id,p_operational_date:dialog.value.date,p_rows:dialog.value.rows})
-      });
-      const saved=Array.isArray(result)?result[0]:result;
-      if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID Plan.");
-      toast("Plan berhasil diperbarui.","success");
+      if(!hasLinkedItems){
+        const result=await request("/rest/v1/rpc/update_import_plan",{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({p_plan_id:id,p_operational_date:dialog.value.date,p_rows:dialog.value.rows})
+        });
+        const saved=Array.isArray(result)?result[0]:result;
+        if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID Plan.");
+      }
+      const savedItems=await request("/rest/v1/import_plan_items?select=id,do_number,shipment_number&plan_id=eq."+encodeURIComponent(id));
+      if(!Array.isArray(savedItems))throw new Error("Plan tersimpan, tetapi status DO / Shipment gagal dimuat ulang.");      const normalizedStatusKey=value=>String(value||"").trim().toLocaleLowerCase("id-ID");
+      for(const [statusKey,processed] of Object.entries(dialog.value.manualStatuses||{})){
+        const matchingIds=savedItems.filter(item=>normalizedStatusKey(p.activity_type==="outbound"?item.shipment_number:item.do_number)===statusKey).map(item=>item.id);
+        if(!matchingIds.length)continue;
+        await request("/rest/v1/import_plan_items?id=in.("+matchingIds.map(encodeURIComponent).join(",")+")&plan_id=eq."+encodeURIComponent(id),{
+          method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({manual_processed:processed})
+        });
+      }
+      toast("Plan dan status DO / Shipment berhasil diperbarui.","success");
       await loadPlans();
     }catch(error){
       const message=String(error.message||"");
@@ -310,6 +631,27 @@
       else toast(message||"Gagal menghapus Plan.","error");
     }
   }
+
+  function itemStatusGroups(plan,items,linkedIds){
+    const groups=new Map();
+    items.forEach(item=>{
+      const raw=plan.activity_type==="outbound"?item.shipment_number:item.do_number;
+      const label=String(raw||"").trim()||"(Tanpa nomor "+(plan.activity_type==="outbound"?"Shipment":"DO")+")";
+      const key=label.toLocaleLowerCase("id-ID");
+      if(!groups.has(key))groups.set(key,{key,label,items:[]});
+      groups.get(key).items.push(item);
+    });
+    return Array.from(groups.values()).map(group=>{
+      group.linked=group.items.some(item=>linkedIds.has(item.id));
+      group.processed=group.linked||group.items.some(item=>item.manual_processed===true);
+      return group;
+    });
+  }
+  function itemStatusBadge(processed){
+    return processed
+      ? '<span class="list-badge processed"><i class="bi bi-check-circle-fill"></i>Sudah diproses</span>'
+      : '<span class="list-badge pending"><i class="bi bi-hourglass-split"></i>Belum diproses</span>';
+  }
   function detailCell(value){return esc(value||"—");}
   async function openDetail(id){
     const p=state.plans.find(row=>row.id===id);if(!p)return;
@@ -320,15 +662,18 @@
       ["Status",statusLabels[p.status]||p.status],["Truk terkonfirmasi","Memuat…"],["Dibuat",dateTimeLabel(p.created_at)]
     ].map(([label,value])=>'<div class="list-detail-item"><div class="list-detail-label">'+esc(label)+'</div><div class="list-detail-value">'+esc(value)+'</div></div>').join("");
     $("detail-trips-title").textContent=p.activity_type==="inbound"?"Kelompok trip inbound":"Kelompok trip / truk";
-    $("detail-trips-head").innerHTML=p.activity_type==="inbound"?"<tr><th>No. trip</th><th>DO / Transport task</th><th>Part number</th><th>Nama produk</th><th>Total quantity</th></tr>":"<tr><th>No. trip</th><th>Shipment</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr>";
-    $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:7)+'" class="text-center text-secondary py-3">Memuat trip…</td></tr>';
+    $("detail-trips-head").innerHTML=p.activity_type==="inbound"?"<tr><th>No. trip</th><th>DO / Transport task</th><th>Status proses</th><th>Part number</th><th>Nama produk</th><th>Total quantity</th></tr>":"<tr><th>No. trip</th><th>Shipment</th><th>Status proses</th><th>Vendor</th><th>Plat nomor</th><th>Driver</th><th>Tipe truk</th><th>Tujuan</th></tr>";
+    $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?6:7)+'" class="text-center text-secondary py-3">Memuat trip…</td></tr>';
     bootstrap.Modal.getOrCreateInstance($("plan-detail-modal")).show();
     try{
-      const [items,trips]=await Promise.all([
-        request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
-        request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc")
+      const [items,trips,linkedItems]=await Promise.all([
+        request("/rest/v1/import_plan_items?select=id,row_number,do_number,shipment_number,part_number,product_name,quantity,trip_id,manual_processed&plan_id=eq."+encodeURIComponent(id)+"&order=row_number.asc"),
+        request("/rest/v1/import_plan_trips?select=id,trip_number,vendor,plate_number,driver_name,truck_type,destination&plan_id=eq."+encodeURIComponent(id)+"&order=trip_number.asc"),
+        request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq."+encodeURIComponent(id))
       ]);
-      if(!Array.isArray(items)||!Array.isArray(trips))throw new Error("Respons rincian Plan tidak valid.");
+      if(!Array.isArray(items)||!Array.isArray(trips)||!Array.isArray(linkedItems))throw new Error("Respons rincian Plan tidak valid.");
+      state.detailItems=items;
+      state.linkedItemIds=new Set(linkedItems.map(link=>link.plan_item_id).filter(Boolean));
       const confirmedTruckCount=p.activity_type==="inbound"?trips.filter(trip=>items.some(item=>item.trip_id===trip.id)).length:trips.filter(trip=>String(trip.plate_number||"").trim()).length;
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent=String(confirmedTruckCount);
@@ -337,15 +682,15 @@
           const groupItems=items.filter(item=>item.trip_id===trip.id);
           const uniqueValues=key=>[...new Set(groupItems.map(item=>String(item[key]||"").trim()).filter(Boolean))];
           const quantity=groupItems.reduce((sum,item)=>sum+(Number(item.quantity)||0),0);
-          return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(uniqueValues("do_number").join(", "))+"</td><td>"+detailCell(uniqueValues("part_number").join(", "))+"</td><td>"+detailCell(uniqueValues("product_name").join(", "))+"</td><td>"+(groupItems.length?esc(quantity):"—")+"</td></tr>";
-        }).join(""):'<tr><td colspan="5"><div class="list-empty">Belum ada kelompok trip inbound.</div></td></tr>';
+          const doNumbers=uniqueValues("do_number");const doValues=doNumbers.map(number=>"<div class=\"mb-1\">"+detailCell(number)+"</div>").join("");const doStatuses=doNumbers.map(number=>{const numberItems=groupItems.filter(item=>String(item.do_number||"").trim()===number);const processed=numberItems.some(item=>state.linkedItemIds.has(item.id)||item.manual_processed===true);return "<div class=\"mb-1\">"+itemStatusBadge(processed)+"</div>";}).join("");return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+(doValues||"—")+"</td><td>"+(doStatuses||"—")+"</td><td>"+detailCell(uniqueValues("part_number").join(", "))+"</td><td>"+detailCell(uniqueValues("product_name").join(", "))+"</td><td>"+(groupItems.length?esc(quantity):"—")+"</td></tr>";
+        }).join(""):'<tr><td colspan="6"><div class="list-empty">Belum ada kelompok trip inbound.</div></td></tr>';
       }else{
-        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{const groupItems=items.filter(item=>item.trip_id===trip.id);const shipments=[...new Set(groupItems.map(item=>String(item.shipment_number||"").trim()).filter(Boolean))];return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+detailCell(shipments.join(", "))+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>";}).join(""):'<tr><td colspan="7"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
+        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{const groupItems=items.filter(item=>item.trip_id===trip.id);const shipments=[...new Set(groupItems.map(item=>String(item.shipment_number||"").trim()).filter(Boolean))];const shipmentValues=shipments.map(shipment=>"<div class=\"mb-1\">"+esc(shipment)+"</div>").join("")||"—";const statusByShipment=shipments.map(shipment=>{const shipmentItems=groupItems.filter(item=>String(item.shipment_number||"").trim()===shipment);const processed=shipmentItems.some(item=>state.linkedItemIds.has(item.id)||item.manual_processed===true);return "<div class=\"mb-1\">"+itemStatusBadge(processed)+"</div>";}).join("")||"—";return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+shipmentValues+"</td><td>"+statusByShipment+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>";}).join(""):'<tr><td colspan="8"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
       }
     }catch(error){
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");
       if(truckCountCard)truckCountCard.querySelector(".list-detail-value").textContent="—";
-      $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?5:7)+'" class="text-danger p-3">'+esc(error.message||"Rincian trip gagal dimuat.")+'</td></tr>';
+      $("detail-trips-body").innerHTML='<tr><td colspan="'+(p.activity_type==="inbound"?6:8)+'" class="text-danger p-3">'+esc(error.message||"Rincian trip gagal dimuat.")+'</td></tr>';
     }
   }
   $("plan-search").addEventListener("input",applyFilters);
