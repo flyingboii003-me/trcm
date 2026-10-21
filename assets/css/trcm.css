@@ -1168,3 +1168,29 @@ button,input,select{font:inherit}
     transition-duration:.01ms!important;
   }
 }
+
+
+/* Shared button treatment aligned with Spark Admin: consistent sizing, weight and rounded corners. */
+.trcm-app .btn:not(.btn-close){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.4rem;
+  min-height:40px;
+  padding:.55rem .9rem;
+  border-radius:10px;
+  font-size:.825rem;
+  font-weight:700;
+  line-height:1.25;
+  white-space:normal;
+  transition:background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease;
+}
+.trcm-app .btn i{flex:0 0 auto;line-height:1}
+.trcm-app .btn.btn-sm:not(.btn-close){min-height:34px;padding:.4rem .65rem;font-size:.775rem;border-radius:8px}
+.trcm-app .btn.btn-lg:not(.btn-close){min-height:48px;padding:.7rem 1.1rem}
+.trcm-app .btn:focus-visible{outline:3px solid rgba(0,110,205,.28);outline-offset:2px}
+.trcm-app .btn:disabled,.trcm-app .btn.disabled{cursor:not-allowed;opacity:.58}
+@media(max-width:767.98px){
+  .trcm-app .btn:not(.btn-close){min-height:42px}
+  .trcm-app .btn.btn-sm:not(.btn-close){min-height:36px}
+}
