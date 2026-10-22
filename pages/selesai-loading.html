@@ -459,7 +459,7 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitPlanShipments(visitId) {
     const container = document.getElementById("finish-plan-shipments");
     try {
-      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_part_number,snapshot_product_name,snapshot_quantity,snapshot_trip_number,snapshot_vendor,snapshot_destination,import_plan_items(do_number,shipment_number,part_number,product_name,quantity,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
+      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,import_plan_items(do_number,shipment_number,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
       if (!Array.isArray(rows) || !rows.length) {
         container.innerHTML = '<span class="text-muted">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</span>';
         return;
@@ -473,10 +473,7 @@ window.trcmComponentsReady.then(async function () {
         if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: trip });
         const group = groups.get(key);
         if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
-        const partNumber = item.part_number || row.snapshot_part_number;
-        const productName = item.product_name || row.snapshot_product_name;
-        const quantity = item.quantity !== null && item.quantity !== undefined ? item.quantity : row.snapshot_quantity;
-        const detail = [partNumber ? "Part " + partNumber : "", productName || "", selectedVisit && selectedVisit.activity_type !== "outbound" && quantity !== null && quantity !== undefined ? "Qty " + quantity : ""].filter(Boolean).join(" · ");
+        const detail = "";
         if (detail && !group.items.includes(detail)) group.items.push(detail);
       });
       const showTripColumns = rows.some(function (row) {
