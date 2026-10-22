@@ -439,7 +439,7 @@
       if(!plate)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Plat nomor wajib diisi untuk mengenali truk.</td></tr>';
       const plateKey=plate.toUpperCase().replace(/\s+/g," ");
       const driverKey=driver.toUpperCase().replace(/\s+/g," ");
-      const samePlateDifferentDriver=parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driverKey);
+      const samePlateDifferentDriver=!!driver&&parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim()&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driverKey);
       const groupNo=groupIndexByKey.get(truckKey(r));
       return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment||"—")+'</span></td><td>'+textSafe(c[0]||"—")+'</td><td>'+textSafe(c[4]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
     }).join("");
