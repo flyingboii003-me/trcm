@@ -128,7 +128,7 @@
               <div class="col-md-5">
                 <label class="plan-field-label" for="plan-template-name">Template yang dipilih</label>
                 <div class="form-control plan-input d-flex align-items-center justify-content-between" id="plan-template-name" aria-live="polite"><span><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i><strong>Template Inbound</strong></span><button class="btn btn-sm btn-outline-primary" type="button" id="copy-template"><i class="bi bi-clipboard me-1"></i>Salin header</button></div>
-                <div class="plan-hint" id="template-hint">Nomor DO wajib diisi pada setiap baris. DO yang sama menandakan truk yang sama.</div>
+                <div class="plan-hint" id="template-hint">Nomor DO wajib diisi. DO berulang akan dihitung satu kali dan ditandai sebagai peringatan.</div>
               </div>
             </div>
 
@@ -230,7 +230,7 @@
   const schemas={
     inbound:{
       label:"Template Inbound",
-      headers:["DO / TRANSPORT TASK"], fields:[{key:"do_number",label:"DO / Transport task",aliases:["DO / TRANSPORT TASK","DO","NOMOR DO","NO DO","DO NUMBER","TRANSPORT TASK"]}], hint:"Satu baris mewakili satu referensi DO.", sample:"DO / TRANSPORT TASK\n8576917\n8576918"
+      headers:["DO / TRANSPORT TASK"], fields:[{key:"do_number",label:"DO / Transport task",aliases:["DO / TRANSPORT TASK","DO","NOMOR DO","NO DO","DO NUMBER","TRANSPORT TASK"]}], hint:"Satu baris mewakili satu referensi DO. Nomor DO yang berulang otomatis dihitung satu kali; baris duplikat ditandai sebagai peringatan.", sample:"DO / TRANSPORT TASK\n8576917\n8576918"
     },
     outbound:{
       label:"Template Outbound",
@@ -346,12 +346,25 @@
       $("data-check-footer-note").textContent="Perbaiki header lalu jalankan pemeriksaan data kembali.";return;
     }
     
-    const rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
+    let rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
     if(type==="inbound"){
-      const seen=new Set();
+      const firstRowByDo=new Map();
+      const uniqueRows=[];
+      let duplicateRows=0;
       rows.forEach(r=>{
-        const [doNo]=r.cells; if(!doNo)r.errors.push("Nomor DO wajib diisi."); const key=normalizeDocument(doNo); if(doNo&&seen.has(key))r.errors.push("Nomor DO terduplikasi. Setiap DO hanya boleh diimpor satu kali."); if(doNo)seen.add(key);
+        const [doNo]=r.cells;
+        if(!doNo){r.errors.push("Nomor DO wajib diisi.");uniqueRows.push(r);return;}
+        const key=normalizeDocument(doNo);
+        if(firstRowByDo.has(key)){
+          duplicateRows++;
+          const first=firstRowByDo.get(key);
+          first.warnings.push("DO "+doNo+" berulang pada sumber (baris "+r.line+"); baris duplikat diabaikan dan hanya satu referensi DO akan diimpor.");
+          return;
+        }
+        firstRowByDo.set(key,r);
+        uniqueRows.push(r);
       });
+      rows=uniqueRows;
     } else {
       const shipmentRows=new Map(),plates=new Map();
       rows.forEach(r=>{
