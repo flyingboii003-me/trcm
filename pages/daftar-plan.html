@@ -333,6 +333,31 @@
       }
     }
 
+  
+    /* Keep the complete Ubah Plan form scrollable on desktop and mobile. */
+    .swal2-popup.trcm-edit-plan-popup{
+      display:flex!important;
+      flex-direction:column!important;
+      max-height:calc(100dvh - 1.5rem)!important;
+      min-height:0!important;
+      overflow:hidden!important;
+    }
+    .trcm-edit-plan-popup .swal2-html-container{
+      flex:1 1 auto!important;
+      min-height:0!important;
+      max-height:calc(100dvh - 9rem)!important;
+      overflow-x:hidden!important;
+      overflow-y:auto!important;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+    }
+    .trcm-edit-plan-popup .trcm-edit-plan-status-section,
+    .trcm-edit-plan-popup .trcm-edit-plan-status-table-wrap{min-width:0}
+    @media(max-width:767.98px){
+      .swal2-popup.trcm-edit-plan-popup{max-height:calc(100dvh - .75rem)!important}
+      .trcm-edit-plan-popup .swal2-html-container{max-height:calc(100dvh - 8.5rem)!important}
+    }
+
   </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
