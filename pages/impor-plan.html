@@ -394,7 +394,7 @@
       rows=uniqueRows;
     }
     const errors=rows.reduce((n,r)=>n+r.errors.length,0),warnings=rows.reduce((n,r)=>n+r.warnings.length,0);
-    const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0].trim().toUpperCase())).size:new Set(rows.filter(r=>r.cells[1]&&r.cells[2]).map(r=>truckKey(r))).size;
+    const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0].trim().toUpperCase())).size:new Set(rows.filter(r=>r.cells[1]).map(r=>truckKey(r))).size;
     checked=true;parsed=rows;
     $("row-count").textContent=rows.length+" baris";$("group-count").textContent=groupCount+" kelompok";$("error-count").textContent=errors+" kesalahan";$("warning-count").textContent=warnings+" peringatan";
     $("data-check-state").className="plan-status "+(errors?"invalid":warnings?"warning":"valid");
