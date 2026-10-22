@@ -243,7 +243,7 @@
         {key:"destination_city",label:"Tujuan",aliases:["TUJUAN","KOTA TUJUAN","DESTINATION","DESTINATION CITY"]},
         {key:"shipment_number",label:"Shipment",aliases:["SHIPMENT","NOMOR SHIPMENT","NO SHIPMENT","DO","NOMOR DO","DO NUMBER","SHIPMENT NUMBER"]},
       ],
-      hint:"Satu baris mewakili satu referensi Shipment. Baris dengan data armada yang sama dikelompokkan menjadi satu trip.", sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288"
+      hint:"Satu baris mewakili satu referensi Shipment. Baris duplikat identik dihitung satu kali. Nama driver kosong menjadi peringatan, bukan kesalahan; lengkapi jika tersedia.", sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288"
     }
   };
   let type="inbound", checked=false, parsed=[], saving=false;
@@ -364,22 +364,34 @@
       });
       rows=uniqueRows;
     } else {
-      const shipmentRows=new Map(),plates=new Map();
+      const shipmentRows=new Map(),plates=new Map(),uniqueRows=[];
       rows.forEach(r=>{
         const [vendor,plate,driver,truck,destination,shipment]=r.cells;
-        [["VENDOR",vendor],["PLAT NOMOR",plate],["NAMA DRIVER",driver],["TIPE TRUCK",truck],["TUJUAN",destination],["SHIPMENT",shipment]].forEach(([label,value])=>{if(!value)r.errors.push(label+" wajib diisi.")});
-        
+        [["VENDOR",vendor],["PLAT NOMOR",plate],["TIPE TRUCK",truck],["TUJUAN",destination],["SHIPMENT",shipment]].forEach(([label,value])=>{if(!value)r.errors.push(label+" wajib diisi.")});
+        if(!driver)r.warnings.push("Nama driver kosong; lengkapi jika tersedia. Pengelompokan sementara menggunakan data armada lain.");
         const shipmentKey=normalizeDocument(shipment);
         if(shipmentKey){
           if(!shipmentRows.has(shipmentKey))shipmentRows.set(shipmentKey,[]);
           shipmentRows.get(shipmentKey).push(r);
         }
-        if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
+        if(plate){const plateKey=plate.toUpperCase().replace(/\\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
       });
-      shipmentRows.forEach((shipmentGroup,shipmentKey)=>{
-        if(shipmentGroup.length>1)shipmentGroup.forEach(r=>r.errors.push("SHIPMENT "+shipmentKey+" terduplikasi. Setiap Shipment hanya boleh diimpor satu kali."));
+      rows.forEach(r=>{
+        const shipmentKey=normalizeDocument(r.cells[5]),group=shipmentKey?shipmentRows.get(shipmentKey):null;
+        if(!group||group.length===1){uniqueRows.push(r);return;}
+        const first=group[0],identical=group.every(item=>item.cells.every((value,index)=>normalizeDocument(value)===normalizeDocument(first.cells[index])));
+        if(identical){
+          if(r===first){r.warnings.push("SHIPMENT "+shipmentKey+" berulang pada sumber; baris duplikat identik diabaikan dan hanya satu referensi Shipment akan diimpor.");uniqueRows.push(r);}
+        } else {
+          r.errors.push("SHIPMENT "+shipmentKey+" muncul lebih dari sekali dengan data berbeda. Periksa dan sisakan satu baris yang benar.");
+          uniqueRows.push(r);
+        }
       });
-      plates.forEach(group=>{if(new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," "))).size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."))});
+      plates.forEach(group=>{
+        const knownDrivers=new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\\s+/g," ")).filter(Boolean));
+        if(knownDrivers.size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."));
+      });
+      rows=uniqueRows;
     }
     const errors=rows.reduce((n,r)=>n+r.errors.length,0),warnings=rows.reduce((n,r)=>n+r.warnings.length,0);
     const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0].trim().toUpperCase())).size:new Set(rows.filter(r=>r.cells[1]&&r.cells[2]).map(r=>truckKey(r))).size;
@@ -415,7 +427,7 @@
     }
     parsed.forEach(r=>{
       const plate=(r.cells[1]||"").trim(),driver=(r.cells[2]||"").trim();
-      if(!plate||!driver)return;
+      if(!plate)return;
       const key=truckKey(r);
       if(!groups.has(key))groups.set(key,{plate,driver,rows:[]});
       groups.get(key).rows.push(r);
@@ -424,7 +436,7 @@
     $("truk-group-head").innerHTML="<tr>"+["No.","Plat nomor","Shipment","Vendor","Tujuan","Kelompok truk otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("truk-group-body").innerHTML=parsed.map((r,i)=>{
       const c=r.cells,plate=(c[1]||"").trim(),driver=(c[2]||"").trim(),shipment=(c[5]||"").trim();
-      if(!plate||!driver)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Plat nomor dan nama driver wajib diisi untuk mengenali truk.</td></tr>';
+      if(!plate)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Plat nomor wajib diisi untuk mengenali truk.</td></tr>';
       const plateKey=plate.toUpperCase().replace(/\s+/g," ");
       const driverKey=driver.toUpperCase().replace(/\s+/g," ");
       const samePlateDifferentDriver=parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driverKey);
@@ -432,7 +444,7 @@
       return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment||"—")+'</span></td><td>'+textSafe(c[0]||"—")+'</td><td>'+textSafe(c[4]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
     }).join("");
     const groupedRows=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);
-    const hasMissing=parsed.some(r=>!(r.cells[1]||"").trim()||!(r.cells[2]||"").trim());
+    const hasMissing=parsed.some(r=>!(r.cells[1]||"").trim());
     const hasPlateConflict=parsed.some((r,i)=>parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")));
     $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" referensi Shipment";
     $("truk-group-state").className="plan-status "+(hasMissing||hasPlateConflict?"warning":"valid");
