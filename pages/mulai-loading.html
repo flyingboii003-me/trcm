@@ -455,9 +455,7 @@ window.trcmComponentsReady.then(async function () {
         const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
         const details = group.items.map(function (item) {
           const detail = [
-            item.part_number ? "Part " + item.part_number : "",
-            item.product_name || "",
-            selectedVisit && selectedVisit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
+            
           ].filter(Boolean).join(" · ");
           return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
         }).join("");
@@ -550,7 +548,7 @@ window.trcmComponentsReady.then(async function () {
     planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Memuat shipment dari Plan…</div>';
     try {
       const [items, trips, linkedItems] = await Promise.all([
-        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,part_number,product_name,quantity,manual_processed&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
+        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,manual_processed&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
         request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(planId) + "&order=trip_number.asc"),
         request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq." + encodeURIComponent(planId))
       ]);
