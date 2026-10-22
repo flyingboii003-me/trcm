@@ -347,7 +347,7 @@
     if(type==="inbound"){
       const seen=new Set();
       rows.forEach(r=>{
-        const [doNo]=r.cells; if(!doNo)r.errors.push("Nomor DO wajib diisi."); const key=normalizeDocument(doNo); if(doNo&&seen.has(key))r.warnings.push("Nomor DO terduplikasi."); if(doNo)seen.add(key);
+        const [doNo]=r.cells; if(!doNo)r.errors.push("Nomor DO wajib diisi."); const key=normalizeDocument(doNo); if(doNo&&seen.has(key))r.errors.push("Nomor DO terduplikasi. Setiap DO hanya boleh diimpor satu kali."); if(doNo)seen.add(key);
       });
     } else {
       const shipmentRows=new Map(),plates=new Map();
@@ -363,8 +363,7 @@
         if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
       });
       shipmentRows.forEach((shipmentGroup,shipmentKey)=>{
-        const tripKeys=new Set(shipmentGroup.map(r=>[r.cells[0],r.cells[1],r.cells[4]].map(normalizeDocument).join("|")));
-        if(tripKeys.size>1)shipmentGroup.forEach(r=>r.errors.push("SHIPMENT "+shipmentKey+" muncul pada lebih dari satu trip. Shipment yang sama hanya boleh berada pada trip dengan plat nomor, vendor, dan tujuan yang sama."));
+        if(shipmentGroup.length>1)shipmentGroup.forEach(r=>r.errors.push("SHIPMENT "+shipmentKey+" terduplikasi. Setiap Shipment hanya boleh diimpor satu kali."));
       });
       plates.forEach(group=>{if(new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," "))).size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."))});
     }
