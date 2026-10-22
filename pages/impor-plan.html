@@ -426,14 +426,14 @@
     const groupIndexByKey=new Map([...groups.keys()].map((key,index)=>[key,index+1]));
     $("truk-group-body").innerHTML=parsed.map((r,i)=>{
       const cells=r.cells,plate=(cells[1]||"").trim(),driver=(cells[2]||"").trim(),shipment=cells[5]||"—";
-      if(!plate||!driver)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="6" class="text-danger">Plat nomor dan nama driver wajib diisi untuk mengenali truk.</td></tr>';
+      if(!plate||!driver)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Plat nomor dan nama driver wajib diisi untuk mengenali truk.</td></tr>';
       const plateKey=plate.toUpperCase().replace(/\s+/g," ");
       const samePlateDifferentDriver=parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driver.toUpperCase().replace(/\s+/g," "));
       const groupNo=groupIndexByKey.get(truckKey(r));
       return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment)+'</span></td><td>'+textSafe(cells[0]||"—")+'</td><td>'+textSafe(cells[4]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
     }).join("");
     const groupedRows=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);
-    $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" detail shipment";
+    $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" referensi Shipment";
     const hasMissing=parsed.some(r=>!(r.cells[1]||"").trim()||!(r.cells[2]||"").trim());
     const hasPlateConflict=parsed.some((r,i)=>parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")));
     $("truk-group-state").className="plan-status "+(hasMissing||hasPlateConflict?"warning":"valid");
