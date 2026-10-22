@@ -475,7 +475,7 @@
     if (resultCount) resultCount.textContent=total+" Plan ditemukan";
     $("page-info").textContent=total?("Menampilkan "+(start+1)+"–"+Math.min(start+size,total)+" dari "+total+" Plan"):"Tidak ada Plan yang cocok";
     $("prev-page").disabled=state.page<=1;$("next-page").disabled=state.page>=pages;
-    if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
+    if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
     $("plan-table-body").innerHTML=rows.map(p=>{
       const client=p.clients&&p.clients.name||"Klien tidak tersedia";
       return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td><span class="fw-semibold">'+esc(countItems(p))+'</span><span class="text-secondary small"> baris</span></td><td>'+esc(countTrips(p)||"—")+'</td><td>'+statusBadge(p.status)+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
@@ -487,7 +487,7 @@
   }
   async function loadPlans(){
     const button=$("refresh-plans");button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memuat…';
-    $("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
+    $("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
     try{
       const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id)";
       const data=await request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc");
@@ -495,7 +495,7 @@
       state.plans=data;updateStats(data);applyFilters();
     }catch(error){
       console.error("TRCM daftar Plan:",error);
-      $("plan-table-body").innerHTML='<tr><td colspan="9"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
+      $("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
       $("result-count").textContent="Gagal memuat data";toast(error.message||"Daftar Plan gagal dimuat.");
     }finally{button.disabled=false;button.innerHTML='<i class="bi bi-arrow-clockwise me-1"></i>Perbarui';}
   }
