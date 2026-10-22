@@ -139,7 +139,7 @@
             <label class="plan-field-label" for="paste-data">Data Excel (dipisahkan tab)</label>
             <textarea class="plan-paste" id="paste-data" spellcheck="false" aria-describedby="paste-hint"></textarea>
             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mt-2 mb-4">
-              <div class="plan-hint mt-0" id="paste-hint">Nama dan urutan kolom boleh bervariasi selama setiap header dikenali. Nomor DO dan PART NUMBER dibaca sebagai teks.</div>
+              <div class="plan-hint mt-0" id="paste-hint">Nama dan urutan kolom boleh bervariasi selama setiap header dikenali. Nomor DO dan Shipment dibaca sebagai teks.</div>
               <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-example"><i class="bi bi-arrow-counterclockwise me-1"></i>Muat contoh</button>
             </div>
             <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Tahap validasi lokal.</strong> Header dipetakan berdasarkan alias terkontrol dan urutannya boleh berbeda. Keunikan Shipment dan penyimpanan Plan diverifikasi kembali oleh database saat konfirmasi.</div></div>
@@ -170,7 +170,7 @@
             <span class="plan-status warning" id="truk-group-state"><i class="bi bi-truck"></i>Perlu diperiksa</span>
           </div>
           <div class="plan-card-body">
-            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: nomor DO yang sama dihitung sebagai satu kelompok truk dan setiap detail barang tetap ditampilkan. Outbound: plat nomor dan nama driver yang sama dihitung sebagai satu truk; plat sama dengan driver berbeda ditandai untuk diperiksa.</div></div>
+            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: setiap nomor DO unik menjadi satu referensi kunjungan. Outbound: plat nomor dan nama driver yang sama dihitung sebagai satu truk; plat sama dengan driver berbeda ditandai untuk diperiksa.</div></div>
             <div class="plan-data-check-wrap">
               <table class="table plan-data-check-table align-middle mb-0">
                 <thead id="truk-group-head"><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Kelompok truk otomatis</th></tr></thead>
@@ -203,7 +203,7 @@
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Jumlah truk terdeteksi</div><strong id="confirm-groups">0</strong></div></div>
         </div>
         <div class="alert alert-warning small" id="confirm-warning" role="status"><i class="bi bi-exclamation-triangle-fill me-2"></i>Pastikan data dan pengelompokan sudah benar.</div>
-        <h3 class="fs-6 fw-bold mb-3">Detail Shipment / barang</h3>
+        <h3 class="fs-6 fw-bold mb-3">Referensi DO / Shipment</h3>
         <div class="plan-data-check-wrap">
           <table class="table plan-data-check-table align-middle mb-0">
             <thead id="confirm-table-head"></thead>
@@ -283,7 +283,7 @@
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
     $("plan-template-name").querySelector("strong").textContent=schemas[type].label;
     $("template-hint").textContent=schemas[type].hint;
-    $("paste-hint").textContent=type==="inbound"?"Nomor DO menjadi referensi kunjungan.":"Nomor Shipment menjadi referensi kunjungan; data armada wajib lengkap."; QUANTITY harus berupa angka lebih dari nol.";
+    $("paste-hint").textContent=type==="inbound"?"Nomor DO menjadi referensi kunjungan.":"Nomor Shipment menjadi referensi kunjungan; data armada wajib lengkap.";
     $("paste-data").value=schemas[type].sample;
     resetDataCheck();
   }
@@ -390,51 +390,37 @@
     const groups=new Map();
     if(type==="inbound"){
       $("truk-group-head").innerHTML="<tr>"+["No.","DO / Transport task","Kelompok kunjungan otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
-      parsed.forEach((r,i)=>{const d=(r.cells[0]||"").trim(),k=d.toUpperCase().replace(/\s+/g," ");if(d&&!groups.has(k))groups.set(k,{doNumber:d,rows:[]});if(d)groups.get(k).rows.push({row:r,index:i});});
-      $("truk-group-body").innerHTML=parsed.map((r,i)=>{const d=(r.cells[0]||"").trim();if(!d)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="2" class="text-danger">Nomor DO wajib diisi.</td></tr>';const n=[...groups.keys()].indexOf(d.toUpperCase().replace(/\s+/g," "))+1;return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(d)+'</span></td><td><span class="plan-status valid">Kunjungan '+n+'</span></td></tr>';}).join("");
-      const count=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);const missing=parsed.some(r=>!(r.cells[0]||"").trim());
-      $("truk-group-summary").textContent=groups.size+" referensi kunjungan · "+count+" baris DO";
-      $("truk-group-state").className="plan-status "+(missing?"warning":"valid");$("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(missing?"Nomor DO belum lengkap":"Pengelompokan otomatis");$("group-count").textContent=groups.size+" kunjungan";return;
-    }
-    parsed.forEach((r,i)=>{
-        const cells=r.cells,doNumber=(cells[0]||"").trim(),key=doNumber.toUpperCase().replace(/\s+/g," ");
-        if(doNumber&&!groups.has(key))groups.set(key,{doNumber,rows:[]});
-        if(doNumber)groups.get(key).rows.push({row:r,index:i});
-      });
-      $("truk-group-body").innerHTML=parsed.map((r,i)=>{
-        const cells=r.cells,doNumber=(cells[0]||"").trim();
-        if(!doNumber)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Nomor DO / Transport task wajib diisi untuk mengenali kelompok truk.</td></tr>';
-        const groupNo=[...groups.keys()].indexOf(doNumber.toUpperCase().replace(/\s+/g," "))+1;
-        return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(doNumber)+'</span></td><td><span class="plan-mono">'+textSafe(cells[1]||"—")+'</span></td><td>'+textSafe(cells[2]||"—")+'</td><td>'+textSafe(cells[3]||"—")+'</td><td><span class="plan-status valid">Truk '+groupNo+'</span></td></tr>';
-      }).join("");
-      const groupedRows=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);
-      const hasMissing=parsed.some(r=>!(r.cells[0]||"").trim());
-      $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" detail barang";
-      $("truk-group-state").className="plan-status "+(hasMissing?"warning":"valid");
-      $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(hasMissing?"Nomor DO belum lengkap":"Pengelompokan otomatis");
-      $("group-count").textContent=groups.size+" truk";
+      parsed.forEach((r)=>{const d=(r.cells[0]||"").trim(),k=normalizeDocument(d);if(d&&!groups.has(k))groups.set(k,{doNumber:d,rows:[]});if(d)groups.get(k).rows.push(r);});
+      $("truk-group-body").innerHTML=parsed.map((r,i)=>{const d=(r.cells[0]||"").trim();if(!d)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="2" class="text-danger">Nomor DO wajib diisi.</td></tr>';const n=[...groups.keys()].indexOf(normalizeDocument(d))+1;return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(d)+'</span></td><td><span class="plan-status valid">Kunjungan '+n+'</span></td></tr>';}).join("");
+      const count=[...groups.values()].reduce((n,g)=>n+g.rows.length,0),missing=parsed.some(r=>!(r.cells[0]||"").trim());
+      $("truk-group-summary").textContent=groups.size+" referensi kunjungan · "+count+" referensi DO";
+      $("truk-group-state").className="plan-status "+(missing?"warning":"valid");
+      $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(missing?"Nomor DO belum lengkap":"Pengelompokan otomatis");
+      $("group-count").textContent=groups.size+" kunjungan";
       return;
     }
-    parsed.forEach((r,i)=>{
+    parsed.forEach(r=>{
       const plate=(r.cells[1]||"").trim(),driver=(r.cells[2]||"").trim();
       if(!plate||!driver)return;
       const key=truckKey(r);
       if(!groups.has(key))groups.set(key,{plate,driver,rows:[]});
-      groups.get(key).rows.push({row:r,index:i});
+      groups.get(key).rows.push(r);
     });
     const groupIndexByKey=new Map([...groups.keys()].map((key,index)=>[key,index+1]));
+    $("truk-group-head").innerHTML="<tr>"+["No.","Plat nomor","Shipment","Vendor","Tujuan","Kelompok truk otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("truk-group-body").innerHTML=parsed.map((r,i)=>{
-      const cells=r.cells,plate=(cells[1]||"").trim(),driver=(cells[2]||"").trim(),shipment=cells[5]||"—";
+      const c=r.cells,plate=(c[1]||"").trim(),driver=(c[2]||"").trim(),shipment=(c[5]||"").trim();
       if(!plate||!driver)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Plat nomor dan nama driver wajib diisi untuk mengenali truk.</td></tr>';
       const plateKey=plate.toUpperCase().replace(/\s+/g," ");
-      const samePlateDifferentDriver=parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driver.toUpperCase().replace(/\s+/g," "));
+      const driverKey=driver.toUpperCase().replace(/\s+/g," ");
+      const samePlateDifferentDriver=parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driverKey);
       const groupNo=groupIndexByKey.get(truckKey(r));
-      return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment)+'</span></td><td>'+textSafe(cells[0]||"—")+'</td><td>'+textSafe(cells[4]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
+      return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment||"—")+'</span></td><td>'+textSafe(c[0]||"—")+'</td><td>'+textSafe(c[4]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
     }).join("");
     const groupedRows=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);
-    $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" referensi Shipment";
     const hasMissing=parsed.some(r=>!(r.cells[1]||"").trim()||!(r.cells[2]||"").trim());
     const hasPlateConflict=parsed.some((r,i)=>parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")));
+    $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" referensi Shipment";
     $("truk-group-state").className="plan-status "+(hasMissing||hasPlateConflict?"warning":"valid");
     $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(hasMissing?"Data truk belum lengkap":hasPlateConflict?"Perlu periksa driver":"Pengelompokan otomatis");
     $("group-count").textContent=groups.size+" truk";
