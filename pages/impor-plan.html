@@ -308,6 +308,9 @@
     const issues=[];
     headers.forEach((header,index)=>{
       if(!header){issues.push("Header kolom "+(index+1)+" kosong.");return}
+      // Kolom cargo dari template lama sengaja diabaikan: Plan kini hanya memakai referensi DO/Shipment.
+      const legacyCargoHeaders=["PART NUM","PART NUMBER","PART NO","DESKRIPSI","DESCRIPTION","PRODUCT NAME","NAMA BARANG","QTY","QUANTITY","JUMLAH"];
+      if(legacyCargoHeaders.includes(header))return;
       const matches=fields.filter(field=>field.aliases.some(alias=>normalizeHeader(alias)===header));
       if(matches.length===0){issues.push('Header "'+header+'" tidak dikenali. Gunakan alias yang didukung atau periksa nama kolom.');return}
       if(matches.length>1){issues.push('Header "'+header+'" ambigu dan cocok dengan lebih dari satu kolom.');return}
