@@ -166,11 +166,11 @@
 
         <section class="plan-card mb-4 d-none" id="truk-group-card" aria-labelledby="truk-group-title">
           <div class="plan-card-head">
-            <div><h2 class="plan-card-title" id="truk-group-title">Pengelompokan Truk Otomatis</h2><p class="plan-card-subtitle">Plan Inbound dikelompokkan berdasarkan nomor DO / Transport task; Plan Outbound dikelompokkan berdasarkan plat nomor dan nama driver.</p></div>
+            <div><h2 class="plan-card-title" id="truk-group-title">Pengelompokan Truk Otomatis</h2><p class="plan-card-subtitle">Plan Inbound dikelompokkan berdasarkan nomor DO / Transport task; Plan Outbound dikelompokkan berdasarkan kecocokan vendor, plat nomor, driver, tipe truk, dan tujuan.</p></div>
             <span class="plan-status warning" id="truk-group-state"><i class="bi bi-truck"></i>Perlu diperiksa</span>
           </div>
           <div class="plan-card-body">
-            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: setiap nomor DO unik menjadi satu referensi kunjungan. Outbound: plat nomor dan nama driver yang sama dihitung sebagai satu truk; plat sama dengan driver berbeda ditandai untuk diperiksa.</div></div>
+            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: setiap nomor DO unik menjadi satu referensi kunjungan. Outbound: data vendor, plat nomor, driver, tipe truk, dan tujuan yang sama dihitung sebagai satu trip; plat sama dengan driver berbeda ditandai untuk diperiksa.</div></div>
             <div class="plan-data-check-wrap">
               <table class="table plan-data-check-table align-middle mb-0">
                 <thead id="truk-group-head"><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Kelompok truk otomatis</th></tr></thead>
@@ -382,7 +382,7 @@
     
   }
 
-  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
+  function truckKey(r){return [r.cells[0],r.cells[1],r.cells[2],r.cells[3],r.cells[4]].map(value=>String(value||"").trim().toUpperCase().replace(/\s+/g," ")).join("|");}
   function renderTripGroups(){
     const card=$("truk-group-card");
     if(!checked||!parsed.length){card.classList.add("d-none");return;}
