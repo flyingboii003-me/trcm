@@ -473,8 +473,7 @@ window.trcmComponentsReady.then(async function () {
         if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: trip });
         const group = groups.get(key);
         if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
-        const detail = "";
-        if (detail && !group.items.includes(detail)) group.items.push(detail);
+        
       });
       const showTripColumns = rows.some(function (row) {
         return !!(row.snapshot_vendor || row.snapshot_destination ||
