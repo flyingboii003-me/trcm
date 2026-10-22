@@ -374,7 +374,7 @@
           if(!shipmentRows.has(shipmentKey))shipmentRows.set(shipmentKey,[]);
           shipmentRows.get(shipmentKey).push(r);
         }
-        if(plate){const plateKey=plate.toUpperCase().replace(/\\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
+        if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
       });
       rows.forEach(r=>{
         const shipmentKey=normalizeDocument(r.cells[5]),group=shipmentKey?shipmentRows.get(shipmentKey):null;
@@ -388,7 +388,7 @@
         }
       });
       plates.forEach(group=>{
-        const knownDrivers=new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\\s+/g," ")).filter(Boolean));
+        const knownDrivers=new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")).filter(Boolean));
         if(knownDrivers.size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."));
       });
       rows=uniqueRows;
