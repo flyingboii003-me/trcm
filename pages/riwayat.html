@@ -517,7 +517,7 @@ async function openVisitModal(visitId) {
           const partNumber = item.part_number || row.snapshot_part_number;
           const productName = item.product_name || row.snapshot_product_name;
           const quantity = item.quantity !== null && item.quantity !== undefined ? item.quantity : row.snapshot_quantity;
-          const detail = [partNumber ? "Part " + partNumber : "", productName || "", activityType !== "outbound" && quantity !== null && quantity !== undefined ? "Qty " + quantity : ""].filter(Boolean).join(" · ");
+          const detail = [partNumber ? "Part " + partNumber : "", productName || "", quantity !== null && quantity !== undefined ? "Qty " + quantity : ""].filter(Boolean).join(" · ");
           if (detail && !group.items.includes(detail)) group.items.push(detail);
         });
         const showTripColumns = linkedRows.some(function (row) {
