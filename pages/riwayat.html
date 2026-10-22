@@ -523,11 +523,11 @@ async function openVisitModal(visitId) {
         });
         selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO/Shipment</th>' +
           (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
-          '<th>Item/Barang</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+          '</tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
             return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
               (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
-              '<td>' + (group.items.length ? '<ul class="mb-0 ps-3">' + group.items.map(function (detail) { return '<li>' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '—') + '</td></tr>';
+              '</tr>';
           }).join("") + '</tbody></table></div>';
       } else {
         selectedPlanShipmentHtml = '<div class="modal-empty visit-shipment-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
