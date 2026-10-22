@@ -562,7 +562,7 @@
             const remaining=new Set(currentRows.filter(row=>normalized(row.shipment_number)!==normalized(shipment)).map(row=>normalized(row.shipment_number)).filter(Boolean));
             if(remaining.size===0){Swal.showValidationMessage("Plan harus memiliki minimal satu shipment. Hapus shipment terakhir tidak diperbolehkan.");return;}
             const operationalDate=document.getElementById("edit-operational-date")?.value||p.operational_date||"";
-            const confirmation=await Swal.fire({title:"Hapus shipment?",text:"Shipment "+shipment+" beserta "+shipmentRows.length+" baris detailnya akan dihapus dari perubahan Plan ini.",icon:"warning",showCancelButton:true,confirmButtonText:"Ya, hapus",cancelButtonText:"Batal",confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true});
+            const confirmation=await Swal.fire({title:"Hapus shipment?",text:"Shipment "+shipment+" beserta data kunjungan terkait akan dihapus dari perubahan Plan ini.",icon:"warning",showCancelButton:true,confirmButtonText:"Ya, hapus",cancelButtonText:"Batal",confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true});
             const nextRows=confirmation.isConfirmed?currentRows.filter(row=>normalized(row.shipment_number)!==normalized(shipment)):currentRows;
             await editPlan(p.id,nextRows,operationalDate);
           }));
@@ -634,7 +634,7 @@
     const warning=p.status==="active"?" Plan Aktif akan dihapus sehingga tidak ada Plan aktif untuk cakupan ini sampai Plan pengganti dibuat.":"";
     const confirmation=await Swal.fire({
       icon:"warning",title:"Hapus Plan?",
-      html:"Hapus Plan <strong>"+esc(String(p.id).slice(0,6))+"…</strong> milik <strong>"+esc(client)+"</strong>?<br><br>Rincian barang dan trip ikut dihapus."+esc(warning)+"<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
+      html:"Hapus Plan <strong>"+esc(String(p.id).slice(0,6))+"…</strong> milik <strong>"+esc(client)+"</strong>?<br><br>Referensi DO/Shipment dan data trip ikut dihapus."+esc(warning)+"<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
       showCancelButton:true,confirmButtonText:"Ya, hapus Plan",cancelButtonText:"Batal",
       confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true
     });
