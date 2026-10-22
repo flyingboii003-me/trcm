@@ -350,13 +350,11 @@
     if(type==="inbound"){
       const firstRowByDo=new Map();
       const uniqueRows=[];
-      let duplicateRows=0;
       rows.forEach(r=>{
         const [doNo]=r.cells;
         if(!doNo){r.errors.push("Nomor DO wajib diisi.");uniqueRows.push(r);return;}
         const key=normalizeDocument(doNo);
         if(firstRowByDo.has(key)){
-          duplicateRows++;
           const first=firstRowByDo.get(key);
           first.warnings.push("DO "+doNo+" berulang pada sumber (baris "+r.line+"); baris duplikat diabaikan dan hanya satu referensi DO akan diimpor.");
           return;
