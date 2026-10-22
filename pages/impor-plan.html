@@ -297,7 +297,7 @@
     
     $("data-check-footer-note").textContent="Konfirmasi tersedia setelah semua kesalahan diperbaiki dan peringatan ditinjau.";
   }
-  function normalizeHeader(value){return String(value||"").normalize("NFKC").trim().replace(/[._-]+/g," ").replace(/\s+/g," ").toUpperCase()}
+  function normalizeHeader(value){return String(value||"").normalize("NFKC").trim().replace(/[._-]+/g," ").replace(/[\\/]+/g," ").replace(/[()\[\]:]/g," ").replace(/\s+/g," ").toUpperCase()}
   function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\s+/g," ").toUpperCase()}
   function parseRows(){
     const lines=$("paste-data").value.replace(/\r/g,"").split("\n").filter(line=>line.trim()!=="");
@@ -307,12 +307,12 @@
     const indexByKey={};
     const issues=[];
     headers.forEach((header,index)=>{
-      if(!header){issues.push("Header kolom "+(index+1)+" kosong.");return}
-      // Kolom cargo dari template lama sengaja diabaikan: Plan kini hanya memakai referensi DO/Shipment.
-      const legacyCargoHeaders=["PART NUM","PART NUMBER","PART NO","DESKRIPSI","DESCRIPTION","PRODUCT NAME","NAMA BARANG","QTY","QUANTITY","JUMLAH"];
-      if(legacyCargoHeaders.includes(header))return;
+      // Template Excel lama sering memiliki kolom cargo, kolom tambahan, atau kolom kosong.
+      // Semua kolom yang bukan bagian dari skema Plan baru diabaikan; hanya field yang
+      // terdefinisi pada schema aktif yang dipetakan dan divalidasi.
+      if(!header)return;
       const matches=fields.filter(field=>field.aliases.some(alias=>normalizeHeader(alias)===header));
-      if(matches.length===0){issues.push('Header "'+header+'" tidak dikenali. Gunakan alias yang didukung atau periksa nama kolom.');return}
+      if(matches.length===0)return;
       if(matches.length>1){issues.push('Header "'+header+'" ambigu dan cocok dengan lebih dari satu kolom.');return}
       const key=matches[0].key;
       if(Object.prototype.hasOwnProperty.call(indexByKey,key)){issues.push('Kolom "'+matches[0].label+'" terpetakan lebih dari sekali.');return}
