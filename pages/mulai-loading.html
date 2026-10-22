@@ -453,12 +453,7 @@ window.trcmComponentsReady.then(async function () {
         const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
         const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
         const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
-        const details = group.items.map(function (item) {
-          const detail = [
-            
-          ].filter(Boolean).join(" · ");
-          return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
-        }).join("");
+        const details = "";
         const tripName = group.trip
           ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
           : "";
