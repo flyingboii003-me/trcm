@@ -94,7 +94,7 @@
           <div>
             <span class="plan-kicker">Administrasi · Rencana operasional</span>
             <h1 class="page-title">Impor Plan</h1>
-            <p class="page-subtitle">Siapkan Plan Inbound atau Outbound dari Excel, periksa data, lalu konfirmasi sebelum diaktifkan.</p>
+            <p class="page-subtitle">Siapkan Plan Inbound atau Outbound dari Excel, periksa referensi dokumen, lalu konfirmasi sebelum diaktifkan.</p>
           </div>
           <div class="d-flex flex-column align-items-end gap-2">
                 <div class="plan-mode-switch" role="group" aria-label="Jenis Plan">
@@ -123,12 +123,12 @@
               <div class="col-md-3">
                 <label class="plan-field-label" for="operational-date">Tanggal operasional <span class="plan-required">*</span></label>
                 <input class="form-control plan-input" id="operational-date" type="date" required>
-                <div class="plan-hint">Plan akan dikelompokkan berdasarkan tanggal ini.</div>
+                <div class="plan-hint">Plan akan dikelompokkan berdasarkan tanggal operasional ini.</div>
               </div>
               <div class="col-md-5">
                 <label class="plan-field-label" for="plan-template-name">Template yang dipilih</label>
                 <div class="form-control plan-input d-flex align-items-center justify-content-between" id="plan-template-name" aria-live="polite"><span><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i><strong>Template Inbound</strong></span><button class="btn btn-sm btn-outline-primary" type="button" id="copy-template"><i class="bi bi-clipboard me-1"></i>Salin header</button></div>
-                <div class="plan-hint" id="template-hint">Nomor DO wajib diisi pada setiap baris. DO yang sama menandakan truk yang sama.</div>
+                <div class="plan-hint" id="template-hint">Nomor DO wajib diisi. DO berulang akan dihitung satu kali dan ditandai sebagai peringatan.</div>
               </div>
             </div>
 
@@ -139,7 +139,7 @@
             <label class="plan-field-label" for="paste-data">Data Excel (dipisahkan tab)</label>
             <textarea class="plan-paste" id="paste-data" spellcheck="false" aria-describedby="paste-hint"></textarea>
             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mt-2 mb-4">
-              <div class="plan-hint mt-0" id="paste-hint">Nama dan urutan kolom boleh bervariasi selama setiap header dikenali. Nomor DO dan PART NUMBER dibaca sebagai teks.</div>
+              <div class="plan-hint mt-0" id="paste-hint">Nama dan urutan kolom boleh bervariasi selama setiap header dikenali. Nomor DO dan Shipment dibaca sebagai teks.</div>
               <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-example"><i class="bi bi-arrow-counterclockwise me-1"></i>Muat contoh</button>
             </div>
             <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Tahap validasi lokal.</strong> Header dipetakan berdasarkan alias terkontrol dan urutannya boleh berbeda. Keunikan Shipment dan penyimpanan Plan diverifikasi kembali oleh database saat konfirmasi.</div></div>
@@ -166,14 +166,14 @@
 
         <section class="plan-card mb-4 d-none" id="truk-group-card" aria-labelledby="truk-group-title">
           <div class="plan-card-head">
-            <div><h2 class="plan-card-title" id="truk-group-title">Pengelompokan Truk Otomatis</h2><p class="plan-card-subtitle">Plan Inbound dikelompokkan berdasarkan nomor DO / Transport task; Plan Outbound dikelompokkan berdasarkan plat nomor dan nama driver.</p></div>
+            <div><h2 class="plan-card-title" id="truk-group-title">Pengelompokan Truk Otomatis</h2><p class="plan-card-subtitle">Plan Inbound dikelompokkan berdasarkan nomor DO / Transport task; Plan Outbound dikelompokkan berdasarkan kecocokan vendor, plat nomor, driver, tipe truk, dan tujuan.</p></div>
             <span class="plan-status warning" id="truk-group-state"><i class="bi bi-truck"></i>Perlu diperiksa</span>
           </div>
           <div class="plan-card-body">
-            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: nomor DO yang sama dihitung sebagai satu kelompok truk dan setiap detail barang tetap ditampilkan. Outbound: plat nomor dan nama driver yang sama dihitung sebagai satu truk; plat sama dengan driver berbeda ditandai untuk diperiksa.</div></div>
+            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: setiap nomor DO unik menjadi satu referensi kunjungan. Outbound: data vendor, plat nomor, driver, tipe truk, dan tujuan yang sama dihitung sebagai satu trip; plat sama dengan driver berbeda ditandai untuk diperiksa.</div></div>
             <div class="plan-data-check-wrap">
               <table class="table plan-data-check-table align-middle mb-0">
-                <thead id="truk-group-head"><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Quantity</th><th>Kelompok truk otomatis</th></tr></thead>
+                <thead id="truk-group-head"><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Kelompok truk otomatis</th></tr></thead>
                 <tbody id="truk-group-body"><tr><td colspan="7" class="text-center text-secondary py-4">Data shipment akan tampil setelah diperiksa.</td></tr></tbody>
               </table>
             </div>
@@ -203,7 +203,7 @@
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Jumlah truk terdeteksi</div><strong id="confirm-groups">0</strong></div></div>
         </div>
         <div class="alert alert-warning small" id="confirm-warning" role="status"><i class="bi bi-exclamation-triangle-fill me-2"></i>Pastikan data dan pengelompokan sudah benar.</div>
-        <h3 class="fs-6 fw-bold mb-3">Detail Shipment / barang</h3>
+        <h3 class="fs-6 fw-bold mb-3">Referensi DO / Shipment</h3>
         <div class="plan-data-check-wrap">
           <table class="table plan-data-check-table align-middle mb-0">
             <thead id="confirm-table-head"></thead>
@@ -230,19 +230,11 @@
   const schemas={
     inbound:{
       label:"Template Inbound",
-      headers:["DO / TRANSPORT TASK","PART NUMBER","NAMA PRODUK","QTY"],
-      fields:[
-        {key:"do_number",label:"DO / Transport task",aliases:["DO / TRANSPORT TASK","DO","NOMOR DO","NO DO","DO NUMBER","TRANSPORT TASK"]},
-        {key:"part_number",label:"Part number",aliases:["PART NUMBER","PART NO","PART NO.","PART NUMBER / MATERIAL"]},
-        {key:"product_name",label:"Nama produk",aliases:["NAMA PRODUK","PRODUCT NAME","PRODUCT","NAMA BARANG"]},
-        {key:"quantity",label:"QTY",aliases:["QTY","QUANTITY","JUMLAH","KUANTITAS"]}
-      ],
-      hint:"Nomor DO wajib diisi pada setiap baris. DO yang sama menandakan truk yang sama.",
-      sample:"DO / TRANSPORT TASK\tPART NUMBER\tNAMA PRODUK\tQTY\n8576917\t11BFMD0084600000\tSweety Max Protection Pants M 8x46s\t216\n8576917\t11BEMD0084400003\tSweety Bronze Pants Dry X-pert M 8x44s UP3\t180\n8576918\t11BFSM0083800000\tSweety Max Protection Pants S 8x38s\t396"
+      headers:["DO / TRANSPORT TASK"], fields:[{key:"do_number",label:"DO / Transport task",aliases:["DO / TRANSPORT TASK","DO","NOMOR DO","NO DO","DO NUMBER","TRANSPORT TASK"]}], hint:"Satu baris mewakili satu referensi DO. Nomor DO yang berulang otomatis dihitung satu kali; baris duplikat ditandai sebagai peringatan.", sample:"DO / TRANSPORT TASK\n8576917\n8576918"
     },
     outbound:{
       label:"Template Outbound",
-      headers:["VENDOR","PLAT NOMOR","NAMA DRIVER","TIPE TRUCK","TUJUAN","SHIPMENT","QUANTITY"],
+      headers:["VENDOR","PLAT NOMOR","NAMA DRIVER","TIPE TRUCK","TUJUAN","SHIPMENT"],
       fields:[
         {key:"vendor",label:"Vendor",aliases:["VENDOR","NAMA VENDOR","SUPPLIER"]},
         {key:"plate_number",label:"Plat nomor",aliases:["PLAT NOMOR","NOMOR PLAT","NO POLISI","NOMOR POLISI","LICENSE PLATE"]},
@@ -250,10 +242,8 @@
         {key:"truck_type",label:"Tipe truck",aliases:["TIPE TRUCK","JENIS TRUCK","JENIS TRUK","TIPE TRUK"]},
         {key:"destination_city",label:"Tujuan",aliases:["TUJUAN","KOTA TUJUAN","DESTINATION","DESTINATION CITY"]},
         {key:"shipment_number",label:"Shipment",aliases:["SHIPMENT","NOMOR SHIPMENT","NO SHIPMENT","DO","NOMOR DO","DO NUMBER","SHIPMENT NUMBER"]},
-        {key:"quantity",label:"Quantity",aliases:["QUANTITY","QTY","JUMLAH","KUANTITAS"]}
       ],
-      hint:"Satu baris mewakili satu detail shipment. Jika plat yang sama muncul beberapa kali, periksa apakah baris tersebut satu truk atau truk berbeda.",
-      sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\tQUANTITY\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\t24\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288\t16\nVendor B\tD 8234 CJ\tAndi Pratama\tCDD\tBandung\tSH0001290\t12"
+      hint:"Satu baris mewakili satu referensi Shipment. Baris duplikat identik dihitung satu kali. Nama driver kosong menjadi peringatan, bukan kesalahan; lengkapi jika tersedia.", sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288"
     }
   };
   let type="inbound", checked=false, parsed=[], saving=false;
@@ -293,7 +283,7 @@
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
     $("plan-template-name").querySelector("strong").textContent=schemas[type].label;
     $("template-hint").textContent=schemas[type].hint;
-    $("paste-hint").textContent=type==="inbound"?"Header boleh memakai alias yang didukung dan urutannya boleh berbeda. Nomor DO, PART NUMBER, dan referensi disimpan sebagai teks.":"Header boleh memakai alias yang didukung dan urutannya boleh berbeda. SHIPMENT disimpan sebagai teks; QUANTITY harus berupa angka lebih dari nol.";
+    $("paste-hint").textContent=type==="inbound"?"Nomor DO menjadi referensi kunjungan.":"Nomor Shipment menjadi referensi kunjungan; data armada wajib lengkap.";
     $("paste-data").value=schemas[type].sample;
     resetDataCheck();
   }
@@ -307,7 +297,7 @@
     
     $("data-check-footer-note").textContent="Konfirmasi tersedia setelah semua kesalahan diperbaiki dan peringatan ditinjau.";
   }
-  function normalizeHeader(value){return String(value||"").normalize("NFKC").trim().replace(/[._-]+/g," ").replace(/\s+/g," ").toUpperCase()}
+  function normalizeHeader(value){return String(value||"").normalize("NFKC").trim().replace(/[._-]+/g," ").replace(/[\\/]+/g," ").replace(/[()\[\]:]/g," ").replace(/\s+/g," ").toUpperCase()}
   function normalizeDocument(value){return String(value||"").normalize("NFKC").trim().replace(/\s+/g," ").toUpperCase()}
   function parseRows(){
     const lines=$("paste-data").value.replace(/\r/g,"").split("\n").filter(line=>line.trim()!=="");
@@ -317,9 +307,12 @@
     const indexByKey={};
     const issues=[];
     headers.forEach((header,index)=>{
-      if(!header){issues.push("Header kolom "+(index+1)+" kosong.");return}
+      // Template Excel lama sering memiliki kolom cargo, kolom tambahan, atau kolom kosong.
+      // Semua kolom yang bukan bagian dari skema Plan baru diabaikan; hanya field yang
+      // terdefinisi pada schema aktif yang dipetakan dan divalidasi.
+      if(!header)return;
       const matches=fields.filter(field=>field.aliases.some(alias=>normalizeHeader(alias)===header));
-      if(matches.length===0){issues.push('Header "'+header+'" tidak dikenali. Gunakan alias yang didukung atau periksa nama kolom.');return}
+      if(matches.length===0)return;
       if(matches.length>1){issues.push('Header "'+header+'" ambigu dan cocok dengan lebih dari satu kolom.');return}
       const key=matches[0].key;
       if(Object.prototype.hasOwnProperty.call(indexByKey,key)){issues.push('Kolom "'+matches[0].label+'" terpetakan lebih dari sekali.');return}
@@ -353,25 +346,29 @@
       $("data-check-footer-note").textContent="Perbaiki header lalu jalankan pemeriksaan data kembali.";return;
     }
     
-    const rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
+    let rows=result.rows.map(r=>({line:r.line,cells:r.cells,errors:[],warnings:[]}));
     if(type==="inbound"){
-      const seen=new Set();
+      const firstRowByDo=new Map();
+      const uniqueRows=[];
       rows.forEach(r=>{
-        const [doNo,part,name,qty]=r.cells;
-        if(!doNo)r.errors.push("Nomor DO wajib diisi pada setiap baris.");
-        if(!part)r.errors.push("PART NUMBER wajib diisi.");
-        if(!name)r.errors.push("NAMA PRODUK wajib diisi.");
-        if(!qty||!Number.isFinite(Number(qty))||Number(qty)<=0)r.errors.push("QTY harus berupa angka lebih dari nol.");
-        const key=[normalizeDocument(doNo),normalizeDocument(part)].join("|");
-        if(doNo&&part&&seen.has(key))r.warnings.push("Kombinasi DO dan PART NUMBER terduplikasi. Baris tidak digabung atau dijumlahkan otomatis.");
-        if(doNo&&part)seen.add(key);
+        const [doNo]=r.cells;
+        if(!doNo){r.errors.push("Nomor DO wajib diisi.");uniqueRows.push(r);return;}
+        const key=normalizeDocument(doNo);
+        if(firstRowByDo.has(key)){
+          const first=firstRowByDo.get(key);
+          first.warnings.push("DO "+doNo+" berulang pada sumber (baris "+r.line+"); baris duplikat diabaikan dan hanya satu referensi DO akan diimpor.");
+          return;
+        }
+        firstRowByDo.set(key,r);
+        uniqueRows.push(r);
       });
+      rows=uniqueRows;
     } else {
-      const shipmentRows=new Map(),plates=new Map();
+      const shipmentRows=new Map(),plates=new Map(),uniqueRows=[];
       rows.forEach(r=>{
-        const [vendor,plate,driver,truck,destination,shipment,quantity]=r.cells;
-        [["VENDOR",vendor],["PLAT NOMOR",plate],["NAMA DRIVER",driver],["TIPE TRUCK",truck],["TUJUAN",destination],["SHIPMENT",shipment]].forEach(([label,value])=>{if(!value)r.errors.push(label+" wajib diisi.")});
-        if(!quantity||!Number.isFinite(Number(quantity))||Number(quantity)<=0)r.errors.push("QUANTITY harus berupa angka lebih dari nol.");
+        const [vendor,plate,driver,truck,destination,shipment]=r.cells;
+        [["VENDOR",vendor],["PLAT NOMOR",plate],["TIPE TRUCK",truck],["TUJUAN",destination],["SHIPMENT",shipment]].forEach(([label,value])=>{if(!value)r.errors.push(label+" wajib diisi.")});
+        if(!driver)r.warnings.push("Nama driver kosong; lengkapi jika tersedia. Pengelompokan sementara menggunakan data armada lain.");
         const shipmentKey=normalizeDocument(shipment);
         if(shipmentKey){
           if(!shipmentRows.has(shipmentKey))shipmentRows.set(shipmentKey,[]);
@@ -379,18 +376,29 @@
         }
         if(plate){const plateKey=plate.toUpperCase().replace(/\s+/g," ");if(!plates.has(plateKey))plates.set(plateKey,[]);plates.get(plateKey).push(r)}
       });
-      shipmentRows.forEach((shipmentGroup,shipmentKey)=>{
-        const tripKeys=new Set(shipmentGroup.map(r=>[r.cells[0],r.cells[1],r.cells[4]].map(normalizeDocument).join("|")));
-        if(tripKeys.size>1)shipmentGroup.forEach(r=>r.errors.push("SHIPMENT "+shipmentKey+" muncul pada lebih dari satu trip. Shipment yang sama hanya boleh berada pada trip dengan plat nomor, vendor, dan tujuan yang sama."));
+      rows.forEach(r=>{
+        const shipmentKey=normalizeDocument(r.cells[5]),group=shipmentKey?shipmentRows.get(shipmentKey):null;
+        if(!group||group.length===1){uniqueRows.push(r);return;}
+        const first=group[0],identical=group.every(item=>item.cells.every((value,index)=>normalizeDocument(value)===normalizeDocument(first.cells[index])));
+        if(identical){
+          if(r===first){r.warnings.push("SHIPMENT "+shipmentKey+" berulang pada sumber; baris duplikat identik diabaikan dan hanya satu referensi Shipment akan diimpor.");uniqueRows.push(r);}
+        } else {
+          r.errors.push("SHIPMENT "+shipmentKey+" muncul lebih dari sekali dengan data berbeda. Periksa dan sisakan satu baris yang benar.");
+          uniqueRows.push(r);
+        }
       });
-      plates.forEach(group=>{if(new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," "))).size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."))});
+      plates.forEach(group=>{
+        const knownDrivers=new Set(group.map(r=>(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")).filter(Boolean));
+        if(knownDrivers.size>1)group.forEach(r=>r.warnings.push("Plat nomor sama tercatat dengan nama driver berbeda. Periksa data sumber sebelum konfirmasi."));
+      });
+      rows=uniqueRows;
     }
     const errors=rows.reduce((n,r)=>n+r.errors.length,0),warnings=rows.reduce((n,r)=>n+r.warnings.length,0);
-    const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0].trim().toUpperCase())).size:new Set(rows.filter(r=>r.cells[1]&&r.cells[2]).map(r=>truckKey(r))).size;
+    const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0].trim().toUpperCase())).size:new Set(rows.filter(r=>r.cells[1]).map(r=>truckKey(r))).size;
     checked=true;parsed=rows;
     $("row-count").textContent=rows.length+" baris";$("group-count").textContent=groupCount+" kelompok";$("error-count").textContent=errors+" kesalahan";$("warning-count").textContent=warnings+" peringatan";
-    $("data-check-state").className="plan-status "+(errors?"invalid":warnings?"warning":"valid");
-    $("data-check-state").innerHTML=errors?'<i class="bi bi-x-circle-fill"></i>Perlu perbaikan':warnings?'<i class="bi bi-exclamation-triangle-fill"></i>Perlu ditinjau':'<i class="bi bi-check-circle-fill"></i>Valid';
+    $("data-check-state").className="plan-status "+(errors?"invalid":(type==="inbound"||!warnings)?"valid":"warning");
+    $("data-check-state").innerHTML=errors?'<i class="bi bi-x-circle-fill"></i>Perlu perbaikan':(type==="inbound"||!warnings)?'<i class="bi bi-check-circle-fill"></i>Valid':'<i class="bi bi-exclamation-triangle-fill"></i>Perlu ditinjau';
     $("validation-message").className="plan-callout mb-3";
     const msg=errors?"Ada "+errors+" kesalahan pada data. Perbaiki data sumber sebelum konfirmasi.":warnings?"Tidak ada kesalahan wajib, tetapi ada "+warnings+" peringatan yang perlu diperiksa.":"Semua "+rows.length+" baris lolos validasi dasar. Periksa ringkasan dan peringatan sebelum konfirmasi.";
     $("validation-message").innerHTML='<i class="bi '+(errors?'bi-exclamation-circle-fill':warnings?'bi-exclamation-triangle-fill':'bi-check-circle-fill')+'"></i><div>'+textSafe(msg)+(type==="inbound"?' Nomor DO kosong tidak diisi otomatis.':'')+'</div>';
@@ -400,53 +408,45 @@
     
   }
 
-  function truckKey(r){return [(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," "),(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")].join("|");}
+  function truckKey(r){return [r.cells[0],r.cells[1],r.cells[2],r.cells[3],r.cells[4]].map(value=>String(value||"").trim().toUpperCase().replace(/\s+/g," ")).join("|");}
   function renderTripGroups(){
     const card=$("truk-group-card");
     if(!checked||!parsed.length){card.classList.add("d-none");return;}
     card.classList.remove("d-none");
     const groups=new Map();
     if(type==="inbound"){
-      $("truk-group-head").innerHTML="<tr>"+["No.","DO / Transport task","Part number","Nama produk","QTY","Kelompok truk otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
-      parsed.forEach((r,i)=>{
-        const cells=r.cells,doNumber=(cells[0]||"").trim(),key=doNumber.toUpperCase().replace(/\s+/g," ");
-        if(doNumber&&!groups.has(key))groups.set(key,{doNumber,rows:[]});
-        if(doNumber)groups.get(key).rows.push({row:r,index:i});
-      });
-      $("truk-group-body").innerHTML=parsed.map((r,i)=>{
-        const cells=r.cells,doNumber=(cells[0]||"").trim();
-        if(!doNumber)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Nomor DO / Transport task wajib diisi untuk mengenali kelompok truk.</td></tr>';
-        const groupNo=[...groups.keys()].indexOf(doNumber.toUpperCase().replace(/\s+/g," "))+1;
-        return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(doNumber)+'</span></td><td><span class="plan-mono">'+textSafe(cells[1]||"—")+'</span></td><td>'+textSafe(cells[2]||"—")+'</td><td>'+textSafe(cells[3]||"—")+'</td><td><span class="plan-status valid">Truk '+groupNo+'</span></td></tr>';
-      }).join("");
-      const groupedRows=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);
-      const hasMissing=parsed.some(r=>!(r.cells[0]||"").trim());
-      $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" detail barang";
-      $("truk-group-state").className="plan-status "+(hasMissing?"warning":"valid");
-      $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(hasMissing?"Nomor DO belum lengkap":"Pengelompokan otomatis");
-      $("group-count").textContent=groups.size+" truk";
+      $("truk-group-head").innerHTML="<tr>"+["No.","DO / Transport task","Kelompok kunjungan otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
+      parsed.forEach((r)=>{const d=(r.cells[0]||"").trim(),k=normalizeDocument(d);if(d&&!groups.has(k))groups.set(k,{doNumber:d,rows:[]});if(d)groups.get(k).rows.push(r);});
+      $("truk-group-body").innerHTML=parsed.map((r,i)=>{const d=(r.cells[0]||"").trim();if(!d)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="2" class="text-danger">Nomor DO wajib diisi.</td></tr>';const n=[...groups.keys()].indexOf(normalizeDocument(d))+1;return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(d)+'</span></td><td><span class="plan-status valid">Truk '+n+'</span></td></tr>';}).join("");
+      const count=[...groups.values()].reduce((n,g)=>n+g.rows.length,0),missing=parsed.some(r=>!(r.cells[0]||"").trim());
+      $("truk-group-summary").textContent=groups.size+" truk · "+count+" referensi DO";
+      $("truk-group-state").className="plan-status "+(missing?"warning":"valid");
+      $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(missing?"Nomor DO belum lengkap":"Pengelompokan otomatis");
+      $("group-count").textContent=groups.size+" kunjungan";
       return;
     }
-    parsed.forEach((r,i)=>{
+    parsed.forEach(r=>{
       const plate=(r.cells[1]||"").trim(),driver=(r.cells[2]||"").trim();
-      if(!plate||!driver)return;
+      if(!plate)return;
       const key=truckKey(r);
       if(!groups.has(key))groups.set(key,{plate,driver,rows:[]});
-      groups.get(key).rows.push({row:r,index:i});
+      groups.get(key).rows.push(r);
     });
     const groupIndexByKey=new Map([...groups.keys()].map((key,index)=>[key,index+1]));
+    $("truk-group-head").innerHTML="<tr>"+["No.","Plat nomor","Shipment","Vendor","Tujuan","Kelompok truk otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("truk-group-body").innerHTML=parsed.map((r,i)=>{
-      const cells=r.cells,plate=(cells[1]||"").trim(),driver=(cells[2]||"").trim(),shipment=cells[5]||"—";
-      if(!plate||!driver)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="6" class="text-danger">Plat nomor dan nama driver wajib diisi untuk mengenali truk.</td></tr>';
+      const c=r.cells,plate=(c[1]||"").trim(),driver=(c[2]||"").trim(),shipment=(c[5]||"").trim();
+      if(!plate)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="5" class="text-danger">Plat nomor wajib diisi untuk mengenali truk.</td></tr>';
       const plateKey=plate.toUpperCase().replace(/\s+/g," ");
-      const samePlateDifferentDriver=parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driver.toUpperCase().replace(/\s+/g," "));
+      const driverKey=driver.toUpperCase().replace(/\s+/g," ");
+      const samePlateDifferentDriver=!!driver&&parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===plateKey&&(other.cells[2]||"").trim()&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==driverKey);
       const groupNo=groupIndexByKey.get(truckKey(r));
-      return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment)+'</span></td><td>'+textSafe(cells[0]||"—")+'</td><td>'+textSafe(cells[4]||"—")+'</td><td>'+textSafe(cells[6]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
+      return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(plate)+'</span></td><td><span class="plan-mono">'+textSafe(shipment||"—")+'</span></td><td>'+textSafe(c[0]||"—")+'</td><td>'+textSafe(c[4]||"—")+'</td><td><span class="plan-status '+(samePlateDifferentDriver?'warning':'valid')+'">'+(samePlateDifferentDriver?'Periksa driver':'Truk '+groupNo)+'</span></td></tr>';
     }).join("");
     const groupedRows=[...groups.values()].reduce((n,g)=>n+g.rows.length,0);
-    $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" detail shipment";
-    const hasMissing=parsed.some(r=>!(r.cells[1]||"").trim()||!(r.cells[2]||"").trim());
+    const hasMissing=parsed.some(r=>!(r.cells[1]||"").trim());
     const hasPlateConflict=parsed.some((r,i)=>parsed.some((other,j)=>j!==i&&(other.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")===(r.cells[1]||"").trim().toUpperCase().replace(/\s+/g," ")&&(other.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")!==(r.cells[2]||"").trim().toUpperCase().replace(/\s+/g," ")));
+    $("truk-group-summary").textContent=groups.size+" truk terdeteksi otomatis · "+groupedRows+" referensi Shipment";
     $("truk-group-state").className="plan-status "+(hasMissing||hasPlateConflict?"warning":"valid");
     $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(hasMissing?"Data truk belum lengkap":hasPlateConflict?"Perlu periksa driver":"Pengelompokan otomatis");
     $("group-count").textContent=groups.size+" truk";
@@ -461,11 +461,11 @@
     const groups=type==="inbound"?new Set(parsed.map(r=>(r.cells[0]||"").trim().toUpperCase()).filter(Boolean)).size:new Set(parsed.filter(r=>(r.cells[1]||"").trim()&&(r.cells[2]||"").trim()).map(r=>truckKey(r))).size;
     $("confirm-groups").textContent=String(groups);
     $("confirm-warning").innerHTML='<i class="bi bi-exclamation-triangle-fill me-2"></i>Plan dapat aktif berdampingan untuk klien, tanggal, dan jenis yang sama selama nomor DO (Inbound) atau Shipment (Outbound) belum digunakan pada Plan aktif lain.';
-    const headers=type==="inbound"?["DO / Transport task","Part number","Nama produk","QTY","Status"]:["Truk","Plat nomor","Nama driver","Shipment","Vendor","Tipe truck","Tujuan","Quantity","Status"];
+    const headers=type==="inbound"?["DO / Transport task","Status"]:["Truk","Plat nomor","Nama driver","Shipment","Vendor","Tipe truck","Tujuan","Status"];
     $("confirm-table-head").innerHTML="<tr>"+headers.map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("confirm-table-body").innerHTML=parsed.map((r,i)=>{
       const c=r.cells;
-      const truckNo=type==="outbound"?[...new Set(parsed.slice(0,i+1).filter(row=>(row.cells[1]||"").trim()&&(row.cells[2]||"").trim()).map(row=>truckKey(row)))].indexOf(truckKey(r))+1:0; const vals=type==="inbound"?[c[0],c[1],c[2],c[3],r.warnings.length?"Perlu ditinjau":"Valid"]:["Truk "+truckNo,c[1],c[2],c[5],c[0],c[3],c[4],c[6],r.warnings.length?"Perlu ditinjau":"Valid"];
+      const truckNo=type==="outbound"?[...new Set(parsed.slice(0,i+1).filter(row=>(row.cells[1]||"").trim()&&(row.cells[2]||"").trim()).map(row=>truckKey(row)))].indexOf(truckKey(r))+1:0; const vals=type==="inbound"?[c[0],"Valid"]:["Truk "+truckNo,c[1],c[2],c[5],c[0],c[3],c[4],r.warnings.length?"Perlu ditinjau":"Valid"];
       return "<tr>"+vals.map((v,j)=>"<td>"+((type==="outbound"&&(j===0||j===1))||(type==="inbound"&&j<2)?'<span class="plan-mono">'+textSafe(v||"—")+"</span>":textSafe(v||"—"))+"</td>").join("")+"</tr>";
     }).join("");
     bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).show();
@@ -474,6 +474,8 @@
   document.querySelectorAll("[data-plan-type]").forEach(b=>b.addEventListener("click",()=>setType(b.dataset.planType)));
   $("data-check-button").addEventListener("click",validate);
   $("plan-client").addEventListener("change",resetDataCheck);
+  $("paste-data").addEventListener("input",resetDataCheck);
+  $("operational-date").addEventListener("change",resetDataCheck);
   $("restore-example").addEventListener("click",()=>{ $("paste-data").value=schemas[type].sample;resetDataCheck();toast("Contoh "+(type==="inbound"?"Inbound":"Outbound")+" dimuat.")});
   $("copy-template").addEventListener("click",async()=>{
     const header=schemas[type].headers.join("\t");
@@ -489,8 +491,7 @@
   function buildPayloadRows(){
     return parsed.map(function(row){
       const c=row.cells;
-      if(type==="inbound") return {do_number:c[0],part_number:c[1],product_name:c[2],quantity:Number(c[3])};
-      return {vendor:c[0],plate_number:c[1],driver_name:c[2],truck_type:c[3],destination:c[4],shipment_number:c[5],quantity:Number(c[6])};
+      if(type==="inbound") return {do_number:c[0]}; return {vendor:c[0],plate_number:c[1],driver_name:c[2],truck_type:c[3],destination:c[4],shipment_number:c[5]};
     });
   }
   function describeSaveError(message){
@@ -501,15 +502,14 @@
     if(text.includes("PERMISSION_DENIED")||text.includes("42501")) return "Akun Anda tidak memiliki izin untuk membuat Plan. Pastikan Anda masuk sebagai Admin.";
     if(text.includes("AUTH_REQUIRED")||text.includes("401")) return "Sesi masuk tidak valid atau sudah berakhir. Masuk kembali lalu ulangi.";
     if(text.includes("validate_import_plan_shipment_trip")||text.includes("Shipment yang sama")) return "Shipment yang sama terdeteksi pada vendor, plat, atau tujuan berbeda. Perbaiki data Excel lalu periksa ulang.";
-    if(text.includes("QUANTITY")||text.includes("quantity")) return "Nilai quantity tidak valid. Pastikan setiap quantity berupa angka lebih dari nol.";
     if(text.includes("CLIENT_NOT_FOUND")) return "Klien yang dipilih tidak ditemukan atau sudah tidak tersedia.";
     return text.slice(0,500)||"Database gagal menyimpan Plan. Periksa koneksi dan coba kembali.";
   }
   async function saveAndActivatePlan(){
     if(saving||!checked||!parsed.length||parsed.some(function(row){return row.errors.length;})) return;
     const sessionNow=typeof getTrcmSession==="function"?getTrcmSession():null;
-    if(!sessionNow||!sessionNow.access_token){toast("Sesi masuk tidak tersedia. Masuk kembali sebelum menyimpan Plan.");return;}
-    if(!$("plan-client").value||!$("operational-date").value){toast("Pilih klien dan tanggal operasional sebelum menyimpan.");return;}
+    if(!sessionNow||!sessionNow.access_token){toast("Sesi masuk tidak tersedia. Masuk kembali sebelum menyimpan Plan.","warning");return;}
+    if(!$("plan-client").value||!$("operational-date").value){toast("Pilih klien dan tanggal operasional sebelum menyimpan.","warning");return;}
     saving=true;
     const button=$("confirm-import-final");
     const original=button.innerHTML;
@@ -535,12 +535,12 @@
       $("data-check-state").innerHTML='<i class="bi bi-check-circle-fill"></i>Plan tersimpan';
       $("data-check-footer-note").textContent="Plan aktif · "+saved.row_count+" baris · "+saved.trip_count+" trip · ID "+saved.plan_id;
       $("confirm-button").disabled=true;
-      toast("Plan "+(type==="inbound"?"Inbound":"Outbound")+" berhasil disimpan dan diaktifkan ("+saved.row_count+" baris).");
+      toast("Plan "+(type==="inbound"?"Inbound":"Outbound")+" berhasil disimpan dan diaktifkan ("+saved.row_count+" baris).","success");
     }catch(error){
       console.error("TRCM save import plan:",error);
       $("confirm-warning").className="alert alert-danger small";
       $("confirm-warning").textContent=error.message||"Gagal menyimpan Plan.";
-      toast(error.message||"Gagal menyimpan Plan.");
+      toast(error.message||"Gagal menyimpan Plan.","error");
     }finally{
       saving=false;
       button.disabled=false;

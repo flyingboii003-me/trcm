@@ -1194,3 +1194,48 @@ button,input,select{font:inherit}
   .trcm-app .btn:not(.btn-close){min-height:42px}
   .trcm-app .btn.btn-sm:not(.btn-close){min-height:36px}
 }
+
+
+/* Shipment/DO labels in Checker tables: wrap cleanly without clipping neighboring columns. */
+.trcm-app .loading-shipment-cell{min-width:150px;max-width:260px;white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
+.trcm-app .loading-shipment-list{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.3rem;min-width:0;max-width:100%}
+.trcm-app .loading-shipment-chip{display:inline-block;max-width:100%;min-width:0;padding:.22rem .45rem;border:1px solid rgba(0,110,205,.18);border-radius:7px;background:#eef5fb;color:#174d7a;font-size:.72rem;font-weight:700;line-height:1.4;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.trcm-app .visit-shipment-section{min-width:0}
+.trcm-app .visit-shipment-caption{margin:-.25rem 0 .75rem;color:var(--text-muted);font-size:.75rem;line-height:1.45}
+.trcm-app .visit-shipment-table-wrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.trcm-app .visit-shipment-table{width:100%;min-width:420px;table-layout:auto}
+.trcm-app .visit-shipment-table th,.trcm-app .visit-shipment-table td{vertical-align:top;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.trcm-app .visit-shipment-table td:first-child{min-width:110px;max-width:210px;font-weight:700}
+.trcm-app .visit-shipment-table td:last-child{min-width:140px}
+.trcm-app .visit-shipment-table ul{padding-left:1.1rem}
+.trcm-app .visit-shipment-empty{padding:.65rem .75rem;border-radius:8px;background:var(--surface-muted,#f5f7fa);font-size:.8rem;line-height:1.5;overflow-wrap:anywhere}
+
+/* Mobile viewport-safe modal spacing; the content area, not the modal shell, scrolls. */
+.trcm-app .modal-dialog-scrollable{height:calc(100dvh - 2rem);max-height:calc(100dvh - 2rem)}
+.trcm-app .modal-dialog-scrollable .modal-content{min-height:0;overflow:hidden}
+.trcm-app .modal-dialog-scrollable .modal-header,.trcm-app .modal-dialog-scrollable .modal-footer{flex:0 0 auto}
+.trcm-app .modal-dialog-scrollable .modal-body{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.trcm-app .modal-card-custom{height:auto;max-height:calc(100dvh - 2rem);margin:auto}
+.trcm-app .modal-card-custom .modal-card-header{padding:clamp(.65rem,2.5vh,1rem) clamp(.75rem,3vw,1.25rem)}
+.trcm-app .modal-card-custom .modal-card-body{padding:clamp(.65rem,2.5vh,1rem) clamp(.75rem,3vw,1.25rem)}
+.trcm-app .modal-card-custom .modal-card-footer{padding:clamp(.55rem,2vh,.8rem) clamp(.75rem,3vw,1.25rem)}
+@media(max-width:767.98px){
+  .trcm-app .modal-dialog-scrollable{height:calc(100dvh - 1rem);max-height:calc(100dvh - 1rem);margin:.5rem auto}
+  .trcm-app .modal-dialog-scrollable .modal-content{max-height:100%;border-radius:var(--radius-lg)}
+  .trcm-app .modal-dialog-scrollable .modal-header{padding:.7rem .85rem}
+  .trcm-app .modal-dialog-scrollable .modal-body{padding:.75rem .85rem}
+  .trcm-app .modal-dialog-scrollable .modal-footer{padding:.6rem .85rem}
+  .trcm-app .modal-card-custom{width:calc(100% - 1rem);max-height:calc(100dvh - 1rem);margin:auto}
+  .trcm-app .modal-card-custom .modal-card-header{padding:.7rem .8rem;gap:.5rem}
+  .trcm-app .modal-card-custom .modal-card-body{padding:.65rem .8rem}
+  .trcm-app .modal-card-custom .modal-card-footer{padding:.55rem .8rem}
+  .trcm-app .visit-shipment-table{min-width:390px}
+  .trcm-app .loading-shipment-cell{min-width:130px;max-width:200px}
+}
+@media(max-height:560px){
+  .trcm-app .modal-dialog-scrollable{height:calc(100dvh - .5rem);max-height:calc(100dvh - .5rem);margin:.25rem auto}
+  .trcm-app .modal-card-custom{max-height:calc(100dvh - .5rem)}
+  .trcm-app .modal-card-custom .modal-card-header{padding:.45rem .7rem}
+  .trcm-app .modal-card-custom .modal-card-body{padding:.45rem .7rem}
+  .trcm-app .modal-card-custom .modal-card-footer{padding:.4rem .7rem}
+}

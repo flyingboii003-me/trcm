@@ -188,6 +188,7 @@ window.trcmComponentsReady.then(async function () {
   const modal = new bootstrap.Modal(modalElement);
 
   let visits = [];
+  const visitShipments = new Map();
   let selectedVisit = null;
   let selectedPhotoFiles = [];
 
@@ -324,6 +325,28 @@ window.trcmComponentsReady.then(async function () {
     return activityType || "—";
   }
 
+  async function loadVisitShipments(visitIds) {
+    visitShipments.clear();
+    if (!visitIds.length) return;
+    const path = "/rest/v1/visit_plan_items?select=visit_id,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const rows = await request(path);
+    if (!Array.isArray(rows)) return;
+    rows.forEach(function (row) {
+      const item = row.import_plan_items || {};
+      const label = String(item.do_number || item.shipment_number || "").trim();
+      if (!label || !row.visit_id) return;
+      if (!visitShipments.has(row.visit_id)) visitShipments.set(row.visit_id, []);
+      const list = visitShipments.get(row.visit_id);
+      if (!list.some(function (value) { return value.toLowerCase() === label.toLowerCase(); })) list.push(label);
+    });
+  }
+  function renderShipmentCell(visit) {
+    const labels = visitShipments.get(visit.id) || [];
+    if (!labels.length) return '<span class="text-muted">—</span>';
+    return '<div class="loading-shipment-list">' + labels.map(function (label) {
+      return '<span class="loading-shipment-chip" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</span>';
+    }).join("") + '</div>';
+  }
   function renderTable() {
     const needle = searchCard.value.trim().toLowerCase();
     const filtered = visits.filter(function (visit) {
@@ -347,7 +370,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
-        '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
+        '<td class="loading-shipment-cell">' + renderShipmentCell(visit) + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
         '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canFinish ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
       '</tr>';
@@ -369,6 +392,8 @@ window.trcmComponentsReady.then(async function () {
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
+      try { await loadVisitShipments(visits.map(function (visit) { return visit.id; })); }
+      catch (shipmentError) { console.warn("TRCM Selesai Loading shipments:", shipmentError); }
       renderTable();
     } catch (error) {
       console.error("TRCM Selesai Loading:", error);
@@ -434,7 +459,7 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitPlanShipments(visitId) {
     const container = document.getElementById("finish-plan-shipments");
     try {
-      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items(do_number,shipment_number,part_number,product_name,quantity,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
+      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,import_plan_items(do_number,shipment_number,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
       if (!Array.isArray(rows) || !rows.length) {
         container.innerHTML = '<span class="text-muted">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</span>';
         return;
@@ -442,22 +467,25 @@ window.trcmComponentsReady.then(async function () {
       const groups = new Map();
       rows.forEach(function (row) {
         const item = row.import_plan_items || {};
-        const label = item.do_number || item.shipment_number || "Shipment tanpa nomor";
+        const label = item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "DO/Shipment tanpa nomor";
+        const trip = item.import_plan_trips || { trip_number: row.snapshot_trip_number, vendor: row.snapshot_vendor, destination: row.snapshot_destination };
         const key = String(label).trim().toLowerCase();
-        if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: item.import_plan_trips || null });
+        if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: trip });
         const group = groups.get(key);
-        if (!group.trip && item.import_plan_trips) group.trip = item.import_plan_trips;
-        const detail = [item.part_number ? "Part " + item.part_number : "", item.product_name || "", selectedVisit && selectedVisit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""].filter(Boolean).join(" · ");
-        if (detail && !group.items.includes(detail)) group.items.push(detail);
+        if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
+        
       });
-      const showTripColumns = selectedVisit && selectedVisit.activity_type === "outbound";
+      const showTripColumns = rows.some(function (row) {
+        return !!(row.snapshot_vendor || row.snapshot_destination ||
+          (row.import_plan_items && row.import_plan_items.import_plan_trips));
+      });
       container.innerHTML = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO/Shipment</th>' +
         (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
-        '<th>Item/Barang</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+        '</tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
           const trip = group.trip || {};
           return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
             (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
-            '<td>' + (group.items.length ? '<ul class="mb-0 ps-3">' + group.items.map(function (detail) { return '<li>' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '—') + '</td></tr>';
+            '</tr>';
         }).join("") + '</tbody></table></div>';
     } catch (error) {
       console.error("TRCM finish loading plan shipments:", error);

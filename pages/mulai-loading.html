@@ -225,6 +225,7 @@ window.trcmComponentsReady.then(async function () {
   const modal = new bootstrap.Modal(modalElement);
 
   let visits = [];
+  const visitShipments = new Map();
   let gates = [];
   let lines = [];
   let selectedVisit = null;
@@ -265,6 +266,28 @@ window.trcmComponentsReady.then(async function () {
     return activityType || "—";
   }
 
+  async function loadVisitShipments(visitIds) {
+    visitShipments.clear();
+    if (!visitIds.length) return;
+    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const rows = await request(path);
+    if (!Array.isArray(rows)) return;
+    rows.forEach(function (row) {
+      const item = row.import_plan_items || {};
+      const label = String(item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "").trim();
+      if (!label || !row.visit_id) return;
+      if (!visitShipments.has(row.visit_id)) visitShipments.set(row.visit_id, []);
+      const list = visitShipments.get(row.visit_id);
+      if (!list.some(function (value) { return value.toLowerCase() === label.toLowerCase(); })) list.push(label);
+    });
+  }
+  function renderShipmentCell(visit) {
+    const labels = visitShipments.get(visit.id) || [];
+    if (!labels.length) return '<span class="text-muted">—</span>';
+    return '<div class="loading-shipment-list">' + labels.map(function (label) {
+      return '<span class="loading-shipment-chip" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</span>';
+    }).join("") + '</div>';
+  }
   function renderTable() {
     const needle = searchCard.value.trim().toLowerCase();
     const selectedClient = clientFilter.value;
@@ -293,7 +316,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
-        '<td>' + escapeHtml(visit.shipment_number || "—") + '</td>' +
+        '<td class="loading-shipment-cell">' + renderShipmentCell(visit) + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
         '<td class="action-cell">' + action + '</td>' +
       '</tr>';
@@ -342,6 +365,8 @@ window.trcmComponentsReady.then(async function () {
       const data = await request(path);
       if (!Array.isArray(data)) throw new Error("Respons data Checker tidak valid.");
       visits = data;
+      try { await loadVisitShipments(visits.map(function (visit) { return visit.id; })); }
+      catch (shipmentError) { console.warn("TRCM Mulai Loading shipments:", shipmentError); }
       const selected = clientFilter.value;
       const clients = Array.from(new Set(visits.map(function (visit) { return visit.clients && visit.clients.name ? visit.clients.name : ""; }).filter(Boolean))).sort(function (a,b) { return a.localeCompare(b); });
       clientFilter.innerHTML = '<option value="all">Semua Klien</option>' + clients.map(function (name) { return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>'; }).join("");
@@ -428,14 +453,7 @@ window.trcmComponentsReady.then(async function () {
         const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
         const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
         const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
-        const details = group.items.map(function (item) {
-          const detail = [
-            item.part_number ? "Part " + item.part_number : "",
-            item.product_name || "",
-            selectedVisit && selectedVisit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""
-          ].filter(Boolean).join(" · ");
-          return '<li class="small text-muted">' + escapeHtml(detail || ("Baris " + item.row_number)) + '</li>';
-        }).join("");
+        const details = "";
         const tripName = group.trip
           ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
           : "";
@@ -444,10 +462,10 @@ window.trcmComponentsReady.then(async function () {
           (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
           '<div class="flex-grow-1 min-w-0">' +
           '<div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
-          '<span class="badge text-bg-light border">' + group.items.length + ' item</span>' +
+          '<span class="badge text-bg-light border">' + group.items.length + ' referensi</span>' +
           (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
           (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div>' +
-          '<ul class="list-unstyled mb-0 mt-2">' + details + '</ul></div></div></div>';
+          '</div></div></div>';
       }).join("");
       return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</section>';
     }).join("");
@@ -525,7 +543,7 @@ window.trcmComponentsReady.then(async function () {
     planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Memuat shipment dari Plan…</div>';
     try {
       const [items, trips, linkedItems] = await Promise.all([
-        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,part_number,product_name,quantity,manual_processed&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
+        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,manual_processed&plan_id=eq." + encodeURIComponent(planId) + "&order=row_number.asc"),
         request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(planId) + "&order=trip_number.asc"),
         request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq." + encodeURIComponent(planId))
       ]);

@@ -492,7 +492,7 @@ async function openVisitModal(visitId) {
 
     let selectedPlanShipmentHtml = '<div class="modal-loading">Memuat DO/Shipment yang dipilih...</div>';
     try {
-      const linkedItems = await fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items(do_number,shipment_number,part_number,product_name,quantity,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {
+      const linkedItems = await fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {
         headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + trcmSession.access_token }
       });
       const linkedText = await linkedItems.text();
@@ -503,29 +503,38 @@ async function openVisitModal(visitId) {
         const groups = new Map();
         linkedRows.forEach(function (row) {
           const item = row.import_plan_items || {};
-          const label = item.do_number || item.shipment_number || "Shipment tanpa nomor";
+          const label = item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "DO/Shipment tanpa nomor";
+          const trip = item.import_plan_trips || {
+            trip_number: row.snapshot_trip_number,
+            vendor: row.snapshot_vendor,
+            destination: row.snapshot_destination
+          };
+          const activityType = row.snapshot_activity_type || visit.activity_type;
           const key = String(label).trim().toLowerCase();
-          if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: item.import_plan_trips || null });
+          if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: trip });
           const group = groups.get(key);
-          if (!group.trip && item.import_plan_trips) group.trip = item.import_plan_trips;
-          const detail = [item.part_number ? "Part " + item.part_number : "", item.product_name || "", visit.activity_type !== "outbound" && item.quantity !== null && item.quantity !== undefined ? "Qty " + item.quantity : ""].filter(Boolean).join(" · ");
+          if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
+          const detail = "";
           if (detail && !group.items.includes(detail)) group.items.push(detail);
         });
-        const showTripColumns = visit.activity_type === "outbound";
-        selectedPlanShipmentHtml = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO/Shipment</th>' +
+        const showTripColumns = linkedRows.some(function (row) {
+          return !!(row.snapshot_vendor || row.snapshot_destination ||
+            (row.import_plan_items && row.import_plan_items.import_plan_trips));
+        });
+        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO/Shipment</th>' +
           (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
-          '<th>Item/Barang</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+          '</tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
             return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
               (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
-              '<td>' + (group.items.length ? '<ul class="mb-0 ps-3">' + group.items.map(function (detail) { return '<li>' + escapeHtml(detail) + '</li>'; }).join("") + '</ul>' : '—') + '</td></tr>';
+              '</tr>';
           }).join("") + '</tbody></table></div>';
       } else {
-        selectedPlanShipmentHtml = '<div class="modal-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
+        selectedPlanShipmentHtml = '<div class="modal-empty visit-shipment-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
       }
     } catch (shipmentError) {
       console.warn("TRCM visit plan shipments:", shipmentError);
-      selectedPlanShipmentHtml = '<div class="modal-error">DO/Shipment pilihan tidak dapat dimuat.</div>';
+      selectedPlanShipmentHtml = '<div class="modal-error visit-shipment-empty">DO/Shipment pilihan tidak dapat dimuat. Coba buka kembali detail visit atau hubungi administrator jika masalah berlanjut.</div>';
     }
 
     const times = [
@@ -615,7 +624,7 @@ async function openVisitModal(visitId) {
         general + "</div></section>" +
       '<section class="detail-section"><h3>Shipment dan operasional</h3><div class="detail-grid">' +
         documents + "</div></section>" +
-      '<section class="detail-section"><h3>DO/Shipment yang dipilih saat Mulai Loading</h3>' + selectedPlanShipmentHtml + "</section>" +
+      '<section class="detail-section visit-shipment-section"><h3>DO/Shipment yang dipilih saat Mulai Loading</h3><p class="visit-shipment-caption">Daftar DO/Shipment yang ditautkan ke visit ini.</p>' + selectedPlanShipmentHtml + "</section>" +
       '<section class="detail-section"><h3>Waktu proses</h3><div class="detail-grid">' +
         times + "</div></section>" +
       '<section class="detail-section"><h3>Aktivitas dan Checker</h3>' + actorHtml + "</section>" +
