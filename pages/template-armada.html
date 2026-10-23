@@ -190,6 +190,9 @@ window.trcmComponentsReady.then(async function () {
       throw new Error("Sesi berakhir. Silakan masuk kembali.");
     }
     if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan gagal. Periksa akses dan koneksi.");
+    if ((requestOptions.method || "GET").toUpperCase() !== "GET" && Array.isArray(data) && data.length === 0) {
+      throw new Error("Tidak ada data yang berubah. Periksa permission dan pastikan template masih tersedia.");
+    }
     return data;
   }
 
