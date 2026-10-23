@@ -508,8 +508,8 @@
   async function saveAndActivatePlan(){
     if(saving||!checked||!parsed.length||parsed.some(function(row){return row.errors.length;})) return;
     const sessionNow=typeof getTrcmSession==="function"?getTrcmSession():null;
-    if(!sessionNow||!sessionNow.access_token){toast("Sesi masuk tidak tersedia. Masuk kembali sebelum menyimpan Plan.");return;}
-    if(!$("plan-client").value||!$("operational-date").value){toast("Pilih klien dan tanggal operasional sebelum menyimpan.");return;}
+    if(!sessionNow||!sessionNow.access_token){toast("Sesi masuk tidak tersedia. Masuk kembali sebelum menyimpan Plan.","warning");return;}
+    if(!$("plan-client").value||!$("operational-date").value){toast("Pilih klien dan tanggal operasional sebelum menyimpan.","warning");return;}
     saving=true;
     const button=$("confirm-import-final");
     const original=button.innerHTML;
@@ -535,12 +535,12 @@
       $("data-check-state").innerHTML='<i class="bi bi-check-circle-fill"></i>Plan tersimpan';
       $("data-check-footer-note").textContent="Plan aktif · "+saved.row_count+" baris · "+saved.trip_count+" trip · ID "+saved.plan_id;
       $("confirm-button").disabled=true;
-      toast("Plan "+(type==="inbound"?"Inbound":"Outbound")+" berhasil disimpan dan diaktifkan ("+saved.row_count+" baris).");
+      toast("Plan "+(type==="inbound"?"Inbound":"Outbound")+" berhasil disimpan dan diaktifkan ("+saved.row_count+" baris).","success");
     }catch(error){
       console.error("TRCM save import plan:",error);
       $("confirm-warning").className="alert alert-danger small";
       $("confirm-warning").textContent=error.message||"Gagal menyimpan Plan.";
-      toast(error.message||"Gagal menyimpan Plan.");
+      toast(error.message||"Gagal menyimpan Plan.","error");
     }finally{
       saving=false;
       button.disabled=false;
