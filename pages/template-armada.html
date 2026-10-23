@@ -424,6 +424,11 @@ window.trcmComponentsReady.then(async function () {
 
   modalElement.addEventListener("hidden.bs.modal", resetForm);
 
+  if (window.trcmPermissions) {
+    window.trcmPermissions.apply(document);
+    saveButton.hidden = true;
+  }
+
   try {
     await loadMasterOptions();
     await loadTemplates();
