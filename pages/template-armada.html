@@ -423,6 +423,7 @@ window.trcmComponentsReady.then(async function () {
   });
 
   modalElement.addEventListener("hidden.bs.modal", resetForm);
+  modalElement.addEventListener("show.bs.modal", function () { if (window.trcmPermissions) window.trcmPermissions.apply(modalElement); });
 
   if (window.trcmPermissions) window.trcmPermissions.apply(document);
 
