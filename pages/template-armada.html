@@ -19,8 +19,8 @@
 .template-table th{white-space:nowrap}
 .template-table td{vertical-align:middle}
 .template-plate{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;white-space:nowrap}
-.template-actions{display:flex;justify-content:flex-end;gap:.45rem;white-space:nowrap}
-.template-actions .btn{min-width:40px;min-height:40px}
+.template-actions{display:flex;justify-content:center;gap:.35rem;white-space:nowrap}
+.template-actions .action-button{flex:0 0 32px}
 .template-form-section{border:1px solid var(--border,#dfe5ef);border-radius:14px;padding:1rem;margin-bottom:1rem}
 /* The form wraps the modal header/body/footer, so make it the scrollable flex column. */
 #template-modal .modal-dialog-scrollable .modal-content{display:flex;flex-direction:column;min-height:0;overflow:hidden}
@@ -29,7 +29,7 @@
 #template-modal .modal-header,#template-modal .modal-footer{flex:0 0 auto}
 .template-form-section h3{font-size:1rem;font-weight:700;margin:0 0 .9rem}
 #template-alert{overflow-wrap:anywhere}
-@media(max-width:767.98px){.template-toolbar{align-items:stretch}.template-search{max-width:none}.template-toolbar .btn{width:100%;min-height:44px}.template-actions .btn{min-height:44px;min-width:44px}}
+@media(max-width:767.98px){.template-toolbar{align-items:stretch}.template-search{max-width:none}.template-toolbar .btn{width:100%;min-height:44px}.template-actions .action-button{width:40px;height:40px;flex-basis:40px}}
 </style>
 </head>
 <body class="trcm-app" data-page-resource="fleet_templates">
@@ -60,9 +60,9 @@
               <div class="small text-secondary" id="template-count" aria-live="polite">Memuat data...</div>
             </div>
             <div class="template-table-wrap">
-              <table class="table template-table">
-                <thead><tr><th>Nama template</th><th>Aktivitas</th><th>Plat nomor</th><th>Driver</th><th>Vendor</th><th>Klien</th><th class="text-end">Aksi</th></tr></thead>
-                <tbody id="template-table-body"><tr><td colspan="7" class="text-center py-4 text-secondary">Memuat data template...</td></tr></tbody>
+              <table class="table trcm-table template-table align-middle">
+                <thead><tr><th>Nama template</th><th>Aktivitas</th><th>Plat nomor</th><th>Driver</th><th>Vendor</th><th>Klien</th><th class="action-column text-center">Aksi</th></tr></thead>
+                <tbody id="template-table-body"><tr><td class="table-state" colspan="7">Memuat data template...</td></tr></tbody>
               </table>
             </div>
             <div id="template-empty" class="d-none text-center py-5">
@@ -253,9 +253,9 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(item.driver_name) + '</td>' +
         '<td>' + escapeHtml(item.vendor) + '</td>' +
         '<td>' + escapeHtml(getClientName(item.client_id)) + '</td>' +
-        '<td><div class="template-actions">' +
-          '<button class="btn btn-outline-primary" type="button" data-action="edit" data-id="' + escapeHtml(item.id) + '" data-permission="fleet_templates:update" aria-label="Ubah template ' + escapeHtml(item.name) + '" title="Ubah template"><i class="bi bi-pencil"></i></button>' +
-          '<button class="btn btn-outline-danger" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '" data-permission="fleet_templates:delete" aria-label="Hapus template ' + escapeHtml(item.name) + '" title="Hapus template"><i class="bi bi-trash"></i></button>' +
+        '<td class="action-cell"><div class="template-actions">' +
+          '<button class="action-button" type="button" data-action="edit" data-id="' + escapeHtml(item.id) + '" data-permission="fleet_templates:update" aria-label="Ubah template ' + escapeHtml(item.name) + '" title="Ubah template"><i class="bi bi-pencil"></i></button>' +
+          '<button class="action-button action-button-danger" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '" data-permission="fleet_templates:delete" aria-label="Hapus template ' + escapeHtml(item.name) + '" title="Hapus template"><i class="bi bi-trash"></i></button>' +
         '</div></td></tr>';
     }).join("");
     if (window.trcmPermissions) window.trcmPermissions.apply(tableBody);
@@ -263,7 +263,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function loadTemplates() {
     clearPageMessage();
-    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-secondary">Memuat data template...</td></tr>';
+    tableBody.innerHTML = '<tr><td class="table-state" colspan="7">Memuat data template...</td></tr>';
     tableBody.parentElement.classList.remove("d-none");
     emptyState.classList.add("d-none");
     try {
@@ -273,7 +273,7 @@ window.trcmComponentsReady.then(async function () {
       if (window.trcmPermissions) window.trcmPermissions.apply(document);
     } catch (error) {
       templates = [];
-      tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Gagal memuat template: ' + escapeHtml(error.message) + '</td></tr>';
+      tableBody.innerHTML = '<tr><td class="table-state error-state" colspan="7">Gagal memuat template: ' + escapeHtml(error.message) + '</td></tr>';
       countLabel.textContent = "Data tidak tersedia";
       showPageMessage(error.message || "Template gagal dimuat.", true);
     }
