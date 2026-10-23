@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TRCM - Manajemen Template Armada">
+<title>Template Armada — TRCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+<style>
+.template-toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.template-search{max-width:440px;width:100%}
+.template-table-wrap{overflow-x:auto}
+.template-table{min-width:900px;margin-bottom:0}
+.template-table th{white-space:nowrap}
+.template-table td{vertical-align:middle}
+.template-plate{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;white-space:nowrap}
+.template-actions{display:flex;justify-content:flex-end;gap:.45rem;white-space:nowrap}
+.template-actions .btn{min-width:40px;min-height:40px}
+.template-form-section{border:1px solid var(--border,#dfe5ef);border-radius:14px;padding:1rem;margin-bottom:1rem}
+.template-form-section h3{font-size:1rem;font-weight:700;margin:0 0 .9rem}
+#template-alert{overflow-wrap:anywhere}
+@media(max-width:767.98px){.template-toolbar{align-items:stretch}.template-search{max-width:none}.template-toolbar .btn{width:100%;min-height:44px}.template-actions .btn{min-height:44px;min-width:44px}}
+</style>
+</head>
+<body class="trcm-app" data-page-resource="fleet_templates">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Template Armada</h1>
+            <p class="page-subtitle">Kelola data armada yang dapat digunakan kembali saat registrasi.</p>
+          </div>
+          <button class="btn btn-primary" id="add-template-button" type="button" data-permission="fleet_templates:create"><i class="bi bi-plus-lg me-1"></i>Tambah template</button>
+        </div>
+
+        <div id="template-alert" class="registration-alert d-none mb-3" role="alert"></div>
+
+        <section class="card content-card">
+          <div class="card-header content-card-header">
+            <div><h2 class="card-title">Daftar template</h2><p>Tambah, ubah, atau hapus data template armada.</p></div>
+          </div>
+          <div class="card-body">
+            <div class="template-toolbar mb-3">
+              <label class="visually-hidden" for="template-search">Cari template</label>
+              <input class="form-control template-search" id="template-search" type="search" placeholder="Cari nama template, plat nomor, vendor, atau driver">
+              <div class="small text-secondary" id="template-count" aria-live="polite">Memuat data...</div>
+            </div>
+            <div class="template-table-wrap">
+              <table class="table template-table">
+                <thead><tr><th>Nama template</th><th>Aktivitas</th><th>Plat nomor</th><th>Driver</th><th>Vendor</th><th>Klien</th><th class="text-end">Aksi</th></tr></thead>
+                <tbody id="template-table-body"><tr><td colspan="7" class="text-center py-4 text-secondary">Memuat data template...</td></tr></tbody>
+              </table>
+            </div>
+            <div id="template-empty" class="d-none text-center py-5">
+              <i class="bi bi-truck-front fs-1 text-secondary"></i>
+              <p class="mt-3 mb-0">Belum ada template armada.</p>
+              <button class="btn btn-outline-primary mt-3" id="empty-add-template-button" type="button" data-permission="fleet_templates:create">Tambah template pertama</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal fade" id="template-modal" tabindex="-1" aria-labelledby="template-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <form id="template-form" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="template-modal-title">Tambah template armada</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <div id="template-form-alert" class="alert alert-danger d-none" role="alert"></div>
+          <input type="hidden" id="template-id">
+          <section class="template-form-section">
+            <h3>Informasi template</h3>
+            <div class="row g-3">
+              <div class="col-12"><label class="form-label" for="template-name">Nama template <span class="text-danger">*</span></label><input class="form-control" id="template-name" maxlength="120" required><div class="invalid-feedback">Nama template wajib diisi.</div></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-activity">Tipe aktivitas <span class="text-danger">*</span></label><select class="form-select" id="template-activity" required><option value="">Pilih tipe aktivitas</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select><div class="invalid-feedback">Tipe aktivitas wajib dipilih.</div></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-plate">Plat nomor <span class="text-danger">*</span></label><input class="form-control text-uppercase" id="template-plate" maxlength="20" required><div class="invalid-feedback">Plat nomor wajib diisi.</div></div>
+            </div>
+          </section>
+          <section class="template-form-section">
+            <h3>Data driver dan kendaraan</h3>
+            <div class="row g-3">
+              <div class="col-12 col-md-6"><label class="form-label" for="template-driver">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="template-driver" maxlength="120" required><div class="invalid-feedback">Nama driver wajib diisi.</div></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-phone">Nomor telepon driver</label><input class="form-control" id="template-phone" type="tel" maxlength="30"></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-truck-type">Tipe truck <span class="text-danger">*</span></label><select class="form-select" id="template-truck-type" required><option value="">Memuat tipe truck...</option></select><div class="invalid-feedback">Tipe truck wajib dipilih.</div></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-vendor">Vendor <span class="text-danger">*</span></label><select class="form-select" id="template-vendor" required><option value="">Memuat vendor...</option></select><div class="invalid-feedback">Vendor wajib dipilih.</div></div>
+              <div class="col-12"><label class="form-label" for="template-client">Klien <span class="text-danger">*</span></label><select class="form-select" id="template-client" required><option value="">Memuat klien...</option></select><div class="invalid-feedback">Klien wajib dipilih.</div></div>
+            </div>
+          </section>
+          <section class="template-form-section mb-0">
+            <h3>Dokumen kendaraan</h3>
+            <div class="row g-3">
+              <div class="col-12 col-md-6"><label class="form-label" for="template-license-type">Tipe SIM</label><select class="form-select" id="template-license-type"><option value="">Pilih tipe SIM</option><option value="sim_a">SIM A</option><option value="sim_a_umum">SIM A Umum</option><option value="sim_b1">SIM B1</option><option value="sim_b1_umum">SIM B1 Umum</option><option value="sim_b2">SIM B2</option><option value="sim_b2_umum">SIM B2 Umum</option></select></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-license-num">Nomor SIM</label><input class="form-control" id="template-license-num" maxlength="40"></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-license-exp">Masa berlaku SIM</label><input class="form-control" id="template-license-exp" type="date"></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-vehicle-exp">Masa berlaku STNK</label><input class="form-control" id="template-vehicle-exp" type="date"></div>
+              <div class="col-12 col-md-6"><label class="form-label" for="template-kir-exp">Masa berlaku KIR</label><input class="form-control" id="template-kir-exp" type="date"></div>
+              <div class="col-12"><div class="form-check"><input class="form-check-input" id="template-kir-expired" type="checkbox"><label class="form-check-label" for="template-kir-expired">KIR kadaluarsa</label></div></div>
+            </div>
+          </section>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="template-save-button" data-permission="fleet_templates:create"><i class="bi bi-check2 me-1"></i>Simpan template</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+window.trcmComponentsReady.then(async function () {
+  "use strict";
+
+  const session = getTrcmSession();
+  if (!session || !session.access_token || !session.user) { window.location.replace("../index.html"); return; }
+  const modalElement = document.getElementById("template-modal");
+  const templateModal = new bootstrap.Modal(modalElement);
+  const form = document.getElementById("template-form");
+  const formAlert = document.getElementById("template-form-alert");
+  const pageAlert = document.getElementById("template-alert");
+  const tableBody = document.getElementById("template-table-body");
+  const searchInput = document.getElementById("template-search");
+  const countLabel = document.getElementById("template-count");
+  const emptyState = document.getElementById("template-empty");
+  const saveButton = document.getElementById("template-save-button");
+  const kirExpired = document.getElementById("template-kir-expired");
+  const kirExp = document.getElementById("template-kir-exp");
+  const field = {
+    id: document.getElementById("template-id"),
+    name: document.getElementById("template-name"),
+    activity: document.getElementById("template-activity"),
+    plate: document.getElementById("template-plate"),
+    driver: document.getElementById("template-driver"),
+    phone: document.getElementById("template-phone"),
+    truckType: document.getElementById("template-truck-type"),
+    vendor: document.getElementById("template-vendor"),
+    client: document.getElementById("template-client"),
+    licenseType: document.getElementById("template-license-type"),
+    licenseNum: document.getElementById("template-license-num"),
+    licenseExp: document.getElementById("template-license-exp"),
+    vehicleExp: document.getElementById("template-vehicle-exp")
+  };
+  let templates = [];
+  let vendors = [];
+  let clients = [];
+  let truckTypes = [];
+  let templateMode = "create";
+
+  function showPageMessage(message, isError) {
+    pageAlert.className = "registration-alert mb-3 alert-" + (isError ? "error" : "success");
+    pageAlert.textContent = message;
+  }
+  function clearPageMessage() { pageAlert.className = "registration-alert d-none mb-3"; pageAlert.textContent = ""; }
+  function showFormMessage(message) { formAlert.textContent = message; formAlert.classList.remove("d-none"); }
+  function clearFormMessage() { formAlert.textContent = ""; formAlert.classList.add("d-none"); }
+
+  async function request(path, options) {
+    const requestOptions = options || {};
+    const headers = Object.assign({
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: "Bearer " + session.access_token,
+      Accept: "application/json"
+    }, requestOptions.headers || {});
+    const response = await fetch(SUPABASE_URL + path, Object.assign({}, requestOptions, { headers: headers }));
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      throw new Error("Sesi berakhir. Silakan masuk kembali.");
+    }
+    if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan gagal. Periksa akses dan koneksi.");
+    if ((requestOptions.method || "GET").toUpperCase() !== "GET" && Array.isArray(data) && data.length === 0) {
+      throw new Error("Tidak ada data yang berubah. Periksa permission dan pastikan template masih tersedia.");
+    }
+    return data;
+  }
+
+  async function loadMasterOptions() {
+    const [vendorRows, clientRows, truckRows] = await Promise.all([
+      request("/rest/v1/vendors?select=id,name&order=name.asc"),
+      request("/rest/v1/clients?select=id,name&order=name.asc"),
+      request("/rest/v1/truck_types?select=id,name,is_active&is_active=eq.true&order=name.asc")
+    ]);
+    vendors = vendorRows || [];
+    clients = clientRows || [];
+    truckTypes = truckRows || [];
+    const setOptions = function (select, rows, placeholder, valueKey, labelKey) {
+      select.innerHTML = '<option value="">' + escapeHtml(placeholder) + '</option>' + rows.map(function (item) {
+        return '<option value="' + escapeHtml(item[valueKey]) + '">' + escapeHtml(item[labelKey]) + '</option>';
+      }).join("");
+    };
+    setOptions(field.vendor, vendors, "Pilih vendor", "name", "name");
+    setOptions(field.client, clients, "Pilih klien", "id", "name");
+    setOptions(field.truckType, truckTypes, "Pilih tipe truck", "name", "name");
+    if (window.trcmPermissions) window.trcmPermissions.apply(document);
+  }
+
+  function getClientName(clientId) {
+    const item = clients.find(function (client) { return client.id === clientId; });
+    return item ? item.name : "—";
+  }
+
+  function renderTable() {
+    const needle = searchInput.value.trim().toLocaleLowerCase("id-ID");
+    const visible = templates.filter(function (item) {
+      return [item.name, item.activity_type, item.plate_number, item.driver_name, item.vendor, getClientName(item.client_id)]
+        .some(function (value) { return String(value || "").toLocaleLowerCase("id-ID").includes(needle); });
+    });
+    countLabel.textContent = visible.length + " dari " + templates.length + " template";
+    if (!visible.length) {
+      tableBody.innerHTML = "";
+      tableBody.parentElement.classList.add("d-none");
+      emptyState.classList.remove("d-none");
+      const emptyText = emptyState.querySelector("p");
+      if (templates.length && needle) emptyText.textContent = "Tidak ada template yang cocok dengan pencarian.";
+      else emptyText.textContent = "Belum ada template armada.";
+      return;
+    }
+    tableBody.parentElement.classList.remove("d-none");
+    emptyState.classList.add("d-none");
+    tableBody.innerHTML = visible.map(function (item) {
+      const activity = item.activity_type === "inbound" ? "Inbound" : item.activity_type === "outbound" ? "Outbound" : "—";
+      return '<tr>' +
+        '<td><strong>' + escapeHtml(item.name) + '</strong></td>' +
+        '<td>' + escapeHtml(activity) + '</td>' +
+        '<td><span class="template-plate">' + escapeHtml(item.plate_number) + '</span></td>' +
+        '<td>' + escapeHtml(item.driver_name) + '</td>' +
+        '<td>' + escapeHtml(item.vendor) + '</td>' +
+        '<td>' + escapeHtml(getClientName(item.client_id)) + '</td>' +
+        '<td><div class="template-actions">' +
+          '<button class="btn btn-outline-primary" type="button" data-action="edit" data-id="' + escapeHtml(item.id) + '" data-permission="fleet_templates:update" aria-label="Ubah template ' + escapeHtml(item.name) + '" title="Ubah template"><i class="bi bi-pencil"></i></button>' +
+          '<button class="btn btn-outline-danger" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '" data-permission="fleet_templates:delete" aria-label="Hapus template ' + escapeHtml(item.name) + '" title="Hapus template"><i class="bi bi-trash"></i></button>' +
+        '</div></td></tr>';
+    }).join("");
+    if (window.trcmPermissions) window.trcmPermissions.apply(tableBody);
+  }
+
+  async function loadTemplates() {
+    clearPageMessage();
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-secondary">Memuat data template...</td></tr>';
+    tableBody.parentElement.classList.remove("d-none");
+    emptyState.classList.add("d-none");
+    try {
+      templates = await request("/rest/v1/fleet_templates?select=id,name,activity_type,driver_name,driver_phone,plate_number,truck_type,vendor,client_id,license_type,license_num,license_exp,vehicle_exp,vehicle_inspect_exp,kir_expired,created_at,updated_at&order=name.asc") || [];
+      renderTable();
+      clearPageMessage();
+      if (window.trcmPermissions) window.trcmPermissions.apply(document);
+    } catch (error) {
+      templates = [];
+      tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Gagal memuat template: ' + escapeHtml(error.message) + '</td></tr>';
+      countLabel.textContent = "Data tidak tersedia";
+      showPageMessage(error.message || "Template gagal dimuat.", true);
+    }
+  }
+
+  function setFieldDates(template) {
+    field.licenseExp.value = template ? template.license_exp || "" : "";
+    field.vehicleExp.value = template ? template.vehicle_exp || "" : "";
+    kirExp.value = template ? template.vehicle_inspect_exp || "" : "";
+    kirExpired.checked = Boolean(template && template.kir_expired);
+    kirExp.disabled = kirExpired.checked;
+    if (kirExpired.checked) kirExp.value = "";
+  }
+
+  function resetForm() {
+    form.reset();
+    form.classList.remove("was-validated");
+    clearFormMessage();
+    field.id.value = "";
+    setFieldDates(null);
+  }
+
+  function openCreateModal() {
+    if (!window.trcmPermissions || !window.trcmPermissions.can("fleet_templates", "create")) return;
+    resetForm();
+    templateMode = "create";
+    document.getElementById("template-modal-title").textContent = "Tambah template armada";
+    saveButton.innerHTML = '<i class="bi bi-check2 me-1"></i>Simpan template';
+    saveButton.dataset.permission = "fleet_templates:create";
+    saveButton.hidden = false;
+    if (window.trcmPermissions) window.trcmPermissions.apply(modalElement);
+    templateModal.show();
+  }
+
+  function openEditModal(template) {
+    if (!window.trcmPermissions || !window.trcmPermissions.can("fleet_templates", "update")) return;
+    resetForm();
+    templateMode = "update";
+    document.getElementById("template-modal-title").textContent = "Ubah template armada";
+    field.id.value = template.id;
+    field.name.value = template.name || "";
+    field.activity.value = template.activity_type || "";
+    field.plate.value = template.plate_number || "";
+    field.driver.value = template.driver_name || "";
+    field.phone.value = template.driver_phone || "";
+    field.truckType.value = template.truck_type || "";
+    field.vendor.value = template.vendor || "";
+    field.client.value = template.client_id || "";
+    field.licenseType.value = template.license_type || "";
+    field.licenseNum.value = template.license_num || "";
+    setFieldDates(template);
+    saveButton.innerHTML = '<i class="bi bi-check2 me-1"></i>Simpan perubahan';
+    saveButton.dataset.permission = "fleet_templates:update";
+    saveButton.hidden = false;
+    if (window.trcmPermissions) window.trcmPermissions.apply(modalElement);
+    templateModal.show();
+  }
+
+  document.getElementById("add-template-button").addEventListener("click", openCreateModal);
+  document.getElementById("empty-add-template-button").addEventListener("click", openCreateModal);
+  searchInput.addEventListener("input", renderTable);
+  document.getElementById("template-plate").addEventListener("input", function () { field.plate.value = field.plate.value.toUpperCase(); });
+  kirExpired.addEventListener("change", function () { kirExp.disabled = kirExpired.checked; if (kirExpired.checked) kirExp.value = ""; });
+
+  tableBody.addEventListener("click", async function (event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const template = templates.find(function (item) { return item.id === button.dataset.id; });
+    if (!template) return;
+    if (button.dataset.action === "edit") openEditModal(template);
+    if (button.dataset.action === "delete") {
+      if (!window.trcmPermissions || !window.trcmPermissions.can("fleet_templates", "delete")) return;
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Hapus template armada?",
+        text: 'Template "' + template.name + '" akan dihapus dan tidak dapat dipulihkan.',
+        showCancelButton: true,
+        confirmButtonText: "Hapus template",
+        cancelButtonText: "Kembali",
+        confirmButtonColor: "#C8101A",
+        reverseButtons: true
+      });
+      if (!result.isConfirmed) return;
+      button.disabled = true;
+      try {
+        await request("/rest/v1/fleet_templates?id=eq." + encodeURIComponent(template.id), {
+          method: "DELETE",
+          headers: { Prefer: "return=minimal" }
+        });
+        showPageMessage("Template berhasil dihapus.", false);
+        await loadTemplates();
+      } catch (error) {
+        showPageMessage("Gagal menghapus template: " + (error.message || "Periksa permission Anda."), true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+  });
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    clearFormMessage();
+    const permission = templateMode === "create" ? "create" : "update";
+    if (!window.trcmPermissions || !window.trcmPermissions.can("fleet_templates", permission)) {
+      showFormMessage("Anda tidak memiliki permission untuk " + (permission === "create" ? "membuat" : "mengubah") + " template.");
+      return;
+    }
+    if (!form.checkValidity()) {
+      form.classList.add("was-validated");
+      showFormMessage("Periksa kembali field wajib yang belum valid.");
+      return;
+    }
+    const payload = {
+      name: field.name.value.trim(),
+      activity_type: field.activity.value,
+      plate_number: field.plate.value.trim().toUpperCase(),
+      driver_name: field.driver.value.trim(),
+      driver_phone: field.phone.value.trim() || null,
+      truck_type: field.truckType.value,
+      vendor: field.vendor.value,
+      client_id: field.client.value,
+      license_type: field.licenseType.value || null,
+      license_num: field.licenseNum.value.trim() || null,
+      license_exp: field.licenseExp.value || null,
+      vehicle_exp: field.vehicleExp.value || null,
+      vehicle_inspect_exp: kirExpired.checked ? null : (kirExp.value || null),
+      kir_expired: kirExpired.checked,
+      updated_at: new Date().toISOString()
+    };
+    saveButton.disabled = true;
+    const oldHtml = saveButton.innerHTML;
+    saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Menyimpan...';
+    try {
+      if (templateMode === "create") {
+        payload.created_by = session.user.id;
+        await request("/rest/v1/fleet_templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+          body: JSON.stringify(payload)
+        });
+        showPageMessage("Template berhasil ditambahkan.", false);
+      } else {
+        await request("/rest/v1/fleet_templates?id=eq." + encodeURIComponent(field.id.value), {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+          body: JSON.stringify(payload)
+        });
+        showPageMessage("Perubahan template berhasil disimpan.", false);
+      }
+      templateModal.hide();
+      await loadTemplates();
+    } catch (error) {
+      showFormMessage("Gagal menyimpan template: " + (error.message || "Periksa permission dan data wajib."));
+    } finally {
+      saveButton.disabled = false;
+      saveButton.innerHTML = oldHtml;
+    }
+  });
+
+  modalElement.addEventListener("hidden.bs.modal", resetForm);
+  modalElement.addEventListener("show.bs.modal", function () { if (window.trcmPermissions) window.trcmPermissions.apply(modalElement); });
+
+  if (window.trcmPermissions) window.trcmPermissions.apply(document);
+
+  try {
+    await loadMasterOptions();
+    await loadTemplates();
+    if (window.trcmPermissions) {
+      window.trcmPermissions.apply(document);
+      saveButton.hidden = true;
+    }
+  } catch (error) {
+    showPageMessage("Gagal memuat pilihan master: " + (error.message || "Periksa koneksi."), true);
+  }
+});
+</script>
+</body>
+</html>
