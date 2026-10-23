@@ -424,14 +424,15 @@ window.trcmComponentsReady.then(async function () {
 
   modalElement.addEventListener("hidden.bs.modal", resetForm);
 
-  if (window.trcmPermissions) {
-    window.trcmPermissions.apply(document);
-    saveButton.hidden = true;
-  }
+  if (window.trcmPermissions) window.trcmPermissions.apply(document);
 
   try {
     await loadMasterOptions();
     await loadTemplates();
+    if (window.trcmPermissions) {
+      window.trcmPermissions.apply(document);
+      saveButton.hidden = true;
+    }
   } catch (error) {
     showPageMessage("Gagal memuat pilihan master: " + (error.message || "Periksa koneksi."), true);
   }
