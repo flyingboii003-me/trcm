@@ -397,8 +397,8 @@
     const groupCount=type==="inbound"?new Set(rows.filter(r=>r.cells[0]).map(r=>r.cells[0].trim().toUpperCase())).size:new Set(rows.filter(r=>r.cells[1]).map(r=>truckKey(r))).size;
     checked=true;parsed=rows;
     $("row-count").textContent=rows.length+" baris";$("group-count").textContent=groupCount+" kelompok";$("error-count").textContent=errors+" kesalahan";$("warning-count").textContent=warnings+" peringatan";
-    $("data-check-state").className="plan-status "+(errors?"invalid":warnings?"warning":"valid");
-    $("data-check-state").innerHTML=errors?'<i class="bi bi-x-circle-fill"></i>Perlu perbaikan':warnings?'<i class="bi bi-exclamation-triangle-fill"></i>Perlu ditinjau':'<i class="bi bi-check-circle-fill"></i>Valid';
+    $("data-check-state").className="plan-status "+(errors?"invalid":(type==="inbound"||!warnings)?"valid":"warning");
+    $("data-check-state").innerHTML=errors?'<i class="bi bi-x-circle-fill"></i>Perlu perbaikan':(type==="inbound"||!warnings)?'<i class="bi bi-check-circle-fill"></i>Valid':'<i class="bi bi-exclamation-triangle-fill"></i>Perlu ditinjau';
     $("validation-message").className="plan-callout mb-3";
     const msg=errors?"Ada "+errors+" kesalahan pada data. Perbaiki data sumber sebelum konfirmasi.":warnings?"Tidak ada kesalahan wajib, tetapi ada "+warnings+" peringatan yang perlu diperiksa.":"Semua "+rows.length+" baris lolos validasi dasar. Periksa ringkasan dan peringatan sebelum konfirmasi.";
     $("validation-message").innerHTML='<i class="bi '+(errors?'bi-exclamation-circle-fill':warnings?'bi-exclamation-triangle-fill':'bi-check-circle-fill')+'"></i><div>'+textSafe(msg)+(type==="inbound"?' Nomor DO kosong tidak diisi otomatis.':'')+'</div>';
@@ -417,9 +417,9 @@
     if(type==="inbound"){
       $("truk-group-head").innerHTML="<tr>"+["No.","DO / Transport task","Kelompok kunjungan otomatis"].map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
       parsed.forEach((r)=>{const d=(r.cells[0]||"").trim(),k=normalizeDocument(d);if(d&&!groups.has(k))groups.set(k,{doNumber:d,rows:[]});if(d)groups.get(k).rows.push(r);});
-      $("truk-group-body").innerHTML=parsed.map((r,i)=>{const d=(r.cells[0]||"").trim();if(!d)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="2" class="text-danger">Nomor DO wajib diisi.</td></tr>';const n=[...groups.keys()].indexOf(normalizeDocument(d))+1;return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(d)+'</span></td><td><span class="plan-status valid">Kunjungan '+n+'</span></td></tr>';}).join("");
+      $("truk-group-body").innerHTML=parsed.map((r,i)=>{const d=(r.cells[0]||"").trim();if(!d)return '<tr class="row-invalid"><td>'+(i+1)+'</td><td colspan="2" class="text-danger">Nomor DO wajib diisi.</td></tr>';const n=[...groups.keys()].indexOf(normalizeDocument(d))+1;return '<tr><td>'+(i+1)+'</td><td><span class="plan-mono">'+textSafe(d)+'</span></td><td><span class="plan-status valid">Truk '+n+'</span></td></tr>';}).join("");
       const count=[...groups.values()].reduce((n,g)=>n+g.rows.length,0),missing=parsed.some(r=>!(r.cells[0]||"").trim());
-      $("truk-group-summary").textContent=groups.size+" referensi kunjungan · "+count+" referensi DO";
+      $("truk-group-summary").textContent=groups.size+" truk · "+count+" referensi DO";
       $("truk-group-state").className="plan-status "+(missing?"warning":"valid");
       $("truk-group-state").innerHTML='<i class="bi bi-truck"></i>'+(missing?"Nomor DO belum lengkap":"Pengelompokan otomatis");
       $("group-count").textContent=groups.size+" kunjungan";
@@ -465,7 +465,7 @@
     $("confirm-table-head").innerHTML="<tr>"+headers.map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("confirm-table-body").innerHTML=parsed.map((r,i)=>{
       const c=r.cells;
-      const truckNo=type==="outbound"?[...new Set(parsed.slice(0,i+1).filter(row=>(row.cells[1]||"").trim()&&(row.cells[2]||"").trim()).map(row=>truckKey(row)))].indexOf(truckKey(r))+1:0; const vals=type==="inbound"?[c[0],r.warnings.length?"Perlu ditinjau":"Valid"]:["Truk "+truckNo,c[1],c[2],c[5],c[0],c[3],c[4],r.warnings.length?"Perlu ditinjau":"Valid"];
+      const truckNo=type==="outbound"?[...new Set(parsed.slice(0,i+1).filter(row=>(row.cells[1]||"").trim()&&(row.cells[2]||"").trim()).map(row=>truckKey(row)))].indexOf(truckKey(r))+1:0; const vals=type==="inbound"?[c[0],"Valid"]:["Truk "+truckNo,c[1],c[2],c[5],c[0],c[3],c[4],r.warnings.length?"Perlu ditinjau":"Valid"];
       return "<tr>"+vals.map((v,j)=>"<td>"+((type==="outbound"&&(j===0||j===1))||(type==="inbound"&&j<2)?'<span class="plan-mono">'+textSafe(v||"—")+"</span>":textSafe(v||"—"))+"</td>").join("")+"</tr>";
     }).join("");
     bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).show();
