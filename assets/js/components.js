@@ -105,6 +105,7 @@
     if (page === "dashboard.html" || page === "") return "dashboard";
     if (page === "riwayat.html") return "riwayat";
     if (page === "registrasi-armada.html") return "registrasi-armada";
+    if (page === "template-armada.html") return "template-armada";
     if (page === "wh-in.html") return "wh-in";
     if (page === "wh-out.html") return "wh-out";
     if (page === "antri-parkir.html") return "antri-parkir";
@@ -296,6 +297,7 @@
       dashboard: "Dashboard TRCM",
       riwayat: "Riwayat",
       "registrasi-armada": "Registrasi Armada",
+      "template-armada": "Template Armada",
       "wh-in": "WH In",
       "wh-out": "WH Out",
       "master-data": "Master Data",
