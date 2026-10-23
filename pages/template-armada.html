@@ -22,6 +22,11 @@
 .template-actions{display:flex;justify-content:flex-end;gap:.45rem;white-space:nowrap}
 .template-actions .btn{min-width:40px;min-height:40px}
 .template-form-section{border:1px solid var(--border,#dfe5ef);border-radius:14px;padding:1rem;margin-bottom:1rem}
+/* The form wraps the modal header/body/footer, so make it the scrollable flex column. */
+#template-modal .modal-dialog-scrollable .modal-content{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#template-modal #template-form{display:flex;flex:1 1 auto;flex-direction:column;min-height:0;overflow:hidden}
+#template-modal .modal-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#template-modal .modal-header,#template-modal .modal-footer{flex:0 0 auto}
 .template-form-section h3{font-size:1rem;font-weight:700;margin:0 0 .9rem}
 #template-alert{overflow-wrap:anywhere}
 @media(max-width:767.98px){.template-toolbar{align-items:stretch}.template-search{max-width:none}.template-toolbar .btn{width:100%;min-height:44px}.template-actions .btn{min-height:44px;min-width:44px}}
