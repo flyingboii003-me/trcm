@@ -381,10 +381,10 @@
         </div>
 
         <div class="row g-3 mb-4">
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan</div><div class="list-stat-value" id="stat-total">—</div></div><span class="list-stat-icon"><i class="bi bi-files"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Plan Aktif</div><div class="list-stat-value" id="stat-active">—</div></div><span class="list-stat-icon"><i class="bi bi-check-circle"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Inbound</div><div class="list-stat-value" id="stat-inbound">—</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-in-down"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Outbound</div><div class="list-stat-value" id="stat-outbound">—</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-up"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan Inbound</div><div class="list-stat-value" id="stat-inbound">—</div><div class="list-note">DO / Transport Task</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-in-down"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan Outbound</div><div class="list-stat-value" id="stat-outbound">—</div><div class="list-note">Shipment terdaftar</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-up"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Plan Outbound Selesai (Hari ini)</div><div class="list-stat-value" id="stat-outbound-done-today">—</div><div class="list-note">Shipment selesai</div></div><span class="list-stat-icon"><i class="bi bi-check-circle"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Plan Inbound Selesai (Hari ini)</div><div class="list-stat-value" id="stat-inbound-done-today">—</div><div class="list-note">DO / Transport Task selesai</div></div><span class="list-stat-icon"><i class="bi bi-check-circle-fill"></i></span></div></div></div>
         </div>
 
         <section class="list-card">
@@ -455,7 +455,29 @@
   function activityBadge(type){const s=String(type||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="inbound"?"bi-box-arrow-in-down":"bi-box-arrow-up")+'"></i>'+esc(activityLabels[s]||s||"—")+'</span>';}
   function countItems(plan){return Array.isArray(plan.import_plan_items)?plan.import_plan_items.length:Number(plan.row_count)||0;}
   function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token},options&&options.headers||{});const response=await fetch(SUPABASE_URL+path,config);const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)?(data.message||data.details||data.hint):"Permintaan database gagal ("+response.status+").");return data;}
-  function updateStats(plans){$("stat-total").textContent=plans.length;$("stat-active").textContent=plans.filter(p=>p.status==="active").length;$("stat-inbound").textContent=plans.filter(p=>p.activity_type==="inbound").length;$("stat-outbound").textContent=plans.filter(p=>p.activity_type==="outbound").length;}
+  function localDateKey(date=new Date()){const year=date.getFullYear(),month=String(date.getMonth()+1).padStart(2,"0"),day=String(date.getDate()).padStart(2,"0");return year+"-"+month+"-"+day;}
+  function updateStats(plans,items=[],linkedIds=new Set()){
+    const today=localDateKey(),inboundRefs=new Set(),outboundRefs=new Set(),doneInboundRefs=new Set(),doneOutboundRefs=new Set();
+    items.forEach(item=>{
+      const plan=Array.isArray(item.import_plans)?item.import_plans[0]:item.import_plans;
+      if(!plan)return;
+      const type=plan.activity_type,raw=type==="outbound"?item.shipment_number:item.do_number;
+      const reference=String(raw||"").trim();
+      if(!reference)return;
+      const key=String(plan.id||item.plan_id||"")+"|"+reference.toLocaleLowerCase("id-ID");
+      if(type==="inbound")inboundRefs.add(key);
+      if(type==="outbound")outboundRefs.add(key);
+      const completed=linkedIds.has(item.id)||item.manual_processed===true;
+      if(completed&&plan.operational_date===today){
+        if(type==="inbound")doneInboundRefs.add(key);
+        if(type==="outbound")doneOutboundRefs.add(key);
+      }
+    });
+    $("stat-inbound").textContent=inboundRefs.size;
+    $("stat-outbound").textContent=outboundRefs.size;
+    $("stat-outbound-done-today").textContent=doneOutboundRefs.size;
+    $("stat-inbound-done-today").textContent=doneInboundRefs.size;
+  }
   function applyFilters(){
     const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,status=$("filter-status").value,from=$("filter-from").value,to=$("filter-to").value;
     state.filtered=state.plans.filter(p=>{
@@ -490,9 +512,13 @@
     $("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
     try{
       const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id)";
-      const data=await request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc");
-      if(!Array.isArray(data))throw new Error("Respons daftar Plan tidak valid.");
-      state.plans=data;updateStats(data);applyFilters();
+      const [data,items,linkedItems]=await Promise.all([
+        request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc"),
+        request("/rest/v1/import_plan_items?select=id,plan_id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,operational_date)"),
+        request("/rest/v1/visit_plan_items?select=plan_item_id")
+      ]);
+      if(!Array.isArray(data)||!Array.isArray(items)||!Array.isArray(linkedItems))throw new Error("Respons daftar Plan atau referensi DO / Shipment tidak valid.");
+      state.plans=data;updateStats(data,items,new Set(linkedItems.map(item=>item.plan_item_id).filter(Boolean)));applyFilters();
     }catch(error){
       console.error("TRCM daftar Plan:",error);
       $("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
