@@ -355,7 +355,7 @@ window.trcmComponentsReady.then(async function () {
       const rows = await getJson("/rest/v1/fleet_templates?select=id,name,activity_type,driver_name,driver_phone,plate_number,truck_type,vendor,client_id,license_type,license_num,license_exp,vehicle_exp,vehicle_inspect_exp,kir_expired&order=name.asc");
       fleetTemplates = rows || [];
       templateSelect.innerHTML = '<option value="">Pilih template armada</option>' + fleetTemplates.map(function (item) {
-        return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.name) + ' — ' + escapeHtml(item.plate_number || item.truck_type || "Armada") + '</option>';
+        return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.name) + '</option>';
       }).join("");
       document.getElementById("apply-fleet-template").disabled = !fleetTemplates.length;
       document.getElementById("delete-fleet-template").disabled = !fleetTemplates.length;
@@ -402,7 +402,7 @@ window.trcmComponentsReady.then(async function () {
       templateMessage("Isi tipe aktivitas, nama driver, plat nomor, tipe truck, vendor, dan klien sebelum menyimpan template.", true);
       return;
     }
-    const defaultName = [driverName, plateNumber].filter(Boolean).join(" — ");
+    const defaultName = [driverName, plateNumber].filter(Boolean).join(" - ");
     const prompt = await Swal.fire({
       title: "Simpan Template Armada",
       input: "text",
