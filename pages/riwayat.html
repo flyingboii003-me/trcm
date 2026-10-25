@@ -529,7 +529,7 @@ async function openVisitModal(visitId) {
         selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
             return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label || "—") + '</td>' +
-              '<td class="text-break">' + escapeHtml(group.shipments.length ? group.shipments.join(", ") : "—") + '</td>' +
+              '<td class="text-break">' + (group.shipments.length ? '<span class="badge rounded-pill text-bg-primary">' + escapeHtml(group.shipments.join(", ")) + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
               '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' +
               '</tr>';
           }).join("") + '</tbody></table></div>';
