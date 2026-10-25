@@ -750,7 +750,7 @@
     state.session=typeof getTrcmSession==="function"?getTrcmSession():null;
     if(!state.session||!state.session.access_token){window.location.replace("../index.html");return;}
     const permissions=window.trcmPermissions;
-    state.canUpdate=!!(permissions&&permissions.can("daftar_plan","update"));
+    state.canUpdate=!!(state.session.user&&state.session.user.role==="admin"&&permissions&&permissions.can("daftar_plan","update"));
     state.canCreatePlan=!!(permissions&&permissions.can("import_plan","create"));
     state.canDelete=!!(permissions&&permissions.can("daftar_plan","delete"));
     const canImport = permissions && permissions.can("import_plan_upload", "view");
