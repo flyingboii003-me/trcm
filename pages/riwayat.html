@@ -209,6 +209,12 @@ function openEditModal(visit) {
   document.getElementById("edit-container-num").value = visit.container_num || "";
   document.getElementById("edit-shipment-type").value = visit.shipment_type || "";
   document.getElementById("edit-shipment-number").value = visit.shipment_number || "";
+  const lockShipmentForGateSec = trcmSession.user && trcmSession.user.role === "gatesec" &&
+    Boolean(visit.wh_in_at) && !visit.wh_out_at;
+  document.getElementById("edit-shipment-type").disabled = lockShipmentForGateSec;
+  document.getElementById("edit-shipment-number").disabled = lockShipmentForGateSec;
+  document.getElementById("edit-shipment-type").title = lockShipmentForGateSec ? "Gate Security tidak dapat mengubah shipment sebelum WH Out." : "";
+  document.getElementById("edit-shipment-number").title = lockShipmentForGateSec ? "Gate Security tidak dapat mengubah shipment sebelum WH Out." : "";
   document.getElementById("edit-destination-city").value = visit.destination_city || "";
   document.getElementById("edit-notes").value = visit.notes || "";
   populateEditClients(visit.client_id);
@@ -503,7 +509,9 @@ async function openVisitModal(visitId) {
         const groups = new Map();
         linkedRows.forEach(function (row) {
           const item = row.import_plan_items || {};
-          const label = item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "DO/Shipment tanpa nomor";
+          const doNumber = item.do_number || row.snapshot_do_number || "";
+          const shipmentNumber = item.shipment_number || row.snapshot_shipment_number || "";
+          const label = doNumber || shipmentNumber || "DO/Shipment tanpa nomor";
           const trip = item.import_plan_trips || {
             trip_number: row.snapshot_trip_number,
             vendor: row.snapshot_vendor,
@@ -511,22 +519,17 @@ async function openVisitModal(visitId) {
           };
           const activityType = row.snapshot_activity_type || visit.activity_type;
           const key = String(label).trim().toLowerCase();
-          if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: trip });
+          if (!groups.has(key)) groups.set(key, { label: label, shipment: shipmentNumber, items: [], trip: trip });
           const group = groups.get(key);
           if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
           const detail = "";
           if (detail && !group.items.includes(detail)) group.items.push(detail);
         });
-        const showTripColumns = linkedRows.some(function (row) {
-          return !!(row.snapshot_vendor || row.snapshot_destination ||
-            (row.import_plan_items && row.import_plan_items.import_plan_trips));
-        });
-        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO/Shipment</th>' +
-          (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
-          '</tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
-            return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
-              (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
+            return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label || "—") + '</td>' +
+              '<td class="text-break">' + escapeHtml(group.shipment || "—") + '</td>' +
+              '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' +
               '</tr>';
           }).join("") + '</tbody></table></div>';
       } else {
@@ -736,6 +739,8 @@ async function loadVisits() {
       "client_id",
       "driver_name",
       "shipment_number",
+      "wh_in_at",
+      "wh_out_at",
       "process_status",
       "final_status",
       "wh_in_at",
@@ -913,6 +918,12 @@ editForm.addEventListener("submit", async function (event) {
   };
 
   try {
+    const currentVisit = visits.find(function (visit) { return String(visit.id) === String(visitId); });
+    if (trcmSession.user && trcmSession.user.role === "gatesec" && currentVisit &&
+        currentVisit.wh_in_at && !currentVisit.wh_out_at) {
+      delete payload.shipment_type;
+      delete payload.shipment_number;
+    }
     await patchVisit(visitId, payload);
     editModal.hide();
     await Swal.fire({
