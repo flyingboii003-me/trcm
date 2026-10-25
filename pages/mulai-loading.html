@@ -418,7 +418,10 @@ window.trcmComponentsReady.then(async function () {
     items.forEach(function (item) {
       const rawKey = item.do_number || item.shipment_number || ("item:" + item.id);
       const key = String(rawKey).trim().toLowerCase();
-      if (!groups.has(key)) groups.set(key, { key: key, label: item.do_number || item.shipment_number || ("Baris " + item.row_number), items: [], trip: item.trip || null });
+      const doNumber = String(item.do_number || "").trim();
+      const shipmentNumber = String(item.shipment_number || "").trim();
+      const label = [doNumber ? "DO " + doNumber : "", shipmentNumber && shipmentNumber !== doNumber ? "Shipment " + shipmentNumber : ""].filter(Boolean).join(" · ") || ("Baris " + item.row_number);
+      if (!groups.has(key)) groups.set(key, { key: key, label: label, items: [], trip: item.trip || null });
       const group = groups.get(key);
       group.items.push(item);
       if (!group.trip && item.trip) group.trip = item.trip;
