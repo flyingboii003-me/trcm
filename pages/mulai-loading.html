@@ -651,13 +651,22 @@ window.trcmComponentsReady.then(async function () {
         return;
       }
 
-      await Swal.fire({
+      const warningResult = await Swal.fire({
         icon: "warning",
         title: "Plan / Shipment belum dipilih",
         text: "Loading akan tetap dilanjutkan tanpa mengaitkan shipment dari Plan. Pilih Plan dan shipment/DO jika ingin mencatat referensinya.",
         confirmButtonText: "Lanjutkan Loading",
-        confirmButtonColor: "#0066B3"
+        cancelButtonText: "Batal",
+        showCancelButton: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        confirmButtonColor: "#0066B3",
+        cancelButtonColor: "#6B7280"
       });
+
+      if (!warningResult.isConfirmed) {
+        return;
+      }
     }
 
     saveButton.disabled = true;
