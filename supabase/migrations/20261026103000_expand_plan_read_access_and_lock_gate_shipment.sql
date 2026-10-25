@@ -109,7 +109,7 @@ begin
 end;
 $$;
 
-revoke all on function public.prevent_gatesec_shipment_changes_before_wh_out() from public;
+revoke all on function public.prevent_gatesec_shipment_changes_before_wh_out() from public, anon, authenticated;
 drop trigger if exists prevent_gatesec_shipment_changes_before_wh_out on public.visits;
 create trigger prevent_gatesec_shipment_changes_before_wh_out
 before update on public.visits
