@@ -269,12 +269,16 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitShipments(visitIds) {
     visitShipments.clear();
     if (!visitIds.length) return;
-    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,import_plan_items(do_number,shipment_number,import_plan_trips(vendor,destination))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
     const rows = await request(path);
     if (!Array.isArray(rows)) return;
     rows.forEach(function (row) {
       const item = row.import_plan_items || {};
-      const label = String(item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "").trim();
+      const doNumber = String(item.do_number || row.snapshot_do_number || "").trim();
+      const shipmentNumber = String(item.shipment_number || row.snapshot_shipment_number || "").trim();
+      const trip = item.import_plan_trips || {};
+      const label = [doNumber ? "DO " + doNumber : "", shipmentNumber && shipmentNumber !== doNumber ? "Shipment " + shipmentNumber : "",
+        row.snapshot_vendor || trip.vendor || "", row.snapshot_destination || trip.destination || ""].filter(Boolean).join(" · ");
       if (!label || !row.visit_id) return;
       if (!visitShipments.has(row.visit_id)) visitShipments.set(row.visit_id, []);
       const list = visitShipments.get(row.visit_id);
@@ -507,12 +511,15 @@ window.trcmComponentsReady.then(async function () {
         "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase()) +
         "&operational_date=eq." + encodeURIComponent(operationalDate) +
         "&status=eq.active&order=created_at.desc";
-      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count&" + filters);
+      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count,import_plan_trips(count)&" + filters);
       if (sequence !== planLoadSequence) return;
       if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
       availablePlans = plans;
       planSelect.innerHTML = '<option value="">Pilih Plan aktif</option>' + plans.map(function (plan) {
-        return '<option value="' + escapeHtml(plan.id) + '">Revisi ' + escapeHtml(plan.revision) + ' · ' + escapeHtml(plan.row_count || 0) + ' baris</option>';
+        const truckCount = Array.isArray(plan.import_plan_trips) && plan.import_plan_trips.length
+          ? Number(plan.import_plan_trips[0].count || 0)
+          : 0;
+        return '<option value="' + escapeHtml(plan.id) + '">Plan ' + escapeHtml(formatPlanDate(plan.operational_date)) + ' · ' + escapeHtml(truckCount) + ' Truk</option>';
       }).join("");
       planSelect.disabled = plans.length === 0;
       planSelectionContext.textContent = plans.length
