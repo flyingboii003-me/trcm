@@ -457,7 +457,7 @@ window.trcmComponentsReady.then(async function () {
         const tripName = group.trip
           ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
           : "";
-        return '<div class="border rounded-3 p-3 mb-2 plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '">' +
+        return '<label class="border rounded-3 p-3 mb-2 d-block plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + escapeHtml(groupId) + '"') + '>' +
           '<div class="d-flex align-items-start gap-3">' +
           (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
           '<div class="flex-grow-1 min-w-0">' +
@@ -465,7 +465,7 @@ window.trcmComponentsReady.then(async function () {
           '<span class="badge text-bg-light border">' + group.items.length + ' referensi</span>' +
           (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
           (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div>' +
-          '</div></div></div>';
+          '</div></div></label>';
       }).join("");
       return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</section>';
     }).join("");
