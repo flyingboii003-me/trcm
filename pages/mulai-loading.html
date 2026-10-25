@@ -634,33 +634,10 @@ window.trcmComponentsReady.then(async function () {
       return;
     }
 
-    if (!planSelect.value) {
-      await Swal.fire({
-        icon: "warning",
-        title: "Plan belum dipilih",
-        text: "Pilih Plan aktif sebelum memulai loading.",
-        confirmButtonText: "Pilih Plan",
-        confirmButtonColor: "#0066B3"
-      });
-      planSelect.focus();
-      return;
-    }
-
-    if (availablePlanItems.length === 0) {
-      await Swal.fire({
-        icon: "warning",
-        title: "Plan kosong",
-        text: "Plan ini belum memiliki detail shipment/DO, atau detailnya belum selesai dimuat. Periksa Plan dan coba lagi sebelum memulai loading.",
-        confirmButtonText: "Tutup",
-        confirmButtonColor: "#0066B3"
-      });
-      return;
-    }
-
     if (selectedPlanItemIds.size === 0) {
       await Swal.fire({
         icon: "warning",
-        title: "Shipment belum dipilih",
+        title: "Shipment / DO belum dipilih",
         text: "Pilih minimal satu shipment atau DO dari Plan sebelum memulai loading.",
         confirmButtonText: "Pilih Shipment",
         confirmButtonColor: "#0066B3"
