@@ -752,7 +752,7 @@
     const permissions=window.trcmPermissions;
     state.canUpdate=!!(state.session.user&&state.session.user.role==="admin"&&permissions&&permissions.can("daftar_plan","update"));
     state.canCreatePlan=!!(permissions&&permissions.can("import_plan","create"));
-    state.canDelete=!!(permissions&&permissions.can("daftar_plan","delete"));
+    state.canDelete=!!(state.session.user&&state.session.user.role==="admin"&&permissions&&permissions.can("daftar_plan","delete"));
     const canImport = permissions && permissions.can("import_plan_upload", "view");
     const createLink = $("create-plan-link");
     if (createLink && !canImport) createLink.hidden = true;
