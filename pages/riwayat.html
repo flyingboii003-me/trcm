@@ -519,8 +519,9 @@ async function openVisitModal(visitId) {
           };
           const activityType = row.snapshot_activity_type || visit.activity_type;
           const key = String(label).trim().toLowerCase();
-          if (!groups.has(key)) groups.set(key, { label: label, shipment: shipmentNumber, items: [], trip: trip });
+          if (!groups.has(key)) groups.set(key, { label: label, shipments: [], items: [], trip: trip });
           const group = groups.get(key);
+          if (shipmentNumber && !group.shipments.includes(shipmentNumber)) group.shipments.push(shipmentNumber);
           if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
           const detail = "";
           if (detail && !group.items.includes(detail)) group.items.push(detail);
@@ -528,7 +529,7 @@ async function openVisitModal(visitId) {
         selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
             return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label || "—") + '</td>' +
-              '<td class="text-break">' + escapeHtml(group.shipment || "—") + '</td>' +
+              '<td class="text-break">' + escapeHtml(group.shipments.length ? group.shipments.join(", ") : "—") + '</td>' +
               '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' +
               '</tr>';
           }).join("") + '</tbody></table></div>';
