@@ -635,15 +635,29 @@ window.trcmComponentsReady.then(async function () {
     }
 
     if (selectedPlanItemIds.size === 0) {
+      const planWasOpenedWithSelectableShipments = Boolean(planSelect.value) && availablePlanItems.some(function (item) {
+        return !processedPlanItemIds.has(item.id);
+      });
+
+      if (planWasOpenedWithSelectableShipments) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Shipment / DO belum dipilih",
+          text: "Pilih minimal satu shipment atau DO dari Plan yang dibuka sebelum memulai loading.",
+          confirmButtonText: "Pilih Shipment",
+          confirmButtonColor: "#0066B3"
+        });
+        planShipmentList.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
       await Swal.fire({
         icon: "warning",
-        title: "Shipment / DO belum dipilih",
-        text: "Pilih minimal satu shipment atau DO dari Plan sebelum memulai loading.",
-        confirmButtonText: "Pilih Shipment",
+        title: "Plan / Shipment belum dipilih",
+        text: "Loading akan tetap dilanjutkan tanpa mengaitkan shipment dari Plan. Pilih Plan dan shipment/DO jika ingin mencatat referensinya.",
+        confirmButtonText: "Lanjutkan Loading",
         confirmButtonColor: "#0066B3"
       });
-      planShipmentList.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
     }
 
     saveButton.disabled = true;
