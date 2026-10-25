@@ -210,7 +210,7 @@ function openEditModal(visit) {
   document.getElementById("edit-shipment-type").value = visit.shipment_type || "";
   document.getElementById("edit-shipment-number").value = visit.shipment_number || "";
   const lockShipmentForGateSec = trcmSession.user && trcmSession.user.role === "gatesec" &&
-    Boolean(visit.wh_in_at) && !visit.wh_out_at;
+    Boolean(visit.wh_in_at || visit.started_at || visit.completed_at || (visit.process_status && !["wh_in", "registered"].includes(String(visit.process_status)))) && !visit.wh_out_at;
   document.getElementById("edit-shipment-type").disabled = lockShipmentForGateSec;
   document.getElementById("edit-shipment-number").disabled = lockShipmentForGateSec;
   document.getElementById("edit-shipment-type").title = lockShipmentForGateSec ? "Gate Security tidak dapat mengubah shipment sebelum WH Out." : "";
@@ -511,7 +511,7 @@ async function openVisitModal(visitId) {
           const item = row.import_plan_items || {};
           const doNumber = item.do_number || row.snapshot_do_number || "";
           const shipmentNumber = item.shipment_number || row.snapshot_shipment_number || "";
-          const label = doNumber || shipmentNumber || "DO/Shipment tanpa nomor";
+          const label = doNumber || "DO tidak tersedia";
           const trip = item.import_plan_trips || {
             trip_number: row.snapshot_trip_number,
             vendor: row.snapshot_vendor,
@@ -739,7 +739,10 @@ async function loadVisits() {
       "vendor",
       "client_id",
       "driver_name",
+      "shipment_type",
       "shipment_number",
+      "started_at",
+      "completed_at",
       "wh_in_at",
       "wh_out_at",
       "process_status",
@@ -921,7 +924,7 @@ editForm.addEventListener("submit", async function (event) {
   try {
     const currentVisit = visits.find(function (visit) { return String(visit.id) === String(visitId); });
     if (trcmSession.user && trcmSession.user.role === "gatesec" && currentVisit &&
-        currentVisit.wh_in_at && !currentVisit.wh_out_at) {
+        (currentVisit.wh_in_at || currentVisit.started_at || currentVisit.completed_at || (currentVisit.process_status && !["wh_in", "registered"].includes(String(currentVisit.process_status)))) && !currentVisit.wh_out_at) {
       delete payload.shipment_type;
       delete payload.shipment_number;
     }
