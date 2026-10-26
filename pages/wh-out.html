@@ -239,55 +239,19 @@ window.trcmComponentsReady.then(async function () {
     const button = table.querySelector('[data-visit-id="' + CSS.escape(visit.id) + '"]');
     if (button) button.disabled = true;
 
-    const whOutAt = new Date().toISOString();
-
     try {
-      const updatedVisit = await request("/rest/v1/visits?id=eq." + encodeURIComponent(visit.id) + "&process_status=eq.completed&completed_at=not.is.null&wh_out_at=is.null", {
-        method: "PATCH",
+      const result = await request("/rest/v1/rpc/record_visit_wh_out", {
+        method: "POST",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
           Authorization: "Bearer " + session.access_token,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ wh_out_at: whOutAt })
+        body: JSON.stringify({ p_visit_id: visit.id })
       });
 
-      if (!Array.isArray(updatedVisit) || updatedVisit.length !== 1) {
-        throw new Error("Armada sudah berubah status atau sudah diproses WH Out oleh pengguna lain.");
-      }
-
-      try {
-        await request("/rest/v1/visit_events", {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            visit_id: visit.id,
-            status: "wh_out",
-            user_id: session.user.id
-          })
-        });
-      } catch (eventError) {
-        try {
-          await request("/rest/v1/visits?id=eq." + encodeURIComponent(visit.id), {
-            method: "PATCH",
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-              Authorization: "Bearer " + session.access_token,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal"
-            },
-            body: JSON.stringify({ wh_out_at: null })
-          });
-        } catch (rollbackError) {
-          console.error("TRCM WH Out rollback:", rollbackError);
-        }
-        throw eventError;
+      if (!result || result.visit_id !== visit.id || result.wh_out !== true) {
+        throw new Error("Respons penyimpanan WH Out tidak valid.");
       }
 
       await Swal.fire({
