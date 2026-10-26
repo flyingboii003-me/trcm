@@ -161,28 +161,12 @@ window.trcmComponentsReady.then(async function () {
     if(!visit||!canQueueUpdate||(!isGateSecurity&&!isAdmin))return;
     const card=visit.cards&&visit.cards.card_number?visit.cards.card_number:"—";
     try{
-      const updated=await request("/rest/v1/visits?id=eq."+encodeURIComponent(visit.id)+"&process_status=eq.wh_in&wh_in_at=not.is.null&wh_out_at=is.null",{
-        method:"PATCH",
-        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},
-        body:JSON.stringify({process_status:"queue",final_status:"parked"})
+      const result=await request("/rest/v1/rpc/park_visit",{
+        method:"POST",
+        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},
+        body:JSON.stringify({p_visit_id:visit.id})
       });
-      if(!Array.isArray(updated)||updated.length!==1)throw new Error("Armada sudah berubah status atau sudah diproses pengguna lain.");
-      try{
-        await request("/rest/v1/visit_events",{
-          method:"POST",
-          headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},
-          body:JSON.stringify({visit_id:visit.id,status:"parked",user_id:session.user.id})
-        });
-      }catch(eventError){
-        try{
-          await request("/rest/v1/visits?id=eq."+encodeURIComponent(visit.id),{
-            method:"PATCH",
-            headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},
-            body:JSON.stringify({process_status:"wh_in",final_status:null})
-          });
-        }catch(rollbackError){console.error("TRCM park rollback:",rollbackError);}
-        throw eventError;
-      }
+      if(!result||result.visit_id!==visit.id||result.parked!==true)throw new Error("Respons perubahan status Antri/Parkir tidak valid.");
       await Swal.fire({icon:"success",title:"Antri / Parkir berhasil",html:'Armada <strong>'+escapeHtml(card)+'</strong> sudah masuk status Antri/Parkir.',confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
       await loadVisits();
     }catch(error){

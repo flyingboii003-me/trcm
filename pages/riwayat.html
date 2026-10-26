@@ -59,8 +59,6 @@
             <div class="col-12 col-md-6"><label class="form-label" for="edit-driver-phone">Nomor telepon driver</label><input class="form-control" id="edit-driver-phone" maxlength="30"></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-truck-type">Tipe truck</label><input class="form-control" id="edit-truck-type" maxlength="120"></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-container-num">Nomor container</label><input class="form-control" id="edit-container-num" maxlength="30"></div>
-            <div class="col-12 col-md-6"><label class="form-label" for="edit-shipment-type">Tipe shipment</label><select class="form-select" id="edit-shipment-type"><option value="">Pilih tipe shipment</option><option value="Bongkar">Bongkar</option><option value="Muat">Muat</option></select></div>
-            <div class="col-12 col-md-6"><label class="form-label" for="edit-shipment-number">Nomor shipment</label><input class="form-control" id="edit-shipment-number" maxlength="80"></div>
             <div class="col-12"><label class="form-label" for="edit-destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="edit-destination-city" maxlength="100" required></div>
             <div class="col-12"><label class="form-label" for="edit-notes">Catatan</label><textarea class="form-control" id="edit-notes" rows="3" maxlength="1000"></textarea></div>
           </div>
@@ -207,8 +205,6 @@ function openEditModal(visit) {
   document.getElementById("edit-driver-phone").value = visit.driver_phone || "";
   document.getElementById("edit-truck-type").value = visit.truck_type || "";
   document.getElementById("edit-container-num").value = visit.container_num || "";
-  document.getElementById("edit-shipment-type").value = visit.shipment_type || "";
-  document.getElementById("edit-shipment-number").value = visit.shipment_number || "";
   document.getElementById("edit-destination-city").value = visit.destination_city || "";
   document.getElementById("edit-notes").value = visit.notes || "";
   populateEditClients(visit.client_id);
@@ -503,7 +499,9 @@ async function openVisitModal(visitId) {
         const groups = new Map();
         linkedRows.forEach(function (row) {
           const item = row.import_plan_items || {};
-          const label = item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "DO/Shipment tanpa nomor";
+          const doNumber = item.do_number || row.snapshot_do_number || "";
+          const shipmentNumber = item.shipment_number || row.snapshot_shipment_number || "";
+          const label = doNumber || "DO tidak tersedia";
           const trip = item.import_plan_trips || {
             trip_number: row.snapshot_trip_number,
             vendor: row.snapshot_vendor,
@@ -511,22 +509,18 @@ async function openVisitModal(visitId) {
           };
           const activityType = row.snapshot_activity_type || visit.activity_type;
           const key = String(label).trim().toLowerCase();
-          if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: trip });
+          if (!groups.has(key)) groups.set(key, { label: label, shipments: [], items: [], trip: trip });
           const group = groups.get(key);
+          if (shipmentNumber && !group.shipments.includes(shipmentNumber)) group.shipments.push(shipmentNumber);
           if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
           const detail = "";
           if (detail && !group.items.includes(detail)) group.items.push(detail);
         });
-        const showTripColumns = linkedRows.some(function (row) {
-          return !!(row.snapshot_vendor || row.snapshot_destination ||
-            (row.import_plan_items && row.import_plan_items.import_plan_trips));
-        });
-        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO/Shipment</th>' +
-          (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
-          '</tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
+        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
-            return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
-              (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
+            return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label || "—") + '</td>' +
+              '<td class="text-break">' + (group.shipments.length ? '<span class="badge rounded-pill text-bg-primary">' + escapeHtml(group.shipments.join(", ")) + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
+              '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' +
               '</tr>';
           }).join("") + '</tbody></table></div>';
       } else {
@@ -735,7 +729,12 @@ async function loadVisits() {
       "vendor",
       "client_id",
       "driver_name",
+      "shipment_type",
       "shipment_number",
+      "started_at",
+      "completed_at",
+      "wh_in_at",
+      "wh_out_at",
       "process_status",
       "final_status",
       "wh_in_at",
@@ -906,13 +905,12 @@ editForm.addEventListener("submit", async function (event) {
     driver_phone: document.getElementById("edit-driver-phone").value.trim() || null,
     truck_type: document.getElementById("edit-truck-type").value.trim() || null,
     container_num: document.getElementById("edit-container-num").value.trim() || null,
-    shipment_type: document.getElementById("edit-shipment-type").value || null,
-    shipment_number: document.getElementById("edit-shipment-number").value.trim() || null,
     destination_city: document.getElementById("edit-destination-city").value.trim(),
     notes: document.getElementById("edit-notes").value.trim() || null
   };
 
   try {
+    const currentVisit = visits.find(function (visit) { return String(visit.id) === String(visitId); });
     await patchVisit(visitId, payload);
     editModal.hide();
     await Swal.fire({

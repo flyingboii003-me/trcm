@@ -269,12 +269,16 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitShipments(visitIds) {
     visitShipments.clear();
     if (!visitIds.length) return;
-    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,import_plan_items(do_number,shipment_number,import_plan_trips(vendor,destination))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
     const rows = await request(path);
     if (!Array.isArray(rows)) return;
     rows.forEach(function (row) {
       const item = row.import_plan_items || {};
-      const label = String(item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "").trim();
+      const doNumber = String(item.do_number || row.snapshot_do_number || "").trim();
+      const shipmentNumber = String(item.shipment_number || row.snapshot_shipment_number || "").trim();
+      const trip = item.import_plan_trips || {};
+      const label = [doNumber ? "DO " + doNumber : "", shipmentNumber && shipmentNumber !== doNumber ? "Shipment " + shipmentNumber : "",
+        row.snapshot_vendor || trip.vendor || "", row.snapshot_destination || trip.destination || ""].filter(Boolean).join(" · ");
       if (!label || !row.visit_id) return;
       if (!visitShipments.has(row.visit_id)) visitShipments.set(row.visit_id, []);
       const list = visitShipments.get(row.visit_id);
@@ -414,7 +418,10 @@ window.trcmComponentsReady.then(async function () {
     items.forEach(function (item) {
       const rawKey = item.do_number || item.shipment_number || ("item:" + item.id);
       const key = String(rawKey).trim().toLowerCase();
-      if (!groups.has(key)) groups.set(key, { key: key, label: item.do_number || item.shipment_number || ("Baris " + item.row_number), items: [], trip: item.trip || null });
+      const doNumber = String(item.do_number || "").trim();
+      const shipmentNumber = String(item.shipment_number || "").trim();
+      const label = [doNumber ? "DO " + doNumber : "", shipmentNumber && shipmentNumber !== doNumber ? "Shipment " + shipmentNumber : ""].filter(Boolean).join(" · ") || ("Baris " + item.row_number);
+      if (!groups.has(key)) groups.set(key, { key: key, label: label, items: [], trip: item.trip || null });
       const group = groups.get(key);
       group.items.push(item);
       if (!group.trip && item.trip) group.trip = item.trip;
@@ -457,7 +464,7 @@ window.trcmComponentsReady.then(async function () {
         const tripName = group.trip
           ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
           : "";
-        return '<div class="border rounded-3 p-3 mb-2 plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '">' +
+        return '<label class="border rounded-3 p-3 mb-2 d-block plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + escapeHtml(groupId) + '"') + '>' +
           '<div class="d-flex align-items-start gap-3">' +
           (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
           '<div class="flex-grow-1 min-w-0">' +
@@ -465,7 +472,7 @@ window.trcmComponentsReady.then(async function () {
           '<span class="badge text-bg-light border">' + group.items.length + ' referensi</span>' +
           (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
           (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div>' +
-          '</div></div></div>';
+          '</div></div></label>';
       }).join("");
       return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</section>';
     }).join("");
@@ -507,12 +514,15 @@ window.trcmComponentsReady.then(async function () {
         "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase()) +
         "&operational_date=eq." + encodeURIComponent(operationalDate) +
         "&status=eq.active&order=created_at.desc";
-      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count&" + filters);
+      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count,import_plan_trips(count)&" + filters);
       if (sequence !== planLoadSequence) return;
       if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
       availablePlans = plans;
       planSelect.innerHTML = '<option value="">Pilih Plan aktif</option>' + plans.map(function (plan) {
-        return '<option value="' + escapeHtml(plan.id) + '">Revisi ' + escapeHtml(plan.revision) + ' · ' + escapeHtml(plan.row_count || 0) + ' baris</option>';
+        const truckCount = Array.isArray(plan.import_plan_trips) && plan.import_plan_trips.length
+          ? Number(plan.import_plan_trips[0].count || 0)
+          : 0;
+        return '<option value="' + escapeHtml(plan.id) + '">Plan ' + escapeHtml(formatPlanDate(plan.operational_date)) + ' · ' + escapeHtml(truckCount) + ' Truk</option>';
       }).join("");
       planSelect.disabled = plans.length === 0;
       planSelectionContext.textContent = plans.length
@@ -623,86 +633,64 @@ window.trcmComponentsReady.then(async function () {
       await loadVisits();
       return;
     }
+
+    if (selectedPlanItemIds.size === 0) {
+      const planWasOpenedWithSelectableShipments = Boolean(planSelect.value) && availablePlanItems.some(function (item) {
+        return !processedPlanItemIds.has(item.id);
+      });
+
+      if (planWasOpenedWithSelectableShipments) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Shipment / DO belum dipilih",
+          text: "Pilih minimal satu shipment atau DO dari Plan yang dibuka sebelum memulai loading.",
+          confirmButtonText: "Pilih Shipment",
+          confirmButtonColor: "#0066B3"
+        });
+        planShipmentList.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      const warningResult = await Swal.fire({
+        icon: "warning",
+        title: "Plan / Shipment belum dipilih",
+        text: "Loading akan tetap dilanjutkan tanpa mengaitkan shipment dari Plan. Pilih Plan dan shipment/DO jika ingin mencatat referensinya.",
+        confirmButtonText: "Lanjutkan Loading",
+        cancelButtonText: "Batal",
+        showCancelButton: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        confirmButtonColor: "#0066B3",
+        cancelButtonColor: "#6B7280"
+      });
+
+      if (!warningResult.isConfirmed) {
+        return;
+      }
+    }
+
     saveButton.disabled = true;
-    const startedAt = new Date().toISOString();
-    let visitStatusUpdated = false;
 
     try {
-      const updatedVisit = await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id) + "&process_status=in.(wh_in,queue)&wh_in_at=not.is.null&wh_out_at=is.null", {
-        method: "PATCH",
+      const result = await request("/rest/v1/rpc/start_loading_visit", {
+        method: "POST",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
           Authorization: "Bearer " + session.access_token,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          gate_id: gateSelect.value,
-          line_number_id: lineSelect.value,
-          seal_number: sealNumber.value.trim() || null,
-          notes: loadingNotes.value.trim() || null,
-          process_status: "started",
-          final_status: "processing",
-          started_at: startedAt
+          p_visit_id: selectedVisit.id,
+          p_gate_id: gateSelect.value,
+          p_line_number_id: lineSelect.value,
+          p_seal_number: sealNumber.value.trim() || null,
+          p_notes: loadingNotes.value.trim() || null,
+          p_plan_item_ids: Array.from(selectedPlanItemIds)
         })
       });
-      if (!Array.isArray(updatedVisit) || updatedVisit.length !== 1) {
-        throw new Error("Status truck berubah atau WH In belum dikonfirmasi. Daftar akan diperbarui.");
-      }
-      visitStatusUpdated = true;
 
-      try {
-        await request("/rest/v1/visit_events", {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            visit_id: selectedVisit.id,
-            status: "started",
-            user_id: session.user.id
-          })
-        });
-      } catch (eventError) {
-        await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
-          method: "PATCH",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            process_status: "queue",
-            final_status: null,
-            started_at: null
-          })
-        });
-        visitStatusUpdated = false;
-        throw eventError;
-      }
-
-      if (selectedPlanItemIds.size > 0) {
-        const planLinks = Array.from(selectedPlanItemIds).map(function (planItemId) {
-          return {
-            visit_id: selectedVisit.id,
-            plan_item_id: planItemId,
-            linked_by: session.user.id
-          };
-        });
-        await request("/rest/v1/visit_plan_items", {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify(planLinks)
-        });
+      if (!result || result.visit_id !== selectedVisit.id || result.process_status !== "started") {
+        throw new Error("Respons penyimpanan Mulai Loading tidak valid.");
       }
 
       modal.hide();
@@ -716,26 +704,6 @@ window.trcmComponentsReady.then(async function () {
       await loadVisits();
     } catch (error) {
       console.error("TRCM Mulai Loading save:", error);
-      if (visitStatusUpdated) {
-        try {
-          await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
-            method: "PATCH",
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-              Authorization: "Bearer " + session.access_token,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal"
-            },
-            body: JSON.stringify({
-              process_status: "queue",
-              final_status: null,
-              started_at: null
-            })
-          });
-        } catch (rollbackError) {
-          console.error("TRCM Mulai Loading rollback:", rollbackError);
-        }
-      }
       await Swal.fire({
         icon: "error",
         title: "Gagal menyimpan",
