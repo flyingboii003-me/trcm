@@ -46,6 +46,13 @@ begin
   end if;
 
   if cardinality(v_selected_ids) > 0 then
+    -- Serialize attempts to attach the same Plan item to different visits.
+    perform 1
+    from public.import_plan_items i
+    where i.id = any(v_selected_ids)
+    order by i.id
+    for update;
+
     select i.plan_id
       into v_plan_id
     from public.import_plan_items i
