@@ -46,7 +46,7 @@ begin
   end if;
 
   if cardinality(v_selected_ids) > 0 then
-    select min(i.plan_id)
+    select i.plan_id
       into v_plan_id
     from public.import_plan_items i
     join public.import_plans p on p.id = i.plan_id
@@ -59,7 +59,9 @@ begin
         select 1
         from public.visit_plan_items linked
         where linked.plan_item_id = i.id
-      );
+      )
+    order by i.plan_id
+    limit 1;
 
     select count(*)::integer
       into v_valid_count
