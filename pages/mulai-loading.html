@@ -670,85 +670,27 @@ window.trcmComponentsReady.then(async function () {
     }
 
     saveButton.disabled = true;
-    const startedAt = new Date().toISOString();
-    let visitStatusUpdated = false;
 
     try {
-      const updatedVisit = await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id) + "&process_status=in.(wh_in,queue)&wh_in_at=not.is.null&wh_out_at=is.null", {
-        method: "PATCH",
+      const result = await request("/rest/v1/rpc/start_loading_visit", {
+        method: "POST",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
           Authorization: "Bearer " + session.access_token,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          gate_id: gateSelect.value,
-          line_number_id: lineSelect.value,
-          seal_number: sealNumber.value.trim() || null,
-          notes: loadingNotes.value.trim() || null,
-          process_status: "started",
-          final_status: "processing",
-          started_at: startedAt
+          p_visit_id: selectedVisit.id,
+          p_gate_id: gateSelect.value,
+          p_line_number_id: lineSelect.value,
+          p_seal_number: sealNumber.value.trim() || null,
+          p_notes: loadingNotes.value.trim() || null,
+          p_plan_item_ids: Array.from(selectedPlanItemIds)
         })
       });
-      if (!Array.isArray(updatedVisit) || updatedVisit.length !== 1) {
-        throw new Error("Status truck berubah atau WH In belum dikonfirmasi. Daftar akan diperbarui.");
-      }
-      visitStatusUpdated = true;
 
-      try {
-        await request("/rest/v1/visit_events", {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            visit_id: selectedVisit.id,
-            status: "started",
-            user_id: session.user.id
-          })
-        });
-      } catch (eventError) {
-        await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
-          method: "PATCH",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            process_status: "queue",
-            final_status: null,
-            started_at: null
-          })
-        });
-        visitStatusUpdated = false;
-        throw eventError;
-      }
-
-      if (selectedPlanItemIds.size > 0) {
-        const planLinks = Array.from(selectedPlanItemIds).map(function (planItemId) {
-          return {
-            visit_id: selectedVisit.id,
-            plan_item_id: planItemId,
-            linked_by: session.user.id
-          };
-        });
-        await request("/rest/v1/visit_plan_items", {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify(planLinks)
-        });
+      if (!result || result.visit_id !== selectedVisit.id || result.process_status !== "started") {
+        throw new Error("Respons penyimpanan Mulai Loading tidak valid.");
       }
 
       modal.hide();
@@ -762,26 +704,6 @@ window.trcmComponentsReady.then(async function () {
       await loadVisits();
     } catch (error) {
       console.error("TRCM Mulai Loading save:", error);
-      if (visitStatusUpdated) {
-        try {
-          await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
-            method: "PATCH",
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-              Authorization: "Bearer " + session.access_token,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal"
-            },
-            body: JSON.stringify({
-              process_status: "queue",
-              final_status: null,
-              started_at: null
-            })
-          });
-        } catch (rollbackError) {
-          console.error("TRCM Mulai Loading rollback:", rollbackError);
-        }
-      }
       await Swal.fire({
         icon: "error",
         title: "Gagal menyimpan",
