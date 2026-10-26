@@ -508,7 +508,6 @@ window.trcmComponentsReady.then(async function () {
     }
     const uploadedPhotoPaths = [];
     const photoRecordIds = [];
-    const completedAt = new Date().toISOString();
 
     try {
       loadingPhotoStatus.textContent = "Mengunggah " + selectedPhotoFiles.length + " foto...";
@@ -534,53 +533,21 @@ window.trcmComponentsReady.then(async function () {
       }
       loadingPhotoStatus.textContent = "Semua foto terunggah.";
 
-      await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
-        method: "PATCH",
+      const result = await request("/rest/v1/rpc/finish_loading_visit", {
+        method: "POST",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
           Authorization: "Bearer " + session.access_token,
-          "Content-Type": "application/json",
-          Prefer: "return=minimal"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          notes: finishNotes.value.trim() || null,
-          process_status: "completed",
-          final_status: "completed",
-          completed_at: completedAt
+          p_visit_id: selectedVisit.id,
+          p_notes: finishNotes.value.trim() || null
         })
       });
 
-      try {
-        await request("/rest/v1/visit_events", {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            visit_id: selectedVisit.id,
-            status: "completed",
-            user_id: session.user.id
-          })
-        });
-      } catch (eventError) {
-        await request("/rest/v1/visits?id=eq." + encodeURIComponent(selectedVisit.id), {
-          method: "PATCH",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            process_status: "started",
-            final_status: "processing",
-            completed_at: null
-          })
-        });
-        throw eventError;
+      if (!result || result.visit_id !== selectedVisit.id || result.process_status !== "completed") {
+        throw new Error("Respons penyimpanan Selesai Loading tidak valid.");
       }
 
       modal.hide();
