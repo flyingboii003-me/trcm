@@ -329,7 +329,7 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitShipments(visitIds) {
     visitShipments.clear();
     if (!visitIds.length) return;
-    const path = "/rest/v1/visit_plan_items?select=visit_id,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
     const rows = await request(path);
     if (!Array.isArray(rows)) return;
     rows.forEach(function (row) {
