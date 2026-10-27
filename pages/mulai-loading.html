@@ -122,20 +122,25 @@
             </div>
             <div class="card-body">
               <div class="row g-3">
-                <div class="col-12 col-md-5">
-                  <label class="form-label" for="plan-operational-date">Tanggal operasional</label>
-                  <input class="form-control" id="plan-operational-date" type="date">
+                <div class="col-12 col-md-3">
+                  <label class="form-label" for="plan-date-from">Dari tanggal</label>
+                  <input class="form-control" id="plan-date-from" type="date" required>
                 </div>
-                <div class="col-12 col-md-7">
-                  <label class="form-label" for="plan-select">Plan aktif</label>
+                <div class="col-12 col-md-3">
+                  <label class="form-label" for="plan-date-to">Sampai tanggal</label>
+                  <input class="form-control" id="plan-date-to" type="date" required>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="plan-select">Plan aktif dalam rentang</label>
                   <select class="form-select" id="plan-select">
-                    <option value="">Pilih tanggal terlebih dahulu</option>
+                    <option value="">Pilih rentang tanggal terlebih dahulu</option>
                   </select>
                 </div>
               </div>
-              <div class="small text-muted mt-3" id="plan-selection-context" aria-live="polite">Plan akan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.</div>
+              <div class="form-text mt-2">Plan ditampilkan sesuai rentang tanggal operasional, klien, dan aktivitas truck.</div>
+              <div class="small text-muted mt-3" id="plan-selection-context" aria-live="polite">Pilih rentang tanggal untuk melihat Plan dan shipment yang tersedia.</div>
               <div class="mt-3" id="plan-shipment-list">
-                <div class="border rounded-3 p-3 text-muted small">Pilih tanggal untuk melihat Plan dan shipment yang tersedia.</div>
+                <div class="border rounded-3 p-3 text-muted small">Pilih rentang tanggal untuk melihat Plan dan shipment yang tersedia.</div>
               </div>
               <div class="d-flex justify-content-between align-items-center gap-2 mt-3">
                 <span class="small text-muted" id="plan-shipment-count" aria-live="polite">0 shipment dipilih</span>
@@ -218,7 +223,8 @@ window.trcmComponentsReady.then(async function () {
   const loadingNotes = document.getElementById("loading-notes");
   const form = document.getElementById("start-loading-form");
   const saveButton = document.getElementById("save-start-button");
-  const planDateInput = document.getElementById("plan-operational-date");
+  const planDateFromInput = document.getElementById("plan-date-from");
+  const planDateToInput = document.getElementById("plan-date-to");
   const planSelect = document.getElementById("plan-select");
   const planShipmentList = document.getElementById("plan-shipment-list");
   const planSelectionContext = document.getElementById("plan-selection-context");
@@ -499,7 +505,8 @@ window.trcmComponentsReady.then(async function () {
   async function loadPlansForSelectedVisit() {
     const sequence = ++planLoadSequence;
     const visit = selectedVisit;
-    const operationalDate = planDateInput.value;
+    const dateFrom = planDateFromInput.value;
+    const dateTo = planDateToInput.value;
     availablePlans = [];
     availablePlanItems = [];
     selectedPlanItemIds = new Set();
@@ -507,17 +514,24 @@ window.trcmComponentsReady.then(async function () {
     planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
     resetPlanShipmentSelection("Memuat Plan dan shipment…");
 
-    if (!visit || !operationalDate || !visit.client_id || !visit.activity_type) {
-      planSelect.innerHTML = '<option value="">Data klien, aktivitas, atau tanggal belum tersedia</option>';
-      planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.";
+    if (!visit || !dateFrom || !dateTo || !visit.client_id || !visit.activity_type) {
+      planSelect.innerHTML = '<option value="">Lengkapi rentang tanggal terlebih dahulu</option>';
+      planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan rentang tanggal operasional.";
+      return;
+    }
+    if (dateFrom > dateTo) {
+      planSelect.innerHTML = '<option value="">Rentang tanggal tidak valid</option>';
+      planSelectionContext.textContent = "Tanggal awal harus sama dengan atau sebelum tanggal akhir.";
+      resetPlanShipmentSelection("Periksa kembali rentang tanggal yang dipilih.");
       return;
     }
 
     try {
       const filters = "client_id=eq." + encodeURIComponent(visit.client_id) +
         "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase()) +
-        "&operational_date=eq." + encodeURIComponent(operationalDate) +
-        "&status=eq.active&order=created_at.desc";
+        "&operational_date=gte." + encodeURIComponent(dateFrom) +
+        "&operational_date=lte." + encodeURIComponent(dateTo) +
+        "&status=eq.active&order=operational_date.asc,created_at.desc";
       const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count,import_plan_trips(count)&" + filters);
       if (sequence !== planLoadSequence) return;
       if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
@@ -530,14 +544,14 @@ window.trcmComponentsReady.then(async function () {
       }).join("");
       planSelect.disabled = plans.length === 0;
       planSelectionContext.textContent = plans.length
-        ? plans.length + " Plan aktif ditemukan untuk " + formatPlanDate(operationalDate) + "."
-        : "Tidak ada Plan aktif untuk klien, aktivitas, dan tanggal ini.";
-      if (!plans.length) resetPlanShipmentSelection("Tidak ada Plan aktif yang sesuai. Periksa tanggal operasional atau data Plan.");
+        ? plans.length + " Plan aktif ditemukan dari " + formatPlanDate(dateFrom) + " sampai " + formatPlanDate(dateTo) + "."
+        : "Tidak ada Plan aktif dalam rentang tanggal ini untuk klien dan aktivitas truck.";
+      if (!plans.length) resetPlanShipmentSelection("Tidak ada Plan aktif yang sesuai. Periksa rentang tanggal atau data Plan.");
     } catch (error) {
       if (sequence !== planLoadSequence) return;
       planSelect.innerHTML = '<option value="">Plan gagal dimuat</option>';
       planSelectionContext.textContent = error.message || "Plan tidak dapat dimuat.";
-      resetPlanShipmentSelection("Gagal memuat Plan. Silakan ubah tanggal atau coba kembali.");
+      resetPlanShipmentSelection("Gagal memuat Plan. Silakan ubah rentang tanggal atau coba kembali.");
       console.error("TRCM Plan shipment picker:", error);
     }
   }
@@ -613,11 +627,13 @@ window.trcmComponentsReady.then(async function () {
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
     lineSelect.disabled = true;
-    planDateInput.value = localDateInputValue(visit.wh_in_at || visit.registered_at);
+    const visitOperationalDate = localDateInputValue(visit.wh_in_at || visit.registered_at);
+    planDateFromInput.value = visitOperationalDate;
+    planDateToInput.value = visitOperationalDate;
     planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
     planSelect.disabled = true;
-    planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan tanggal operasional armada.";
-    resetPlanShipmentSelection("Pilih tanggal untuk melihat Plan dan shipment yang tersedia.");
+    planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan rentang tanggal operasional armada.";
+    resetPlanShipmentSelection("Pilih rentang tanggal untuk melihat Plan dan shipment yang tersedia.");
     sealNumber.value = visit.seal_number || "";
     loadingNotes.value = visit.notes || "";
     form.classList.remove("was-validated");
@@ -721,7 +737,8 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
-  planDateInput.addEventListener("change", loadPlansForSelectedVisit);
+  planDateFromInput.addEventListener("change", loadPlansForSelectedVisit);
+  planDateToInput.addEventListener("change", loadPlansForSelectedVisit);
   planSelect.addEventListener("change", function () {
     loadPlanItems(planSelect.value);
   });
