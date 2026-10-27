@@ -102,6 +102,10 @@
                   <strong id="detail-plate">—</strong>
                 </div>
                 <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Nama driver</span>
+                  <strong id="detail-driver">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
                   <span class="small text-muted d-block">Tujuan</span>
                   <strong id="detail-destination">—</strong>
                 </div>
@@ -361,7 +365,7 @@ window.trcmComponentsReady.then(async function () {
 
     try {
       const select = [
-        "id","card_id","client_id","plate_number","activity_type","vendor","shipment_type","shipment_number","destination_city",
+        "id","card_id","client_id","plate_number","driver_name","activity_type","vendor","shipment_type","shipment_number","destination_city",
         "process_status","wh_in_at","registered_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +
@@ -604,6 +608,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("selected-visit-summary").textContent = card + " · " + (visit.plate_number || "—") + " · " + client;
     document.getElementById("detail-card").textContent = card;
     document.getElementById("detail-plate").textContent = visit.plate_number || "—";
+    document.getElementById("detail-driver").textContent = visit.driver_name || "—";
     document.getElementById("detail-destination").textContent = visit.destination_city || "—";
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
