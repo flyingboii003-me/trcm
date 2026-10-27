@@ -516,10 +516,20 @@ async function openVisitModal(visitId) {
           const detail = "";
           if (detail && !group.items.includes(detail)) group.items.push(detail);
         });
+        function renderReferenceBadges(rawValue, referenceType) {
+          const labels = String(rawValue || "").split(",").map(function (label) { return label.trim(); }).filter(Boolean);
+          const uniqueLabels = labels.filter(function (label, index) {
+            return labels.findIndex(function (candidate) { return candidate.toLowerCase() === label.toLowerCase(); }) === index;
+          });
+          if (!uniqueLabels.length) return '<span class="text-muted">—</span>';
+          return '<div class="loading-shipment-list">' + uniqueLabels.map(function (label) {
+            return '<span class="loading-shipment-chip loading-reference-' + referenceType + '" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</span>';
+          }).join("") + '</div>';
+        }
         selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
             const trip = group.trip || {};
-            return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label || "—") + '</td>' +
-              '<td class="text-break">' + (group.shipments.length ? '<span class="badge rounded-pill text-bg-primary">' + escapeHtml(group.shipments.join(", ")) + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
+            return '<tr><td class="fw-semibold text-break">' + renderReferenceBadges(group.label === "DO tidak tersedia" ? "" : group.label, "do") + '</td>' +
+              '<td class="text-break">' + renderReferenceBadges(group.shipments.join(", "), "shipment") + '</td>' +
               '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' +
               '</tr>';
           }).join("") + '</tbody></table></div>';
