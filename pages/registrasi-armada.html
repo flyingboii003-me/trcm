@@ -283,7 +283,7 @@ window.trcmComponentsReady.then(async function () {
   }
 
   async function persistVendor(name) {
-    const normalizedName = String(name || "").trim().replace(/\\s+/g, " ");
+    const normalizedName = String(name || "").trim().replace(/\s+/g, " ");
     if (!normalizedName) throw new Error("Vendor wajib dipilih atau diisi.");
 
     const existing = vendors.find(function (vendor) {
