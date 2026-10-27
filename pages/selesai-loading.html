@@ -332,13 +332,24 @@ window.trcmComponentsReady.then(async function () {
     const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
     const rows = await request(path);
     if (!Array.isArray(rows)) return;
+    const activityByVisit = new Map(visits.map(function (visit) {
+      return [visit.id, String(visit.activity_type || "").toLowerCase()];
+    }));
     rows.forEach(function (row) {
+      if (!row.visit_id) return;
       const item = row.import_plan_items || {};
-      const label = String(item.do_number || item.shipment_number || "").trim();
-      if (!label || !row.visit_id) return;
+      const isInbound = activityByVisit.get(row.visit_id) === "inbound";
+      const rawLabel = isInbound
+        ? (item.do_number || row.snapshot_do_number || "")
+        : (item.shipment_number || row.snapshot_shipment_number || "");
+      // Satu kolom shipment kadang berisi beberapa nomor dipisahkan koma.
+      // Pecah agar setiap nomor tampil sebagai badge tersendiri.
+      const labels = String(rawLabel).split(",").map(function (label) { return label.trim(); }).filter(Boolean);
       if (!visitShipments.has(row.visit_id)) visitShipments.set(row.visit_id, []);
       const list = visitShipments.get(row.visit_id);
-      if (!list.some(function (value) { return value.toLowerCase() === label.toLowerCase(); })) list.push(label);
+      labels.forEach(function (label) {
+        if (!list.some(function (value) { return value.toLowerCase() === label.toLowerCase(); })) list.push(label);
+      });
     });
   }
   function renderShipmentCell(visit, activityType) {
