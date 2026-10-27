@@ -370,7 +370,6 @@ window.trcmComponentsReady.then(async function () {
       const activityType = String(visit.activity_type || "").toLowerCase();
       const isInbound = activityType === "inbound";
       const activityLabel = isInbound ? "Inbound" : activityType === "outbound" ? "Outbound" : (activityType || "—");
-      const referenceLabel = isInbound ? "DO / Transport task" : "Shipment";
       return '<tr class="loading-activity-row loading-activity-' + escapeHtml(activityType) + '">' +
         '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
         '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
@@ -378,7 +377,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
-        '<td class="loading-shipment-cell"><span class="loading-reference-caption">' + escapeHtml(referenceLabel) + '</span>' + renderShipmentCell(visit, activityType) + '</td>' +
+        '<td class="loading-shipment-cell">' + renderShipmentCell(visit, activityType) + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
         '<td class="action-cell"><button type="button" class="btn btn-primary btn-sm finish-loading-button" data-visit-id="' + escapeHtml(visit.id) + '"' + (canFinish ? "" : " disabled") + '><i class="bi bi-check-circle me-1"></i>Selesai</button></td>' +
       '</tr>';
