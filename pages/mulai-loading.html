@@ -546,12 +546,14 @@ window.trcmComponentsReady.then(async function () {
       if (sequence !== planLoadSequence) return;
       if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
       availablePlans = plans;
-      planSelect.innerHTML = plans.map(function (plan) {
-        const truckCount = Array.isArray(plan.import_plan_trips) && plan.import_plan_trips.length
-          ? Number(plan.import_plan_trips[0].count || 0)
-          : 0;
-        return '<option value="' + escapeHtml(plan.id) + '">' + escapeHtml(formatDestination(plan.activity_type)) + ' · Plan ' + escapeHtml(formatPlanDate(plan.operational_date)) + ' · ' + escapeHtml(truckCount) + ' Truk</option>';
-      }).join("");
+      planSelect.innerHTML = plans.length
+        ? plans.map(function (plan) {
+            const truckCount = Array.isArray(plan.import_plan_trips) && plan.import_plan_trips.length
+              ? Number(plan.import_plan_trips[0].count || 0)
+              : 0;
+            return '<option value="' + escapeHtml(plan.id) + '">' + escapeHtml(formatDestination(plan.activity_type)) + ' · Plan ' + escapeHtml(formatPlanDate(plan.operational_date)) + ' · ' + escapeHtml(truckCount) + ' Truk</option>';
+          }).join("")
+        : '<option value="" disabled selected>Tidak ada Plan aktif yang cocok dengan filter</option>';
       planSelect.disabled = plans.length === 0;
       planSelectionContext.textContent = plans.length
         ? plans.length + " Plan aktif ditemukan dari " + formatPlanDate(dateFrom) + " sampai " + formatPlanDate(dateTo) +
