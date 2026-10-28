@@ -520,11 +520,11 @@ window.trcmComponentsReady.then(async function () {
     planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
     resetPlanShipmentSelection("Memuat Plan dan shipment…");
 
-    if (!visit || !dateFrom || !dateTo || !visit.client_id || !visit.activity_type) {
+    if (!visit || !dateFrom || !dateTo || !visit.client_id || (!showAllActivityPlansInput.checked && !visit.activity_type)) {
       planSelect.innerHTML = '<option value="">Lengkapi rentang tanggal terlebih dahulu</option>';
       planSelectionContext.textContent = showAllActivityPlansInput.checked
         ? "Plan difilter berdasarkan klien dan rentang tanggal operasional, mencakup Inbound dan Outbound."
-        : "Plan difilter berdasarkan klien, aktivitas " + formatDestination(visit.activity_type) + ", dan rentang tanggal operasional.";
+        : "Plan difilter berdasarkan klien, aktivitas " + (visit ? formatDestination(visit.activity_type) : "truck") + ", dan rentang tanggal operasional.";
       return;
     }
     if (dateFrom > dateTo) {
