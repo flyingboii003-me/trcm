@@ -329,36 +329,33 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitShipments(visitIds) {
     visitShipments.clear();
     if (!visitIds.length) return;
-    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,import_plan_items(do_number,shipment_number)&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const path = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
     const rows = await request(path);
     if (!Array.isArray(rows)) return;
-    const activityByVisit = new Map(visits.map(function (visit) {
-      return [visit.id, String(visit.activity_type || "").toLowerCase()];
-    }));
     rows.forEach(function (row) {
       if (!row.visit_id) return;
       const item = row.import_plan_items || {};
-      const isInbound = activityByVisit.get(row.visit_id) === "inbound";
+      const plan = item.import_plans || {};
+      const activity = String(row.snapshot_activity_type || plan.activity_type || "").toLowerCase();
+      const isInbound = activity === "inbound";
       const rawLabel = isInbound
         ? (item.do_number || row.snapshot_do_number || "")
         : (item.shipment_number || row.snapshot_shipment_number || "");
-      // Satu kolom shipment kadang berisi beberapa nomor dipisahkan koma.
-      // Pecah agar setiap nomor tampil sebagai badge tersendiri.
       const labels = String(rawLabel).split(",").map(function (label) { return label.trim(); }).filter(Boolean);
       if (!visitShipments.has(row.visit_id)) visitShipments.set(row.visit_id, []);
       const list = visitShipments.get(row.visit_id);
       labels.forEach(function (label) {
-        if (!list.some(function (value) { return value.toLowerCase() === label.toLowerCase(); })) list.push(label);
+        const key = (isInbound ? "do:" : "shipment:") + label.toLocaleLowerCase("id-ID");
+        if (!list.some(function (value) { return value.key === key; })) list.push({key:key,label:label,type:isInbound?"do":"shipment"});
       });
     });
   }
-  function renderShipmentCell(visit, activityType) {
+  function renderShipmentCell(visit) {
     const labels = visitShipments.get(visit.id) || [];
-    const isInbound = activityType === "inbound";
-    const referenceType = isInbound ? "do" : "shipment";
     if (!labels.length) return '<span class="text-muted">—</span>';
-    return '<div class="loading-shipment-list">' + labels.map(function (label) {
-      return '<span class="loading-shipment-chip loading-reference-' + referenceType + '" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</span>';
+    return '<div class="loading-shipment-list">' + labels.map(function (item) {
+      const prefix = item.type === "do" ? "DO " : "Shipment ";
+      return '<span class="loading-shipment-chip loading-reference-' + item.type + '" title="' + escapeHtml(prefix + item.label) + '">' + escapeHtml(prefix + item.label) + '</span>';
     }).join("") + '</div>';
   }
   function renderTable() {
