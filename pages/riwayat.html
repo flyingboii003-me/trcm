@@ -11,6 +11,26 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
+<style>
+.loading-shipment-list{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.375rem;min-width:0}
+.loading-shipment-chip{display:inline-flex;align-items:center;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.35;padding:.35rem .6rem;border-radius:.55rem;font-size:.78rem;font-weight:600}
+.loading-reference-do{color:#174ea6;background:#e8f1ff;border:1px solid #c7dcff}
+.loading-reference-shipment{color:#a32632;background:#fff0f1;border:1px solid #f5c6cb}
+.finish-reference-table,.visit-shipment-table{width:100%;table-layout:fixed}
+.finish-reference-table th,.finish-reference-table td,.visit-shipment-table th,.visit-shipment-table td{vertical-align:top;overflow-wrap:anywhere;word-break:break-word;padding:.7rem .65rem}
+@media(max-width:575.98px){
+ .loading-shipment-chip{font-size:.75rem;padding:.3rem .5rem}
+ .finish-reference-table thead,.visit-shipment-table thead{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+ .finish-reference-table,.finish-reference-table tbody,.visit-shipment-table,.visit-shipment-table tbody{display:block;width:100%}
+ .finish-reference-table tr,.visit-shipment-table tr{display:grid;grid-template-columns:1fr 1fr;gap:.65rem .75rem;padding:.85rem;border-bottom:1px solid var(--bs-border-color)}
+ .finish-reference-table td,.visit-shipment-table td{display:block;width:auto!important;padding:0;border:0;min-width:0}
+ .finish-reference-table td::before,.visit-shipment-table td::before{display:block;margin-bottom:.3rem;color:var(--bs-secondary-color);font-size:.7rem;font-weight:700;letter-spacing:.035em;text-transform:uppercase}
+ .finish-reference-table td:nth-child(1)::before,.visit-shipment-table td:nth-child(1)::before{content:"DO"}
+ .finish-reference-table td:nth-child(2)::before,.visit-shipment-table td:nth-child(2)::before{content:"Shipment"}
+ .finish-reference-table td:nth-child(3)::before,.visit-shipment-table td:nth-child(3)::before{content:"Nama vendor"}
+ .finish-reference-table td:nth-child(4)::before,.visit-shipment-table td:nth-child(4)::before{content:"Tujuan"}
+}
+</style>
 </head>
 <body class="trcm-app" data-page-resource="history">
 <div class="app-layout">
@@ -488,7 +508,7 @@ async function openVisitModal(visitId) {
 
     let selectedPlanShipmentHtml = '<div class="modal-loading">Memuat DO/Shipment yang dipilih...</div>';
     try {
-      const linkedItems = await fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {
+      const linkedItems = await fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {
         headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + trcmSession.access_token }
       });
       const linkedText = await linkedItems.text();
@@ -496,33 +516,46 @@ async function openVisitModal(visitId) {
       try { linkedRows = linkedText ? JSON.parse(linkedText) : []; } catch { linkedRows = []; }
       if (!linkedItems.ok) throw new Error("DO/Shipment tidak dapat dimuat.");
       if (Array.isArray(linkedRows) && linkedRows.length) {
-        const groups = new Map();
+        const references = new Map();
+        const registrationVendor = String(visit.vendor || "").trim();
+        const registrationDestination = String(visit.destination_city || "").trim();
         linkedRows.forEach(function (row) {
           const item = row.import_plan_items || {};
-          const doNumber = item.do_number || row.snapshot_do_number || "";
-          const shipmentNumber = item.shipment_number || row.snapshot_shipment_number || "";
-          const label = doNumber || "DO tidak tersedia";
+          const plan = item.import_plans || {};
+          const activity = String(row.snapshot_activity_type || plan.activity_type || "").toLowerCase();
+          const isInbound = activity === "inbound";
+          const rawValue = isInbound
+            ? (item.do_number || row.snapshot_do_number || "")
+            : (item.shipment_number || row.snapshot_shipment_number || "");
+          const labels = String(rawValue).split(",").map(function (value) { return value.trim(); }).filter(Boolean);
           const trip = item.import_plan_trips || {
             trip_number: row.snapshot_trip_number,
             vendor: row.snapshot_vendor,
             destination: row.snapshot_destination
           };
-          const activityType = row.snapshot_activity_type || visit.activity_type;
-          const key = String(label).trim().toLowerCase();
-          if (!groups.has(key)) groups.set(key, { label: label, shipments: [], items: [], trip: trip });
-          const group = groups.get(key);
-          if (shipmentNumber && !group.shipments.includes(shipmentNumber)) group.shipments.push(shipmentNumber);
-          if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
-          const detail = "";
-          if (detail && !group.items.includes(detail)) group.items.push(detail);
+          labels.forEach(function (label) {
+            const key = (isInbound ? "do:" : "shipment:") + label.toLocaleLowerCase("id-ID");
+            if (!references.has(key)) references.set(key, {label:label,type:isInbound?"do":"shipment",trip:trip});
+            const existing = references.get(key);
+            if ((!existing.trip || (!existing.trip.vendor && !existing.trip.destination)) && trip) existing.trip = trip;
+          });
         });
-        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
-            const trip = group.trip || {};
-            return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label || "—") + '</td>' +
-              '<td class="text-break">' + (group.shipments.length ? '<span class="badge rounded-pill text-bg-primary">' + escapeHtml(group.shipments.join(", ")) + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
-              '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' +
-              '</tr>';
-          }).join("") + '</tbody></table></div>';
+        function renderReferenceBadges(rawValue, referenceType) {
+          const labels = String(rawValue || "").split(",").map(function (label) { return label.trim(); }).filter(Boolean);
+          const uniqueLabels = labels.filter(function (label, index) {
+            return labels.findIndex(function (candidate) { return candidate.toLocaleLowerCase("id-ID") === label.toLocaleLowerCase("id-ID"); }) === index;
+          });
+          if (!uniqueLabels.length) return '<span class="text-muted">—</span>';
+          return '<div class="loading-shipment-list">' + uniqueLabels.map(function (label) {
+            return '<span class="loading-shipment-chip loading-reference-' + referenceType + '" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</span>';
+          }).join("") + '</div>';
+        }
+        selectedPlanShipmentHtml = '<div class="table-responsive visit-shipment-table-wrap"><table class="table table-sm align-middle mb-0 visit-shipment-table"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(references.values()).map(function (reference) {
+          const trip = reference.trip || {};
+          return '<tr><td class="fw-semibold text-break">' + renderReferenceBadges(reference.type === "do" ? reference.label : "", "do") + '</td>' +
+            '<td class="text-break">' + renderReferenceBadges(reference.type === "shipment" ? reference.label : "", "shipment") + '</td>' +
+            '<td>' + escapeHtml((trip.vendor && String(trip.vendor).trim()) || registrationVendor || "—") + '</td><td>' + escapeHtml((trip.destination && String(trip.destination).trim()) || registrationDestination || "—") + '</td></tr>';
+        }).join("") + '</tbody></table></div>';
       } else {
         selectedPlanShipmentHtml = '<div class="modal-empty visit-shipment-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
       }

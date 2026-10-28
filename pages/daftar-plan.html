@@ -345,8 +345,8 @@
             </div>
             <div class="list-table-wrap">
               <table class="table list-table align-middle">
-                <thead><tr><th>Klien</th><th>Tanggal operasional</th><th>Jenis</th><th>Detail</th><th>Truk</th><th>Status</th><th>Diimpor pada</th><th>Aksi</th></tr></thead>
-                <tbody id="plan-table-body"><tr><td colspan="8"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr></tbody>
+                <thead><tr><th>Klien</th><th>Tanggal operasional</th><th>Jenis</th><th>Truk</th><th>Proses DO / Shipment</th><th>Diimpor pada</th><th>Aksi</th></tr></thead>
+                <tbody id="plan-table-body"><tr><td colspan="7"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr></tbody>
               </table>
             </div>
             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mt-3">
@@ -381,7 +381,7 @@
 (function(){
   "use strict";
   const $=id=>document.getElementById(id);
-  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,detailItems:[],linkedItemIds:new Set(),canUpdate:false,canCreatePlan:false,canDelete:false};
+  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,detailItems:[],linkedItemIds:new Set(),planProgress:new Map(),canUpdate:false,canCreatePlan:false,canDelete:false};
   const statusLabels={active:"Aktif",cancelled:"Dibatalkan"};
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
   function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
@@ -437,10 +437,12 @@
     if (resultCount) resultCount.textContent=total+" Plan ditemukan";
     $("page-info").textContent=total?("Menampilkan "+(start+1)+"–"+Math.min(start+size,total)+" dari "+total+" Plan"):"Tidak ada Plan yang cocok";
     $("prev-page").disabled=state.page<=1;$("next-page").disabled=state.page>=pages;
-    if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
+    if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
     $("plan-table-body").innerHTML=rows.map(p=>{
       const client=p.clients&&p.clients.name||"Klien tidak tersedia";
-      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td><span class="fw-semibold">'+esc(countItems(p))+'</span><span class="text-secondary small"> baris</span></td><td>'+esc(countTrips(p)||"—")+'</td><td>'+statusBadge(p.status)+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
+      const progress=state.planProgress.get(p.id)||{processed:0,pending:0};
+      const progressHtml='<div class="d-flex flex-column gap-1"><span class="list-badge processed"><i class="bi bi-check-circle-fill"></i>'+progress.processed+' selesai</span><span class="list-badge pending"><i class="bi bi-hourglass-split"></i>'+progress.pending+' belum proses</span></div>';
+      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td>'+esc(countTrips(p)||"—")+'</td><td>'+progressHtml+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
     }).join("");
     $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));
     $("plan-table-body").querySelectorAll("[data-plan-edit]").forEach(button=>button.addEventListener("click",()=>editPlan(button.dataset.planEdit)));
@@ -449,7 +451,7 @@
   }
   async function loadPlans(){
     const button=$("refresh-plans");button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memuat…';
-    $("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
+    $("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
     try{
       const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id)";
       const [data,items,linkedItems]=await Promise.all([
@@ -458,10 +460,29 @@
         request("/rest/v1/visit_plan_items?select=plan_item_id")
       ]);
       if(!Array.isArray(data)||!Array.isArray(items)||!Array.isArray(linkedItems))throw new Error("Respons daftar Plan atau referensi DO / Shipment tidak valid.");
-      state.plans=data;updateStats(data,items,new Set(linkedItems.map(item=>item.plan_item_id).filter(Boolean)));applyFilters();
+      const linkedIds=new Set(linkedItems.map(item=>item.plan_item_id).filter(Boolean));
+      state.planProgress=new Map();
+      const groupedProgress=new Map();
+      items.forEach(item=>{
+        const plan=Array.isArray(item.import_plans)?item.import_plans[0]:item.import_plans;
+        if(!plan||!plan.id)return;
+        const raw=plan.activity_type==="outbound"?item.shipment_number:item.do_number;
+        const label=String(raw||"").trim();
+        if(!label)return;
+        const key=String(plan.id)+"|"+label.toLocaleLowerCase("id-ID");
+        const current=groupedProgress.get(key)||{planId:plan.id,processed:false};
+        current.processed=current.processed||linkedIds.has(item.id)||item.manual_processed===true;
+        groupedProgress.set(key,current);
+      });
+      groupedProgress.forEach(group=>{
+        const progress=state.planProgress.get(group.planId)||{processed:0,pending:0};
+        if(group.processed)progress.processed++;else progress.pending++;
+        state.planProgress.set(group.planId,progress);
+      });
+      state.plans=data;updateStats(data,items,linkedIds);applyFilters();
     }catch(error){
       console.error("TRCM daftar Plan:",error);
-      $("plan-table-body").innerHTML='<tr><td colspan="8"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
+      $("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
       $("result-count").textContent="Gagal memuat data";toast(error.message||"Daftar Plan gagal dimuat.");
     }finally{button.disabled=false;button.innerHTML='<i class="bi bi-arrow-clockwise me-1"></i>Perbarui';}
   }
@@ -669,7 +690,7 @@
           const doNumbers=uniqueValues("do_number");const doValues=doNumbers.map(number=>"<div class=\"mb-1\">"+detailCell(number)+"</div>").join("");const doStatuses=doNumbers.map(number=>{const numberItems=groupItems.filter(item=>String(item.do_number||"").trim()===number);const processed=numberItems.some(item=>state.linkedItemIds.has(item.id)||item.manual_processed===true);return "<div class=\"mb-1\">"+itemStatusBadge(processed)+"</div>";}).join("");return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+(doValues||"—")+"</td><td>"+(doStatuses||"—")+"</td></tr>";
         }).join(""):'<tr><td colspan="6"><div class="list-empty">Belum ada kelompok trip inbound.</div></td></tr>';
       }else{
-        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{const groupItems=items.filter(item=>item.trip_id===trip.id);const shipments=[...new Set(groupItems.map(item=>String(item.shipment_number||"").trim()).filter(Boolean))];const shipmentValues=shipments.map(shipment=>"<div class=\"mb-1\">"+esc(shipment)+"</div>").join("")||"—";const statusByShipment=shipments.map(shipment=>{const shipmentItems=groupItems.filter(item=>String(item.shipment_number||"").trim()===shipment);const processed=shipmentItems.some(item=>state.linkedItemIds.has(item.id)||item.manual_processed===true);return "<div class=\"mb-1\">"+itemStatusBadge(processed)+"</div>";}).join("")||"—";return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+shipmentValues+"</td><td>"+statusByShipment+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>";}).join(""):'<tr><td colspan="8"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
+        $("detail-trips-body").innerHTML=trips.length?trips.map((trip,index)=>{const groupItems=items.filter(item=>item.trip_id===trip.id);const shipments=[...new Set(groupItems.map(item=>String(item.shipment_number||"").trim()).filter(Boolean))];const shipmentValues=shipments.map(shipment=>"<div class=\"mb-1\">"+esc(shipment)+"</div>").join("")||"—";const statusByShipment=shipments.map(shipment=>{const shipmentItems=groupItems.filter(item=>String(item.shipment_number||"").trim()===shipment);const processed=shipmentItems.some(item=>state.linkedItemIds.has(item.id)||item.manual_processed===true);return "<div class=\"mb-1\">"+itemStatusBadge(processed)+"</div>";}).join("")||"—";return "<tr><td>"+esc(trip.trip_number||index+1)+"</td><td>"+shipmentValues+"</td><td>"+statusByShipment+"</td><td>"+detailCell(trip.vendor)+"</td><td>"+detailCell(trip.plate_number)+"</td><td>"+detailCell(trip.driver_name)+"</td><td>"+detailCell(trip.truck_type)+"</td><td>"+detailCell(trip.destination)+"</td></tr>";}).join(""):'<tr><td colspan="7"><div class="list-empty">Tidak ada kelompok trip.</div></td></tr>';
       }
     }catch(error){
       const truckCountCard=[...$("detail-summary").querySelectorAll(".list-detail-item")].find(card=>card.querySelector(".list-detail-label")?.textContent==="Truk terkonfirmasi");

@@ -281,17 +281,56 @@ window.trcmComponentsReady.then(async function () {
     closeVendorOptions();
     updateSummary();
   }
+
+  async function persistVendor(name) {
+    const normalizedName = String(name || "").trim().replace(/\s+/g, " ");
+    if (!normalizedName) throw new Error("Vendor wajib dipilih atau diisi.");
+
+    const existing = vendors.find(function (vendor) {
+      return vendor.name.trim().toLowerCase() === normalizedName.toLowerCase();
+    });
+    if (existing) return existing;
+
+    try {
+      const inserted = await postJson("/rest/v1/vendors", { name: normalizedName });
+      const saved = Array.isArray(inserted) ? inserted[0] : inserted;
+      if (saved && saved.id && saved.name) {
+        vendors.push(saved);
+        vendors.sort(function (a, b) { return a.name.localeCompare(b.name); });
+        return saved;
+      }
+    } catch (error) {
+      const refreshed = await getJson("/rest/v1/vendors?select=id,name&name=ilike." + encodeURIComponent(normalizedName) + "&limit=1");
+      const duplicate = Array.isArray(refreshed) ? refreshed.find(function (vendor) {
+        return vendor.name.trim().toLowerCase() === normalizedName.toLowerCase();
+      }) : null;
+      if (duplicate) {
+        if (!vendors.some(function (vendor) { return vendor.id === duplicate.id; })) vendors.push(duplicate);
+        return duplicate;
+      }
+      throw error;
+    }
+
+    const refreshed = await getJson("/rest/v1/vendors?select=id,name&name=ilike." + encodeURIComponent(normalizedName) + "&limit=1");
+    const savedVendor = Array.isArray(refreshed) ? refreshed.find(function (vendor) {
+      return vendor.name.trim().toLowerCase() === normalizedName.toLowerCase();
+    }) : null;
+    if (!savedVendor) throw new Error("Vendor custom gagal disimpan ke master vendor.");
+    if (!vendors.some(function (vendor) { return vendor.id === savedVendor.id; })) vendors.push(savedVendor);
+    return savedVendor;
+  }
   function renderTruckTypeOptions(query) {
-    const needle = String(query || "").trim().toLowerCase();
+    const rawQuery = String(query || "").trim();
+    const needle = rawQuery.toLowerCase();
     const filtered = truckTypes.filter(function (item) { return item.name.toLowerCase().includes(needle); });
     const exactMatch = truckTypes.some(function (item) { return item.name.toLowerCase() === needle; });
     truckTypeOptions.innerHTML = filtered.map(function (item) {
       return '<button type="button" class="searchable-option" data-name="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</button>';
     }).join("");
-    if (needle && !exactMatch) {
-      truckTypeOptions.innerHTML += '<button type="button" class="searchable-option searchable-option-custom" data-custom="' + escapeHtml(query.trim()) + '">Gunakan "' + escapeHtml(query.trim()) + '"</button>';
+    if (rawQuery && !exactMatch) {
+      truckTypeOptions.innerHTML += '<button type="button" class="searchable-option searchable-option-custom" data-custom="' + escapeHtml(rawQuery) + '">Gunakan "' + escapeHtml(rawQuery) + '"</button>';
     }
-    if (!filtered.length && !needle) {
+    if (!filtered.length && !rawQuery) {
       truckTypeOptions.innerHTML = '<div class="searchable-empty">Tipe truck tidak ditemukan.</div>';
     }
     truckTypeOptions.classList.add("is-open");
@@ -302,10 +341,49 @@ window.trcmComponentsReady.then(async function () {
     truckTypeSearch.setAttribute("aria-expanded", "false");
   }
   function selectTruckType(name) {
-    truckTypeValue.value = name;
-    truckTypeSearch.value = name;
+    const selectedName = String(name || "").trim();
+    truckTypeValue.value = selectedName;
+    truckTypeSearch.value = selectedName;
     closeTruckTypeOptions();
     updateSummary();
+  }
+
+  async function persistTruckType(name) {
+    const normalizedName = String(name || "").trim().replace(/\\s+/g, " ");
+    if (!normalizedName) throw new Error("Tipe truck wajib dipilih atau diisi.");
+
+    const existing = truckTypes.find(function (item) {
+      return item.name.trim().toLowerCase() === normalizedName.toLowerCase();
+    });
+    if (existing) return existing;
+
+    try {
+      const inserted = await postJson("/rest/v1/truck_types", { name: normalizedName, is_active: true });
+      const saved = Array.isArray(inserted) ? inserted[0] : inserted;
+      if (saved && saved.id && saved.name) {
+        truckTypes.push(saved);
+        truckTypes.sort(function (a, b) { return a.name.localeCompare(b.name); });
+        return saved;
+      }
+    } catch (error) {
+      const refreshed = await getJson("/rest/v1/truck_types?select=id,name,is_active&is_active=eq.true&name=ilike." + encodeURIComponent(normalizedName) + "&limit=1");
+      const duplicate = Array.isArray(refreshed) ? refreshed.find(function (item) {
+        return item.name.trim().toLowerCase() === normalizedName.toLowerCase();
+      }) : null;
+      if (duplicate) {
+        if (!truckTypes.some(function (item) { return item.id === duplicate.id; })) truckTypes.push(duplicate);
+        return duplicate;
+      }
+      throw error;
+    }
+
+    const refreshed = await getJson("/rest/v1/truck_types?select=id,name,is_active&is_active=eq.true&name=ilike." + encodeURIComponent(normalizedName) + "&limit=1");
+    const savedType = Array.isArray(refreshed) ? refreshed.find(function (item) {
+      return item.name.trim().toLowerCase() === normalizedName.toLowerCase();
+    }) : null;
+    if (!savedType) throw new Error("Tipe truck custom gagal disimpan ke master tipe truck.");
+    if (!truckTypes.some(function (item) { return item.id === savedType.id; })) truckTypes.push(savedType);
+    return savedType;
   }
 
   async function getTodayUsedCardIds() {
@@ -500,6 +578,15 @@ window.trcmComponentsReady.then(async function () {
     };
 
     try {
+      const customVendorName = vendorSearch.value.trim();
+      const customTruckTypeName = truckTypeSearch.value.trim();
+      const [selectedVendor, selectedTruckType] = await Promise.all([
+        persistVendor(customVendorName),
+        persistTruckType(customTruckTypeName)
+      ]);
+      payload.vendor = selectedVendor.name;
+      payload.truck_type = selectedTruckType.name;
+
       const savedRows = await postJson("/rest/v1/visits", payload);
       const saved = Array.isArray(savedRows) ? savedRows[0] : savedRows;
       clearAlert();
