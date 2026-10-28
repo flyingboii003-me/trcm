@@ -474,40 +474,44 @@ window.trcmComponentsReady.then(async function () {
   async function loadVisitPlanShipments(visitId) {
     const container = document.getElementById("finish-plan-shipments");
     try {
-      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,import_plan_items(do_number,shipment_number,import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
+      const rows = await request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_activity_type,snapshot_trip_number,snapshot_vendor,snapshot_destination,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visitId));
       if (!Array.isArray(rows) || !rows.length) {
         container.innerHTML = '<span class="text-muted">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</span>';
         return;
       }
-      const groups = new Map();
+      const references = new Map();
       rows.forEach(function (row) {
         const item = row.import_plan_items || {};
-        const label = item.do_number || item.shipment_number || row.snapshot_do_number || row.snapshot_shipment_number || "DO/Shipment tanpa nomor";
-        const trip = item.import_plan_trips || { trip_number: row.snapshot_trip_number, vendor: row.snapshot_vendor, destination: row.snapshot_destination };
-        const key = String(label).trim().toLowerCase();
-        if (!groups.has(key)) groups.set(key, { label: label, items: [], trip: trip });
-        const group = groups.get(key);
-        if (!group.trip || (!group.trip.vendor && !group.trip.destination)) group.trip = trip;
-        
+        const plan = item.import_plans || {};
+        const activity = String(row.snapshot_activity_type || plan.activity_type || "").toLowerCase();
+        const isInbound = activity === "inbound";
+        const rawValue = isInbound
+          ? (item.do_number || row.snapshot_do_number || "")
+          : (item.shipment_number || row.snapshot_shipment_number || "");
+        const trip = item.import_plan_trips || {trip_number:row.snapshot_trip_number,vendor:row.snapshot_vendor,destination:row.snapshot_destination};
+        String(rawValue).split(",").map(function (value) { return value.trim(); }).filter(Boolean).forEach(function (label) {
+          const key = (isInbound ? "do:" : "shipment:") + label.toLocaleLowerCase("id-ID");
+          if (!references.has(key)) references.set(key,{label:label,type:isInbound?"do":"shipment",trip:trip});
+          const existing=references.get(key);
+          if ((!existing.trip || (!existing.trip.vendor && !existing.trip.destination)) && trip) existing.trip=trip;
+        });
       });
-      const showTripColumns = rows.some(function (row) {
-        return !!(row.snapshot_vendor || row.snapshot_destination ||
-          (row.import_plan_items && row.import_plan_items.import_plan_trips));
-      });
-      container.innerHTML = '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO/Shipment</th>' +
-        (showTripColumns ? '<th>Nama vendor</th><th>Tujuan</th>' : '') +
-        '</tr></thead><tbody>' + Array.from(groups.values()).map(function (group) {
-          const trip = group.trip || {};
-          return '<tr><td class="fw-semibold text-break">' + escapeHtml(group.label) + '</td>' +
-            (showTripColumns ? '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td>' : '') +
-            '</tr>';
-        }).join("") + '</tbody></table></div>';
+      function referenceCell(reference, type) {
+        if (reference.type !== type) return '<span class="text-muted">—</span>';
+        const prefix = type === "do" ? "DO " : "Shipment ";
+        return '<span class="loading-shipment-chip loading-reference-' + type + '" title="' + escapeHtml(prefix + reference.label) + '">' + escapeHtml(reference.label) + '</span>';
+      }
+      container.innerHTML = references.size
+        ? '<div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>DO</th><th>Shipment</th><th>Nama vendor</th><th>Tujuan</th></tr></thead><tbody>' + Array.from(references.values()).map(function (reference) {
+            const trip = reference.trip || {};
+            return '<tr><td>' + referenceCell(reference,"do") + '</td><td>' + referenceCell(reference,"shipment") + '</td><td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td></tr>';
+          }).join("") + '</tbody></table></div>'
+        : '<span class="text-muted">Tidak ada nomor DO/Shipment pada Plan yang ditautkan.</span>';
     } catch (error) {
       console.error("TRCM finish loading plan shipments:", error);
       container.innerHTML = '<span class="text-danger">DO/Shipment gagal dimuat. Silakan tutup lalu buka kembali modal.</span>';
     }
   }
-
   async function saveFinish(event) {
     event.preventDefault();
     if (!form.checkValidity() || !selectedVisit || !canFinish) {
