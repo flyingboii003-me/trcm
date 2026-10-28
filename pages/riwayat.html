@@ -517,6 +517,8 @@ async function openVisitModal(visitId) {
       if (!linkedItems.ok) throw new Error("DO/Shipment tidak dapat dimuat.");
       if (Array.isArray(linkedRows) && linkedRows.length) {
         const references = new Map();
+        const registrationVendor = String(visit.vendor || "").trim();
+        const registrationDestination = String(visit.destination_city || "").trim();
         linkedRows.forEach(function (row) {
           const item = row.import_plan_items || {};
           const plan = item.import_plans || {};
@@ -552,7 +554,7 @@ async function openVisitModal(visitId) {
           const trip = reference.trip || {};
           return '<tr><td class="fw-semibold text-break">' + renderReferenceBadges(reference.type === "do" ? reference.label : "", "do") + '</td>' +
             '<td class="text-break">' + renderReferenceBadges(reference.type === "shipment" ? reference.label : "", "shipment") + '</td>' +
-            '<td>' + escapeHtml(trip.vendor || "—") + '</td><td>' + escapeHtml(trip.destination || "—") + '</td></tr>';
+            '<td>' + escapeHtml((trip.vendor && String(trip.vendor).trim()) || registrationVendor || "—") + '</td><td>' + escapeHtml((trip.destination && String(trip.destination).trim()) || registrationDestination || "—") + '</td></tr>';
         }).join("") + '</tbody></table></div>';
       } else {
         selectedPlanShipmentHtml = '<div class="modal-empty visit-shipment-empty">Belum ada DO/Shipment yang ditautkan saat Mulai Loading.</div>';
