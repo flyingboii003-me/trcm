@@ -40,7 +40,7 @@
     <div id="topbar-container"></div>
 
     <main class="content-wrapper"><div class="container-fluid px-0">
-  <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><div class="d-flex flex-wrap align-items-end gap-2"><div><label class="form-label mb-1 small" for="export-date-start">Tanggal WH In mulai</label><input class="form-control form-control-sm" type="date" id="export-date-start" aria-label="Tanggal WH In mulai"></div><div><label class="form-label mb-1 small" for="export-date-end">Tanggal WH In akhir</label><input class="form-control form-control-sm" type="date" id="export-date-end" aria-label="Tanggal WH In akhir"></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-file-earmark-spreadsheet"></i><span>Ekspor Excel</span></button></div></div>
+  <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><div class="d-flex flex-wrap align-items-center gap-2"><button class="btn btn-date-picker" id="export-button" type="button" data-bs-toggle="modal" data-bs-target="#export-settings-modal"><i class="bi bi-file-earmark-spreadsheet"></i><span>Ekspor Excel</span></button></div></div>
   <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
     <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan (Gudang / Kota)</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="8" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
@@ -86,6 +86,42 @@
         <div class="modal-footer justify-content-between">
           <button type="button" class="btn btn-light border" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Tutup</button>
           <button type="submit" class="btn btn-primary" id="edit-save-button"><i class="bi bi-check2-circle me-1"></i>Simpan perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="export-settings-modal" tabindex="-1" aria-labelledby="export-settings-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <div><h2 class="modal-title fs-5 fw-bold" id="export-settings-title">Pengaturan Ekspor Excel</h2><p class="small text-secondary mb-0 mt-1">Tentukan rentang tanggal WH In dan klien untuk laporan.</p></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <form id="export-settings-form">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label" for="export-date-start">Tanggal WH In mulai <span class="text-danger">*</span></label>
+            <input class="form-control" type="date" id="export-date-start" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="export-date-end">Tanggal WH In akhir <span class="text-danger">*</span></label>
+            <input class="form-control" type="date" id="export-date-end" required>
+            <div class="form-text">Tanggal awal dan akhir dihitung inklusif berdasarkan tanggal WH In.</div>
+          </div>
+          <div class="mb-1">
+            <label class="form-label" for="export-client">Klien</label>
+            <select class="form-select" id="export-client">
+              <option value="">Semua klien</option>
+              <option value="Modena">Modena</option>
+              <option value="Kimberly Clark">Kimberly Clark</option>
+              <option value="Henkel">Henkel</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="export-submit-button"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Ekspor Excel</button>
         </div>
       </form>
     </div>
@@ -969,6 +1005,10 @@ if (refreshButton) refreshButton.addEventListener("click", function () { window.
 
 const exportDateStart = document.getElementById("export-date-start");
 const exportDateEnd = document.getElementById("export-date-end");
+const exportClient = document.getElementById("export-client");
+const exportSettingsForm = document.getElementById("export-settings-form");
+const exportSettingsModal = new bootstrap.Modal(document.getElementById("export-settings-modal"));
+const exportSubmitButton = document.getElementById("export-submit-button");
 
 function localDateKey(value) {
   if (!value) return "";
@@ -998,7 +1038,7 @@ function formatExportDate(value) {
     hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
   }).format(date);
 }
-async function fetchExportVisits(startDate, endDate) {
+async function fetchExportVisits(startDate, endDate, selectedClient) {
   const select = [
     "id","plate_number","destination_city","container_num","activity_type","vendor","client_id",
     "driver_name","truck_type","shipment_type","shipment_number","gate_id","line_number_id",
@@ -1032,10 +1072,11 @@ async function fetchExportVisits(startDate, endDate) {
   }
   return allRows.filter(function (visit) {
     const day = localDateKey(visit.wh_in_at);
-    return day && day >= startDate && day <= endDate;
+    const clientName = (visit.clients && visit.clients.name) || visit.client || "";
+    return day && day >= startDate && day <= endDate && (!selectedClient || clientName.trim().toLocaleLowerCase("id-ID") === selectedClient.toLocaleLowerCase("id-ID"));
   });
 }
-function buildExportWorkbook(rows, startDate, endDate) {
+function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   const workbook = XLSX.utils.book_new();
   const statusLabel = function (value) { return statusLabels[value] || value || ""; };
   const clientName = function (visit) { return (visit.clients && visit.clients.name) || visit.client || ""; };
@@ -1105,7 +1146,7 @@ function buildExportWorkbook(rows, startDate, endDate) {
   };
   const summary = [
     ["Laporan Ekspor Kunjungan TRCM",""],["Tanggal WH In mulai",startDate],
-    ["Tanggal WH In akhir",endDate],["Tanggal ekspor",formatExportDate(new Date().toISOString())],
+    ["Tanggal WH In akhir",endDate],["Klien",selectedClient || "Semua klien"],["Tanggal ekspor",formatExportDate(new Date().toISOString())],
     ["Total kunjungan",rows.length],
     ["Kunjungan belum WH Out",rows.filter(function (v) { return v.wh_in_at && !v.wh_out_at; }).length],
     ["",""],["Rekap Status Proses","Jumlah"]
@@ -1126,8 +1167,10 @@ function buildExportWorkbook(rows, startDate, endDate) {
   return workbook;
 }
 
-exportButton.addEventListener("click", async function () {
+exportSettingsForm.addEventListener("submit", async function (event) {
+  event.preventDefault();
   const startDate = exportDateStart.value, endDate = exportDateEnd.value;
+  const selectedClient = exportClient.value;
   if (!startDate || !endDate) {
     await Swal.fire({icon:"info",title:"Pilih rentang tanggal",text:"Tentukan tanggal WH In mulai dan akhir untuk mengekspor data."});
     return;
@@ -1140,22 +1183,26 @@ exportButton.addEventListener("click", async function () {
     await Swal.fire({icon:"error",title:"Fitur Excel tidak tersedia",text:"Pustaka Excel gagal dimuat. Periksa koneksi lalu muat ulang halaman."});
     return;
   }
+  exportSubmitButton.disabled = true;
   exportButton.disabled = true;
   exportButton.classList.add("is-exporting");
-  const originalLabel = exportButton.innerHTML;
-  exportButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyiapkan Excel...';
+  const originalLabel = exportSubmitButton.innerHTML;
+  exportSubmitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyiapkan Excel...';
   try {
-    const rows = await fetchExportVisits(startDate,endDate);
-    const workbook = buildExportWorkbook(rows,startDate,endDate);
-    XLSX.writeFile(workbook,"trcm-laporan-kunjungan-" + startDate + "-sampai-" + endDate + ".xlsx",{compression:true});
-    await Swal.fire({icon:"success",title:"Ekspor selesai",text:rows.length + " kunjungan dengan WH In dalam rentang tanggal berhasil diekspor.",confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
+    const rows = await fetchExportVisits(startDate,endDate,selectedClient);
+    const workbook = buildExportWorkbook(rows,startDate,endDate,selectedClient);
+    const clientSlug = selectedClient ? "-" + selectedClient.toLocaleLowerCase("id-ID").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") : "";
+    XLSX.writeFile(workbook,"trcm-laporan-kunjungan-" + startDate + "-sampai-" + endDate + clientSlug + ".xlsx",{compression:true});
+    exportSettingsModal.hide();
+    await Swal.fire({icon:"success",title:"Ekspor selesai",text:rows.length + " kunjungan sesuai pengaturan ekspor berhasil diekspor.",confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
   } catch (error) {
     console.error("TRCM export:",error);
     await Swal.fire({icon:"error",title:"Ekspor gagal",text:error.message || "Data gagal diekspor."});
   } finally {
+    exportSubmitButton.disabled = false;
     exportButton.disabled = false;
     exportButton.classList.remove("is-exporting");
-    exportButton.innerHTML = originalLabel;
+    exportSubmitButton.innerHTML = originalLabel;
   }
 });
 
