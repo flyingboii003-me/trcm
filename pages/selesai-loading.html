@@ -419,7 +419,7 @@ window.trcmComponentsReady.then(async function () {
 
     try {
       const select = [
-        "id","card_id","plate_number","activity_type","vendor","driver_name","shipment_type","shipment_number","destination_city",
+        "id","card_id","plate_number","activity_type","vendor","driver_name","shipment_number","destination_city",
         "process_status","wh_in_at","registered_at","started_at","completed_at","seal_number","notes","clients(name)","cards(card_number)"
       ].join(",");
       const path = "/rest/v1/visits?select=" + encodeURIComponent(select) +

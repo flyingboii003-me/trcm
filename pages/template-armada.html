@@ -387,10 +387,22 @@ window.trcmComponentsReady.then(async function () {
           method: "DELETE",
           headers: { Prefer: "return=minimal" }
         });
-        showPageMessage("Template berhasil dihapus.", false);
+        await Swal.fire({
+          icon: "success",
+          title: "Template dihapus",
+          text: "Template armada berhasil dihapus.",
+          confirmButtonText: "Selesai",
+          confirmButtonColor: "#006ECD"
+        });
         await loadTemplates();
       } catch (error) {
-        showPageMessage("Gagal menghapus template: " + (error.message || "Periksa permission Anda."), true);
+        await Swal.fire({
+          icon: "error",
+          title: "Gagal menghapus template",
+          text: error.message || "Template tidak dapat dihapus. Periksa permission dan koneksi.",
+          confirmButtonText: "Tutup",
+          confirmButtonColor: "#006ECD"
+        });
       } finally {
         button.disabled = false;
       }
@@ -438,19 +450,39 @@ window.trcmComponentsReady.then(async function () {
           headers: { "Content-Type": "application/json", Prefer: "return=representation" },
           body: JSON.stringify(payload)
         });
-        showPageMessage("Template berhasil ditambahkan.", false);
+        await Swal.fire({
+          icon: "success",
+          title: "Template ditambahkan",
+          text: "Template armada berhasil ditambahkan.",
+          confirmButtonText: "Selesai",
+          confirmButtonColor: "#006ECD"
+        });
       } else {
         await request("/rest/v1/fleet_templates?id=eq." + encodeURIComponent(field.id.value), {
           method: "PATCH",
           headers: { "Content-Type": "application/json", Prefer: "return=representation" },
           body: JSON.stringify(payload)
         });
-        showPageMessage("Perubahan template berhasil disimpan.", false);
+        await Swal.fire({
+          icon: "success",
+          title: "Perubahan tersimpan",
+          text: "Template armada berhasil diperbarui.",
+          confirmButtonText: "Selesai",
+          confirmButtonColor: "#006ECD"
+        });
       }
       templateModal.hide();
       await loadTemplates();
     } catch (error) {
-      showFormMessage("Gagal menyimpan template: " + (error.message || "Periksa permission dan data wajib."));
+      const message = error.message || "Periksa permission dan data wajib.";
+      showFormMessage("Gagal menyimpan template: " + message);
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal menyimpan template",
+        text: message,
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#006ECD"
+      });
     } finally {
       saveButton.disabled = false;
       saveButton.innerHTML = oldHtml;
