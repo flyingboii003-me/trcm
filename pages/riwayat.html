@@ -127,7 +127,7 @@
     </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../assets/js/config.js"></script>
@@ -1076,6 +1076,36 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
     return day && day >= startDate && day <= endDate && (!selectedClient || clientName.trim().toLocaleLowerCase("id-ID") === selectedClient.toLocaleLowerCase("id-ID"));
   });
 }
+function styleExportSheet(sheet, headerRow, dataStartRow) {
+  const range = XLSX.utils.decode_range(sheet["!ref"] || "A1");
+  const border = {
+    top: {style:"thin",color:{rgb:"D9E2F3"}},
+    bottom: {style:"thin",color:{rgb:"D9E2F3"}},
+    left: {style:"thin",color:{rgb:"D9E2F3"}},
+    right: {style:"thin",color:{rgb:"D9E2F3"}}
+  };
+  for (let row = range.s.r; row <= range.e.r; row += 1) {
+    for (let col = range.s.c; col <= range.e.c; col += 1) {
+      const address = XLSX.utils.encode_cell({r:row,c:col});
+      if (!sheet[address]) continue;
+      const isHeader = row === headerRow;
+      const isTitle = row === 0 && headerRow !== 0;
+      const isAlternate = dataStartRow !== undefined && row >= dataStartRow && (row - dataStartRow) % 2 === 1;
+      sheet[address].s = {
+        font: {name:"Aptos",sz:10,bold:isHeader || isTitle,color:{rgb:isHeader || isTitle ? "FFFFFF" : "243247"}},
+        fill: {patternType:"solid",fgColor:{rgb:isHeader ? "174A7E" : isTitle ? "123B63" : isAlternate ? "F2F6FA" : "FFFFFF"}},
+        alignment: {vertical:"center",horizontal:typeof sheet[address].v === "number" ? "right" : "left",wrapText:true},
+        border: border
+      };
+      if (isHeader) sheet[address].s.alignment = {vertical:"center",horizontal:"center",wrapText:true};
+    }
+  }
+  if (headerRow !== null && headerRow !== undefined) {
+    sheet["!rows"] = sheet["!rows"] || [];
+    sheet["!rows"][headerRow] = {hpt:30};
+  }
+}
+
 function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   const workbook = XLSX.utils.book_new();
   const statusLabel = function (value) { return statusLabels[value] || value || ""; };
@@ -1109,6 +1139,7 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   ];
   detailSheet["!autofilter"] = {ref:detailSheet["!ref"] || "A1"};
   detailSheet["!freeze"] = {xSplit:0,ySplit:1};
+  styleExportSheet(detailSheet,0,1);
   XLSX.utils.book_append_sheet(workbook,detailSheet,"Detail Kunjungan");
 
   const durationRows = rows.map(function (visit) {
@@ -1137,6 +1168,7 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   durationSheet["!cols"] = Object.keys(durationRows[0] || {}).map(function (key) { return {wch:key.length > 24 ? 28 : 22}; });
   durationSheet["!autofilter"] = {ref:durationSheet["!ref"] || "A1"};
   durationSheet["!freeze"] = {xSplit:0,ySplit:1};
+  styleExportSheet(durationSheet,0,1);
   XLSX.utils.book_append_sheet(workbook,durationSheet,"Analisis Durasi");
 
   const countBy = function (keyFn) {
@@ -1163,6 +1195,18 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   summary.push(["",""],["Rata-rata durasi WH In → WH Out (menit)",totals.length ? Math.round(totals.reduce(function (a,b) { return a+b; },0) / totals.length) : ""],["Sampel durasi WH In → WH Out",totals.length]);
   const summarySheet = XLSX.utils.aoa_to_sheet(summary);
   summarySheet["!cols"] = [{wch:44},{wch:26}];
+  summarySheet["!merges"] = [{s:{r:0,c:0},e:{r:0,c:1}}];
+  styleExportSheet(summarySheet,8,9);
+  const summaryRange = XLSX.utils.decode_range(summarySheet["!ref"] || "A1");
+  for (let r = 1; r <= summaryRange.e.r; r += 1) {
+    const first = summarySheet[XLSX.utils.encode_cell({r:r,c:0})];
+    if (first && /^Rekap /.test(String(first.v || ""))) {
+      for (let c = 0; c <= summaryRange.e.c; c += 1) {
+        const cell = summarySheet[XLSX.utils.encode_cell({r:r,c:c})];
+        if (cell) cell.s = {font:{name:"Aptos",sz:10,bold:true,color:{rgb:"FFFFFF"}},fill:{patternType:"solid",fgColor:{rgb:"174A7E"}},alignment:{vertical:"center",wrapText:true},border:{bottom:{style:"thin",color:{rgb:"D9E2F3"}}}};
+      }
+    }
+  }
   XLSX.utils.book_append_sheet(workbook,summarySheet,"Ringkasan");
   return workbook;
 }
