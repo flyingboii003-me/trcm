@@ -433,7 +433,6 @@ async function openVisitModal(visitId) {
       "license_exp",
       "vehicle_exp",
       "vehicle_inspect_exp",
-      "shipment_number",
       "destination_city",
       "gate_id",
       "line_number_id",
@@ -531,7 +530,6 @@ async function openVisitModal(visitId) {
       renderDetailItem("Masa berlaku SIM", visit.license_exp),
       renderDetailItem("Masa berlaku kendaraan", visit.vehicle_exp),
       renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
-      renderDetailItem("Nomor shipment", visit.shipment_number, true),
       renderDetailItem("Tujuan (Gudang / Kota)", visit.destination_city, true),
       renderDetailItem("Nomor gerbang", gate),
       renderDetailItem("Nomor line", lineNumber),
@@ -796,7 +794,6 @@ async function loadVisits() {
       "vendor",
       "client_id",
       "driver_name",
-      "shipment_number",
       "started_at",
       "completed_at",
       "wh_in_at",
@@ -1119,7 +1116,6 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
       "Tipe Truk":visit.truck_type || "", "Nomor Kontainer":visit.container_num || "",
       "Aktivitas":visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : (visit.activity_type || ""),
       "Vendor":visit.vendor || "", "Klien":clientName(visit), "Tujuan":visit.destination_city || "",
-      "Nomor Shipment":visit.shipment_number || "",
       "Gerbang":gateName(visit), "Line":lineName(visit), "Nomor Seal":visit.seal_number || "",
       "Status Proses":statusLabel(visit.process_status), "Status Akhir":statusLabel(visit.final_status),
       "Catatan":visit.notes || "", "WH In":formatExportDate(visit.wh_in_at),
@@ -1130,8 +1126,8 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   const detailSheet = XLSX.utils.json_to_sheet(detailRows);
   detailSheet["!cols"] = [
     {wch:36},{wch:14},{wch:16},{wch:16},{wch:24},{wch:18},{wch:18},{wch:14},
-    {wch:24},{wch:24},{wch:24},{wch:18},{wch:22},{wch:12},{wch:12},{wch:18},
-    {wch:20},{wch:18},{wch:35},{wch:22},{wch:22},{wch:22},{wch:22},{wch:22}
+    {wch:24},{wch:24},{wch:18},{wch:22},{wch:12},{wch:12},{wch:18},
+    {wch:20},{wch:18},{wch:35},{wch:22},{wch:22},{wch:22},{wch:22}
   ];
   detailSheet["!autofilter"] = {ref:detailSheet["!ref"] || "A1"};
   detailSheet["!freeze"] = {xSplit:0,ySplit:1};
