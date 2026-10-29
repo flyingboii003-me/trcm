@@ -1160,8 +1160,6 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
       result[stage[0] + " (format)"] = formatMinutes(mins);
       if (stage[1] && stage[2] && new Date(stage[2]).getTime() < new Date(stage[1]).getTime()) hasAnomaly = true;
     });
-    result["Anomali Waktu"] = hasAnomaly ? "Ya — timestamp akhir lebih awal" : "";
-    result["Kunjungan Belum WH Out"] = visit.wh_in_at && !visit.wh_out_at ? "Ya" : "Tidak";
     return result;
   });
   const durationSheet = XLSX.utils.json_to_sheet(durationRows);
