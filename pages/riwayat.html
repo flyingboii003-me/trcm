@@ -1009,8 +1009,7 @@ async function fetchExportVisits(startDate, endDate) {
   const startIso = startDate + "T00:00:00+07:00";
   const end = new Date(endDate + "T00:00:00+07:00");
   end.setUTCDate(end.getUTCDate() + 1);
-  const params = new URLSearchParams({select:select, wh_in_at:"gte." + startIso, order:"wh_in_at.asc"});
-  params.append("wh_in_at", "lt." + end.toISOString());
+  const params = new URLSearchParams({select:select, and:"(wh_in_at.gte." + startIso + ",wh_in_at.lt." + end.toISOString() + ")", order:"wh_in_at.asc"});
   const allRows = [], pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
     const response = await fetch(SUPABASE_URL + "/rest/v1/visits?" + params.toString(), {
