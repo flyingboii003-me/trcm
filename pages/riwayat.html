@@ -1233,8 +1233,8 @@ exportSettingsForm.addEventListener("submit", async function (event) {
   try {
     const rows = await fetchExportVisits(startDate,endDate,selectedClient);
     const workbook = buildExportWorkbook(rows,startDate,endDate,selectedClient);
-    const clientSlug = selectedClient ? "-" + selectedClient.toLocaleLowerCase("id-ID").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") : "";
-    XLSX.writeFile(workbook,"trcm-laporan-kunjungan-" + startDate + "-sampai-" + endDate + clientSlug + ".xlsx",{compression:true});
+    const clientSlug = (selectedClient || "Semua-Klien").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"");
+    XLSX.writeFile(workbook,"TRCM-" + startDate + "-" + endDate + "-" + clientSlug + ".xlsx",{compression:true});
     exportSettingsModal.hide();
     await Swal.fire({icon:"success",title:"Ekspor selesai",text:rows.length + " kunjungan sesuai pengaturan ekspor berhasil diekspor.",confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
   } catch (error) {
