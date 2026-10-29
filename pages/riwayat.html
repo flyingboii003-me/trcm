@@ -40,7 +40,7 @@
     <div id="topbar-container"></div>
 
     <main class="content-wrapper"><div class="container-fluid px-0">
-  <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-download"></i><span>Ekspor Excel</span></button></div>
+  <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><div class="d-flex flex-wrap align-items-end gap-2"><div><label class="form-label mb-1 small" for="export-date-start">Tanggal WH In mulai</label><input class="form-control form-control-sm" type="date" id="export-date-start" aria-label="Tanggal WH In mulai"></div><div><label class="form-label mb-1 small" for="export-date-end">Tanggal WH In akhir</label><input class="form-control form-control-sm" type="date" id="export-date-end" aria-label="Tanggal WH In akhir"></div><button class="btn btn-date-picker" id="export-button" type="button"><i class="bi bi-file-earmark-spreadsheet"></i><span>Ekspor Excel</span></button></div></div>
   <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
     <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan (Gudang / Kota)</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="8" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
@@ -91,6 +91,7 @@
     </div>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../assets/js/config.js"></script>
@@ -966,74 +967,197 @@ if (refreshButton) refreshButton.addEventListener("click", function () { window.
 
 
 
-exportButton.addEventListener("click", function () {
+const exportDateStart = document.getElementById("export-date-start");
+const exportDateEnd = document.getElementById("export-date-end");
+
+function localDateKey(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(date).reduce(function (result, part) { result[part.type] = part.value; return result; }, {});
+  return parts.year + "-" + parts.month + "-" + parts.day;
+}
+function elapsedMinutes(start, end) {
+  if (!start || !end) return null;
+  const startMs = new Date(start).getTime(), endMs = new Date(end).getTime();
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) return null;
+  return Math.round((endMs - startMs) / 60000);
+}
+function formatMinutes(minutes) {
+  if (minutes === null || !Number.isFinite(minutes)) return "";
+  return Math.floor(minutes / 60) + "j " + String(minutes % 60).padStart(2, "0") + "m";
+}
+function formatExportDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+  }).format(date);
+}
+async function fetchExportVisits(startDate, endDate) {
+  const select = [
+    "id","plate_number","destination_city","container_num","activity_type","vendor","client_id",
+    "driver_name","truck_type","shipment_type","shipment_number","gate_id","line_number_id",
+    "seal_number","notes","started_at","completed_at","wh_in_at","wh_out_at","registered_at",
+    "created_at","process_status","final_status","cards(card_number)","clients(name)",
+    "gates(gate_number)","line_numbers(line_number)"
+  ].join(",");
+  const startIso = startDate + "T00:00:00+07:00";
+  const end = new Date(endDate + "T00:00:00+07:00");
+  end.setUTCDate(end.getUTCDate() + 1);
+  const params = new URLSearchParams({select:select, wh_in_at:"gte." + startIso, order:"wh_in_at.asc"});
+  params.append("wh_in_at", "lt." + end.toISOString());
+  const allRows = [], pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const response = await fetch(SUPABASE_URL + "/rest/v1/visits?" + params.toString(), {
+      method:"GET",
+      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token,
+        Range:offset + "-" + (offset + pageSize - 1),"Range-Unit":"items"}
+    });
+    const responseText = await response.text();
+    let data = null;
+    try { data = responseText ? JSON.parse(responseText) : null; } catch { data = null; }
+    if (response.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      throw new Error("Sesi berakhir. Silakan masuk kembali.");
+    }
+    if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) || "Data ekspor gagal diambil.");
+    if (!Array.isArray(data)) throw new Error("Respons data ekspor tidak valid.");
+    allRows.push.apply(allRows,data);
+    if (data.length < pageSize) break;
+  }
+  return allRows.filter(function (visit) {
+    const day = localDateKey(visit.wh_in_at);
+    return day && day >= startDate && day <= endDate;
+  });
+}
+function buildExportWorkbook(rows, startDate, endDate) {
+  const workbook = XLSX.utils.book_new();
+  const statusLabel = function (value) { return statusLabels[value] || value || ""; };
+  const clientName = function (visit) { return (visit.clients && visit.clients.name) || visit.client || ""; };
+  const gateName = function (visit) { return (visit.gates && visit.gates.gate_number) || ""; };
+  const lineName = function (visit) {
+    const line = visit.line_numbers && visit.line_numbers.line_number;
+    return line === null || line === undefined ? "" : line;
+  };
+  const detailRows = rows.map(function (visit) {
+    return {
+      "ID Kunjungan":visit.id || "", "Tanggal WH In":localDateKey(visit.wh_in_at),
+      "Nomor Kartu":(visit.cards && visit.cards.card_number) || visit.card_number || "",
+      "Plat Nomor":visit.plate_number || "", "Nama Driver":visit.driver_name || "",
+      "Tipe Truk":visit.truck_type || "", "Nomor Kontainer":visit.container_num || "",
+      "Aktivitas":visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : (visit.activity_type || ""),
+      "Vendor":visit.vendor || "", "Klien":clientName(visit), "Tujuan":visit.destination_city || "",
+      "Tipe Shipment":visit.shipment_type || "", "Nomor Shipment":visit.shipment_number || "",
+      "Gerbang":gateName(visit), "Line":lineName(visit), "Nomor Seal":visit.seal_number || "",
+      "Status Proses":statusLabel(visit.process_status), "Status Akhir":statusLabel(visit.final_status),
+      "Catatan":visit.notes || "", "WH In":formatExportDate(visit.wh_in_at),
+      "Registrasi":formatExportDate(visit.registered_at), "Mulai Loading":formatExportDate(visit.started_at),
+      "Selesai Loading":formatExportDate(visit.completed_at), "WH Out":formatExportDate(visit.wh_out_at)
+    };
+  });
+  const detailSheet = XLSX.utils.json_to_sheet(detailRows);
+  detailSheet["!cols"] = [
+    {wch:36},{wch:14},{wch:16},{wch:16},{wch:24},{wch:18},{wch:18},{wch:14},
+    {wch:24},{wch:24},{wch:24},{wch:18},{wch:22},{wch:12},{wch:12},{wch:18},
+    {wch:20},{wch:18},{wch:35},{wch:22},{wch:22},{wch:22},{wch:22},{wch:22}
+  ];
+  detailSheet["!autofilter"] = {ref:detailSheet["!ref"] || "A1"};
+  detailSheet["!freeze"] = {xSplit:0,ySplit:1};
+  XLSX.utils.book_append_sheet(workbook,detailSheet,"Detail Kunjungan");
+
+  const durationRows = rows.map(function (visit) {
+    const stages = [
+      ["WH In → Registrasi",visit.wh_in_at,visit.registered_at],
+      ["Registrasi → Mulai Loading",visit.registered_at,visit.started_at],
+      ["Mulai → Selesai Loading",visit.started_at,visit.completed_at],
+      ["Selesai Loading → WH Out",visit.completed_at,visit.wh_out_at],
+      ["Total WH In → WH Out",visit.wh_in_at,visit.wh_out_at]
+    ];
+    const result = {"ID Kunjungan":visit.id || "","Tanggal WH In":localDateKey(visit.wh_in_at),
+      "Plat Nomor":visit.plate_number || "","Vendor":visit.vendor || "","Klien":clientName(visit),
+      "Status":statusLabel(visit.process_status)};
+    let hasAnomaly = false;
+    stages.forEach(function (stage) {
+      const mins = elapsedMinutes(stage[1],stage[2]);
+      result[stage[0] + " (menit)"] = mins === null ? "" : mins;
+      result[stage[0] + " (format)"] = formatMinutes(mins);
+      if (stage[1] && stage[2] && new Date(stage[2]).getTime() < new Date(stage[1]).getTime()) hasAnomaly = true;
+    });
+    result["Anomali Waktu"] = hasAnomaly ? "Ya — timestamp akhir lebih awal" : "";
+    result["Kunjungan Belum WH Out"] = visit.wh_in_at && !visit.wh_out_at ? "Ya" : "Tidak";
+    return result;
+  });
+  const durationSheet = XLSX.utils.json_to_sheet(durationRows);
+  durationSheet["!cols"] = Object.keys(durationRows[0] || {}).map(function (key) { return {wch:key.length > 24 ? 28 : 22}; });
+  durationSheet["!autofilter"] = {ref:durationSheet["!ref"] || "A1"};
+  durationSheet["!freeze"] = {xSplit:0,ySplit:1};
+  XLSX.utils.book_append_sheet(workbook,durationSheet,"Analisis Durasi");
+
+  const countBy = function (keyFn) {
+    const counts = {};
+    rows.forEach(function (visit) { const key = keyFn(visit) || "Tidak diketahui"; counts[key] = (counts[key] || 0) + 1; });
+    return counts;
+  };
+  const summary = [
+    ["Laporan Ekspor Kunjungan TRCM",""],["Tanggal WH In mulai",startDate],
+    ["Tanggal WH In akhir",endDate],["Tanggal ekspor",formatExportDate(new Date().toISOString())],
+    ["Total kunjungan",rows.length],
+    ["Kunjungan belum WH Out",rows.filter(function (v) { return v.wh_in_at && !v.wh_out_at; }).length],
+    ["",""],["Rekap Status Proses","Jumlah"]
+  ];
+  const statuses = countBy(function (v) { return statusLabel(v.process_status) || "Kosong"; });
+  Object.keys(statuses).sort().forEach(function (key) { summary.push([key,statuses[key]]); });
+  summary.push(["",""],["Rekap Aktivitas","Jumlah"]);
+  const activities = countBy(function (v) { return v.activity_type === "inbound" ? "Inbound" : v.activity_type === "outbound" ? "Outbound" : v.activity_type; });
+  Object.keys(activities).sort().forEach(function (key) { summary.push([key,activities[key]]); });
+  summary.push(["",""],["Rekap Harian (berdasarkan WH In)","Jumlah Kunjungan"]);
+  const daily = countBy(function (v) { return localDateKey(v.wh_in_at); });
+  Object.keys(daily).sort().forEach(function (key) { summary.push([key,daily[key]]); });
+  const totals = rows.map(function (v) { return elapsedMinutes(v.wh_in_at,v.wh_out_at); }).filter(function (v) { return v !== null; });
+  summary.push(["",""],["Rata-rata durasi WH In → WH Out (menit)",totals.length ? Math.round(totals.reduce(function (a,b) { return a+b; },0) / totals.length) : ""],["Sampel durasi WH In → WH Out",totals.length]);
+  const summarySheet = XLSX.utils.aoa_to_sheet(summary);
+  summarySheet["!cols"] = [{wch:44},{wch:26}];
+  XLSX.utils.book_append_sheet(workbook,summarySheet,"Ringkasan");
+  return workbook;
+}
+
+exportButton.addEventListener("click", async function () {
+  const startDate = exportDateStart.value, endDate = exportDateEnd.value;
+  if (!startDate || !endDate) {
+    await Swal.fire({icon:"info",title:"Pilih rentang tanggal",text:"Tentukan tanggal WH In mulai dan akhir untuk mengekspor data."});
+    return;
+  }
+  if (startDate > endDate) {
+    await Swal.fire({icon:"warning",title:"Rentang tanggal tidak valid",text:"Tanggal mulai harus sama dengan atau sebelum tanggal akhir."});
+    return;
+  }
+  if (typeof XLSX === "undefined") {
+    await Swal.fire({icon:"error",title:"Fitur Excel tidak tersedia",text:"Pustaka Excel gagal dimuat. Periksa koneksi lalu muat ulang halaman."});
+    return;
+  }
   exportButton.disabled = true;
   exportButton.classList.add("is-exporting");
-  const rows = filteredVisits();
-  const header = [
-    "Nomor kartu",
-    "Plat nomor",
-    "Tujuan (Gudang / Kota)",
-    "Tipe Aktivitas",
-    "Klien",
-    "Vendor",
-    "Nomor shipment",
-    "Gerbang",
-    "Status",
-    "Waktu di gudang"
-  ];
-
-  const csvRows = rows.map(function (visit) {
-    const destination =
-      visit.activity_type === "inbound" ? "Inbound" : "Outbound";
-    const status = statusLabels[visit.process_status] || visit.process_status || "";
-    const cardNumber = (visit.cards && visit.cards.card_number) || visit.card_number || "";
-    const duration =
-      visit.process_status === "completed"
-        ? formatDuration(visit.wh_in_at, visit.completed_at)
-        : formatDuration(visit.wh_in_at, new Date().toISOString());
-
-    return [
-      cardNumber,
-      visit.plate_number || "",
-      visit.destination_city || "",
-      destination,
-      (visit.clients && visit.clients.name) || "",
-      visit.vendor || "",
-      visit.shipment_number || "",
-      visit.gates && visit.gates.gate_number ? visit.gates.gate_number : "",
-      status,
-      duration
-    ];
-  });
-
-  const csv = [header, ...csvRows]
-    .map(function (row) {
-      return row
-        .map(function (value) {
-          return '"' + String(value).replace(/"/g, '""') + '"';
-        })
-        .join(",");
-    })
-    .join("\r\n");
-
-  const blob = new Blob(["\ufeff" + csv], {
-    type: "text/csv;charset=utf-8;"
-  });
-
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-
-  anchor.href = url;
-  anchor.download =
-    "trcm-dashboard-" + new Date().toISOString().slice(0, 10) + ".csv";
-
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-  exportButton.disabled = false;
-  exportButton.classList.remove("is-exporting");
+  const originalLabel = exportButton.innerHTML;
+  exportButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyiapkan Excel...';
+  try {
+    const rows = await fetchExportVisits(startDate,endDate);
+    const workbook = buildExportWorkbook(rows,startDate,endDate);
+    XLSX.writeFile(workbook,"trcm-laporan-kunjungan-" + startDate + "-sampai-" + endDate + ".xlsx",{compression:true});
+    await Swal.fire({icon:"success",title:"Ekspor selesai",text:rows.length + " kunjungan dengan WH In dalam rentang tanggal berhasil diekspor.",confirmButtonText:"Selesai",confirmButtonColor:"#0066B3"});
+  } catch (error) {
+    console.error("TRCM export:",error);
+    await Swal.fire({icon:"error",title:"Ekspor gagal",text:error.message || "Data gagal diekspor."});
+  } finally {
+    exportButton.disabled = false;
+    exportButton.classList.remove("is-exporting");
+    exportButton.innerHTML = originalLabel;
+  }
 });
 
 window.trcmRegisterRefresh(loadVisits);
