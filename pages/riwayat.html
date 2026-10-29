@@ -1036,8 +1036,7 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
     "id","plate_number","destination_city","container_num","activity_type","vendor","client_id",
     "driver_name","truck_type","gate_id","line_number_id",
     "seal_number","notes","started_at","completed_at","wh_in_at","wh_out_at","registered_at",
-    "created_at","process_status","final_status","cards(card_number)","clients(name)",
-    "gates(gate_number)","line_numbers(line_number)"
+    "created_at","process_status","final_status","cards(card_number)","clients(name)"
   ].join(",");
   const startIso = startDate + "T00:00:00+07:00";
   const end = new Date(endDate + "T00:00:00+07:00");
@@ -1063,11 +1062,60 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
     allRows.push.apply(allRows,data);
     if (data.length < pageSize) break;
   }
-  return allRows.filter(function (visit) {
+  const filteredRows = allRows.filter(function (visit) {
     const day = localDateKey(visit.wh_in_at);
     const clientName = (visit.clients && visit.clients.name) || visit.client || "";
     return day && day >= startDate && day <= endDate && (!selectedClient || clientName.trim().toLocaleLowerCase("id-ID") === selectedClient.toLocaleLowerCase("id-ID"));
   });
+  const referencesByVisit = new Map();
+  for (let offset = 0; offset < filteredRows.length; offset += 100) {
+    const visitIds = filteredRows.slice(offset, offset + 100).map(function (visit) { return visit.id; }).filter(Boolean);
+    if (!visitIds.length) continue;
+    const linkedUrl = SUPABASE_URL + "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(vendor,destination))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const linkedResponse = await fetch(linkedUrl, {
+      method:"GET",
+      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
+    });
+    const linkedText = await linkedResponse.text();
+    let linkedRows = null;
+    try { linkedRows = linkedText ? JSON.parse(linkedText) : []; } catch { linkedRows = null; }
+    if (linkedResponse.status === 401) {
+      sessionStorage.removeItem("trcm_session");
+      window.location.replace("../index.html");
+      throw new Error("Sesi berakhir. Silakan masuk kembali.");
+    }
+    if (!linkedResponse.ok || !Array.isArray(linkedRows)) {
+      throw new Error("Data DO/Shipment terkait kunjungan gagal diambil.");
+    }
+    linkedRows.forEach(function (row) {
+      if (!referencesByVisit.has(row.visit_id)) referencesByVisit.set(row.visit_id, {shipments:[], dos:[]});
+      const references = referencesByVisit.get(row.visit_id);
+      const item = row.import_plan_items || {};
+      const plan = item.import_plans || {};
+      const activity = String(row.snapshot_activity_type || plan.activity_type || "").toLowerCase();
+      const isInbound = activity === "inbound";
+      const rawValue = isInbound
+        ? (row.snapshot_do_number || item.do_number || "")
+        : (row.snapshot_shipment_number || item.shipment_number || "");
+      const trip = item.import_plan_trips || {};
+      const vendor = String(row.snapshot_vendor || trip.vendor || "").trim();
+      const destination = String(row.snapshot_destination || trip.destination || "").trim();
+      String(rawValue).split(",").map(function (value) { return value.trim(); }).filter(Boolean).forEach(function (number) {
+        if (isInbound) {
+          if (!references.dos.some(function (value) { return value.toLocaleLowerCase("id-ID") === number.toLocaleLowerCase("id-ID"); })) references.dos.push(number);
+        } else {
+          const detail = [number, vendor ? "Vendor: " + vendor : "", destination ? "Tujuan: " + destination : ""].filter(Boolean).join(" | ");
+          if (!references.shipments.some(function (value) { return value.toLocaleLowerCase("id-ID") === detail.toLocaleLowerCase("id-ID"); })) references.shipments.push(detail);
+        }
+      });
+    });
+  }
+  filteredRows.forEach(function (visit) {
+    const references = referencesByVisit.get(visit.id) || {shipments:[], dos:[]};
+    visit.export_shipment = references.shipments.join("\n");
+    visit.export_do = references.dos.join("\n");
+  });
+  return filteredRows;
 }
 function styleExportSheet(sheet, headerRow, dataStartRow) {
   const range = XLSX.utils.decode_range(sheet["!ref"] || "A1");
@@ -1103,11 +1151,6 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   const workbook = XLSX.utils.book_new();
   const statusLabel = function (value) { return statusLabels[value] || value || ""; };
   const clientName = function (visit) { return (visit.clients && visit.clients.name) || visit.client || ""; };
-  const gateName = function (visit) { return (visit.gates && visit.gates.gate_number) || ""; };
-  const lineName = function (visit) {
-    const line = visit.line_numbers && visit.line_numbers.line_number;
-    return line === null || line === undefined ? "" : line;
-  };
   const detailRows = rows.map(function (visit) {
     return {
       "Tanggal WH In":localDateKey(visit.wh_in_at),
@@ -1116,7 +1159,7 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
       "Tipe Truk":visit.truck_type || "", "Nomor Kontainer":visit.container_num || "",
       "Aktivitas":visit.activity_type === "inbound" ? "Inbound" : visit.activity_type === "outbound" ? "Outbound" : (visit.activity_type || ""),
       "Vendor":visit.vendor || "", "Klien":clientName(visit), "Tujuan":visit.destination_city || "",
-      "Gerbang":gateName(visit), "Line":lineName(visit), "Nomor Seal":visit.seal_number || "",
+      "Shipment":visit.export_shipment || "", "DO":visit.export_do || "", "Nomor Seal":visit.seal_number || "",
       "Status Proses":statusLabel(visit.process_status), "Status Akhir":statusLabel(visit.final_status),
       "Catatan":visit.notes || "", "WH In":formatExportDate(visit.wh_in_at),
       "Registrasi":formatExportDate(visit.registered_at), "Mulai Loading":formatExportDate(visit.started_at),
@@ -1126,8 +1169,8 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   const detailSheet = XLSX.utils.json_to_sheet(detailRows);
   detailSheet["!cols"] = [
     {wch:36},{wch:14},{wch:16},{wch:16},{wch:24},{wch:18},{wch:18},{wch:14},
-    {wch:24},{wch:24},{wch:18},{wch:22},{wch:12},{wch:12},{wch:18},
-    {wch:20},{wch:18},{wch:35},{wch:22},{wch:22},{wch:22},{wch:22}
+    {wch:24},{wch:24},{wch:34},{wch:24},{wch:12},{wch:18},
+    {wch:20},{wch:18},{wch:35},{wch:22},{wch:22},{wch:22}
   ];
   detailSheet["!autofilter"] = {ref:detailSheet["!ref"] || "A1"};
   detailSheet["!freeze"] = {xSplit:0,ySplit:1};
