@@ -1117,7 +1117,7 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
   };
   const detailRows = rows.map(function (visit) {
     return {
-      "ID Kunjungan":visit.id || "", "Tanggal WH In":localDateKey(visit.wh_in_at),
+      "Tanggal WH In":localDateKey(visit.wh_in_at),
       "Nomor Kartu":(visit.cards && visit.cards.card_number) || visit.card_number || "",
       "Plat Nomor":visit.plate_number || "", "Nama Driver":visit.driver_name || "",
       "Tipe Truk":visit.truck_type || "", "Nomor Kontainer":visit.container_num || "",
@@ -1150,7 +1150,7 @@ function buildExportWorkbook(rows, startDate, endDate, selectedClient) {
       ["Selesai Loading → WH Out",visit.completed_at,visit.wh_out_at],
       ["Total WH In → WH Out",visit.wh_in_at,visit.wh_out_at]
     ];
-    const result = {"ID Kunjungan":visit.id || "","Tanggal WH In":localDateKey(visit.wh_in_at),
+    const result = {"Tanggal WH In":localDateKey(visit.wh_in_at),
       "Plat Nomor":visit.plate_number || "","Vendor":visit.vendor || "","Klien":clientName(visit),
       "Status":statusLabel(visit.process_status)};
     let hasAnomaly = false;
