@@ -17,10 +17,10 @@
 .operational-chart{min-height:220px}
 .monitoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
 .monitoring-panel{border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem;min-width:0}
-.monitoring-panel-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
+.monitoring-panel-head{display:flex;align-items:center;justify-content:flex-start;gap:.75rem;margin-bottom:1rem}
 .monitoring-panel-title{font-size:1rem;font-weight:700;margin:0}
 .monitoring-panel-type{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
-.monitoring-stat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+.monitoring-stat-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.65rem}
 .monitoring-stat{padding:.8rem;border-radius:var(--radius-md);background:#F7F9F8;min-width:0;border:1px solid transparent;border-left-width:3px}
 .monitoring-stat--waiting{background:#F0F6FC;border-color:#D8E8F8;border-left-color:#006ECD}.monitoring-stat--waiting .monitoring-stat-value{color:#006ECD}
 .monitoring-stat--parking{background:#FFFAEB;border-color:#F8EAC2;border-left-color:#D69E00}.monitoring-stat--parking .monitoring-stat-value{color:#A16207}
@@ -41,7 +41,7 @@
 .dashboard-activity-table .table-subline{display:block;color:var(--text-muted);font-size:.72rem;margin-top:.2rem}
 .dashboard-activity-table .duration{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .dashboard-empty{padding:2rem 1rem;text-align:center;color:var(--text-muted);font-size:.85rem}
-@media(max-width:767.98px){.monitoring-grid{grid-template-columns:1fr}.monitoring-panel{padding:.9rem}.plan-stat-list{grid-template-columns:1fr;gap:.55rem}.plan-stat{padding:.7rem}.plan-stat .monitoring-stat-value{font-size:1.15rem}.page-header{margin-bottom:1.25rem}.operational-chart{margin:0 -.35rem;min-height:200px}}
+@media(max-width:767.98px){.monitoring-grid{grid-template-columns:1fr}.monitoring-panel{padding:.9rem}.monitoring-stat-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.monitoring-stat{padding:.7rem}.monitoring-stat-value{font-size:clamp(1.05rem,5vw,1.3rem);overflow-wrap:anywhere}.plan-stat-list{grid-template-columns:1fr;gap:.55rem}.plan-stat{padding:.7rem}.plan-stat .monitoring-stat-value{font-size:1.15rem}.page-header{margin-bottom:1.25rem}.operational-chart{margin:0 -.35rem;min-height:200px}}
 </style>
 </head>
 <body class="trcm-app" data-page-resource="dashboard">
@@ -302,7 +302,7 @@ window.trcmComponentsReady.then(function () {
       const completed = countStatus(rows, "completed");
       const left = rows.filter(function (visit) { return Boolean(visit.wh_out_at); }).length;
       return '<section class="monitoring-panel" aria-label="Monitoring ' + definition.label + '">' +
-        '<div class="monitoring-panel-head"><div><span class="monitoring-panel-type">Tipe aktivitas</span><h3 class="monitoring-panel-title">' + definition.label + '</h3></div><span class="badge rounded-pill text-bg-light">' + rows.length + ' visit</span></div>' +
+        '<div class="monitoring-panel-head"><div><span class="monitoring-panel-type">Tipe aktivitas</span><h3 class="monitoring-panel-title">' + definition.label + '</h3></div></div>' +
         '<div class="monitoring-stat-list">' +
           '<div class="monitoring-stat monitoring-stat--waiting"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + '</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
           '<div class="monitoring-stat monitoring-stat--parking"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + '</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
