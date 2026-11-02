@@ -91,14 +91,14 @@
         <section class="card content-card" aria-labelledby="plan-overview-title">
           <div class="card-header content-card-header">
             <div>
-              <h2 class="card-title" id="plan-overview-title">Monitoring Plan</h2>
-              <p class="dashboard-section-note">Seluruh Plan aktif, termasuk Plan yang belum selesai dari tanggal sebelumnya.</p>
+              <h2 class="card-title" id="plan-overview-title">Monitoring DO / Shipment</h2>
+              <p class="dashboard-section-note">Jumlah DO Inbound dan Shipment Outbound berdasarkan status tanggal operasional.</p>
             </div>
-            <a class="btn btn-outline-primary btn-sm" href="daftar-plan.html">Lihat seluruh Plan</a>
+            <a class="btn btn-outline-primary btn-sm" href="daftar-plan.html">Lihat daftar Plan</a>
           </div>
           <div class="card-body pt-0">
             <div class="row g-3" id="plan-overview">
-              <div class="col-12"><div class="dashboard-empty">Memuat ringkasan Plan...</div></div>
+              <div class="col-12"><div class="dashboard-empty">Memuat ringkasan DO / Shipment...</div></div>
             </div>
           </div>
         </section>
@@ -408,9 +408,8 @@ window.trcmComponentsReady.then(function () {
 
     const planProgress = new Map();
     progress.forEach(function (group) {
-      const current = planProgress.get(group.planId) || { total: 0, processed: 0 };
-      current.total += 1;
-      if (group.processed) current.processed += 1;
+      const current = planProgress.get(group.planId) || [];
+      current.push(group);
       planProgress.set(group.planId, current);
     });
 
@@ -425,25 +424,30 @@ window.trcmComponentsReady.then(function () {
     activePlans.forEach(function (plan) {
       const date = String(plan.operational_date || "");
       const type = plan.activity_type === "outbound" ? "outbound" : "inbound";
-      const itemProgress = planProgress.get(plan.id) || { total: 0, processed: 0 };
+      const references = planProgress.get(plan.id) || [];
+      const pendingCount = references.filter(function (reference) { return !reference.processed; }).length;
+      const completedCount = references.length - pendingCount;
       let category = "";
-      if (itemProgress.total > 0 && itemProgress.processed === itemProgress.total) {
+      if (references.length > 0 && pendingCount === 0) {
         category = "completed";
+        groups[category][type] += completedCount;
       } else if (date === todayKey) {
         category = "today";
+        groups[category][type] += references.length;
       } else if (date > todayKey) {
         category = "upcoming";
+        groups[category][type] += references.length;
       } else {
         category = "outstanding";
+        groups[category][type] += pendingCount;
       }
-      groups[category][type] += 1;
     });
 
     const definitions = [
-      { key: "today", label: "Plan Hari Ini", icon: "bi-calendar-event", note: "Tanggal operasional hari ini" },
-      { key: "upcoming", label: "Plan Mendatang", icon: "bi-calendar-plus", note: "Tanggal operasional berikutnya" },
-      { key: "outstanding", label: "Plan Outstanding", icon: "bi-exclamation-circle", note: "Tanggal lewat, masih ada DO / Shipment belum selesai" },
-      { key: "completed", label: "Plan Selesai", icon: "bi-check-circle", note: "Seluruh DO / Shipment sudah diproses" }
+      { key: "today", label: "Hari Ini", icon: "bi-calendar-event", note: "DO / Shipment dengan tanggal operasional hari ini" },
+      { key: "upcoming", label: "Mendatang", icon: "bi-calendar-plus", note: "DO / Shipment dengan tanggal operasional berikutnya" },
+      { key: "outstanding", label: "Outstanding", icon: "bi-exclamation-circle", note: "DO / Shipment lewat tanggal dan belum selesai" },
+      { key: "completed", label: "Selesai", icon: "bi-check-circle", note: "DO / Shipment yang seluruh prosesnya selesai" }
     ];
     const target = document.getElementById("plan-overview");
     target.innerHTML = definitions.map(function (definition) {
@@ -451,8 +455,8 @@ window.trcmComponentsReady.then(function () {
       const total = values.inbound + values.outbound;
       return '<div class="col-12 col-sm-6 col-xl-3"><div class="monitoring-panel h-100">' +
         '<div class="d-flex align-items-center justify-content-between gap-2 mb-2"><span class="monitoring-panel-type">' + definition.label + '</span><i class="bi ' + definition.icon + ' text-primary"></i></div>' +
-        '<strong class="monitoring-stat-value">' + total + ' Plan</strong>' +
-        '<div class="monitoring-panel-foot mt-2"><span>Inbound ' + values.inbound + '</span><span>Outbound ' + values.outbound + '</span></div>' +
+        '<strong class="monitoring-stat-value">' + total + ' Referensi</strong>' +
+        '<div class="monitoring-panel-foot mt-2"><span>Inbound ' + values.inbound + ' DO</span><span>Outbound ' + values.outbound + ' Shipment</span></div>' +
         '<p class="dashboard-section-note mb-0 mt-2">' + definition.note + '</p></div></div>';
     }).join("");
   }
@@ -480,7 +484,7 @@ window.trcmComponentsReady.then(function () {
       renderPlanOverview(responses[0], responses[1], linkedIds, todayKey);
     } catch (error) {
       console.error("TRCM plan overview:", error);
-      target.innerHTML = '<div class="col-12"><div class="dashboard-empty text-danger">Ringkasan Plan gagal dimuat. Periksa koneksi atau hak akses akun.</div></div>';
+      target.innerHTML = '<div class="col-12"><div class="dashboard-empty text-danger">Ringkasan DO / Shipment gagal dimuat. Periksa koneksi atau hak akses akun.</div></div>';
     }
   }
 
