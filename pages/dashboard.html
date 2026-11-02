@@ -21,7 +21,11 @@
 .monitoring-panel-title{font-size:1rem;font-weight:700;margin:0}
 .monitoring-panel-type{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
 .monitoring-stat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
-.monitoring-stat{padding:.8rem;border-radius:var(--radius-md);background:#F7F9F8;min-width:0}
+.monitoring-stat{padding:.8rem;border-radius:var(--radius-md);background:#F7F9F8;min-width:0;border:1px solid transparent;border-left-width:3px}
+.monitoring-stat--waiting{background:#F0F6FC;border-color:#D8E8F8;border-left-color:#006ECD}.monitoring-stat--waiting .monitoring-stat-value{color:#006ECD}
+.monitoring-stat--parking{background:#FFFAEB;border-color:#F8EAC2;border-left-color:#D69E00}.monitoring-stat--parking .monitoring-stat-value{color:#A16207}
+.monitoring-stat--processing{background:#FFF5EB;border-color:#FBE1C7;border-left-color:#E58A24}.monitoring-stat--processing .monitoring-stat-value{color:#C26B00}
+.monitoring-stat--completed{background:#EFF8F2;border-color:#D8ECDD;border-left-color:#22A05A}.monitoring-stat--completed .monitoring-stat-value{color:#15803D}
 .monitoring-stat-label{display:block;color:var(--text-muted);font-size:.72rem;font-weight:600;margin-bottom:.25rem}
 .monitoring-stat-value{display:block;color:var(--text-main);font-size:1.35rem;font-weight:800;line-height:1.2}
 .monitoring-stat-foot{display:block;color:var(--text-muted);font-size:.7rem;margin-top:.25rem}
@@ -98,8 +102,8 @@
           <div class="card-body p-0">
             <div class="table-responsive">
               <table class="table table-hover align-middle trcm-table dashboard-activity-table mb-0">
-                <thead><tr><th>Plat nomor</th><th>Aktivitas</th><th>Vendor / Klien</th><th>Status</th><th>WH In</th><th>Durasi</th><th>Update terakhir</th></tr></thead>
-                <tbody id="visit-activity-table"><tr><td colspan="7" class="table-state">Memuat data visit...</td></tr></tbody>
+                <thead><tr><th>Plat nomor</th><th>Aktivitas</th><th>Vendor / Klien</th><th>Status</th><th>WH In</th><th>Durasi</th></tr></thead>
+                <tbody id="visit-activity-table"><tr><td colspan="6" class="table-state">Memuat data visit...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -158,6 +162,16 @@ window.trcmComponentsReady.then(function () {
     if (Number.isNaN(date.getTime())) return "—";
     return new Intl.DateTimeFormat("id-ID", {
       timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit"
+    }).format(date);
+  }
+
+  function formatDateTime(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Jakarta", day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
     }).format(date);
   }
 
@@ -271,10 +285,10 @@ window.trcmComponentsReady.then(function () {
       return '<section class="monitoring-panel" aria-label="Monitoring ' + definition.label + '">' +
         '<div class="monitoring-panel-head"><div><span class="monitoring-panel-type">Tipe aktivitas</span><h3 class="monitoring-panel-title">' + definition.label + '</h3></div><span class="badge rounded-pill text-bg-light">' + rows.length + ' visit</span></div>' +
         '<div class="monitoring-stat-list">' +
-          '<div class="monitoring-stat"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + '</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
-          '<div class="monitoring-stat"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + '</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
-          '<div class="monitoring-stat"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + '</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
-          '<div class="monitoring-stat"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + '</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--waiting"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + '</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--parking"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + '</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--processing"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + '</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--completed"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + '</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
         '</div>' +
         '<div class="monitoring-panel-foot"><span>Sudah WH Out</span><strong>' + left + ' visit</strong></div>' +
       '</section>';
@@ -356,9 +370,8 @@ window.trcmComponentsReady.then(function () {
         '<td><span class="destination ' + activityClass + '">' + escapeHtml(activityLabel) + '</span></td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '<span class="table-subline">' + escapeHtml(clientName) + '</span></td>' +
         '<td>' + statusBadge(visit) + '</td>' +
-        '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at)) + '</span></td>' +
+        '<td><span class="duration">' + escapeHtml(formatDateTime(visit.wh_in_at || visit.registered_at)) + '</span></td>' +
         '<td><span class="duration">' + escapeHtml(duration === null ? "—" : formatDuration(duration)) + '</span></td>' +
-        '<td><span class="duration">' + escapeHtml(formatTime(lastActivity(visit))) + '</span></td>' +
       '</tr>';
     }).join("");
   }
@@ -392,7 +405,7 @@ window.trcmComponentsReady.then(function () {
       console.error("TRCM dashboard:", error);
       monitoringTarget.innerHTML = '<div class="dashboard-empty text-danger">Monitoring gagal dimuat. Periksa koneksi lalu coba perbarui data.</div>';
       chartTarget.innerHTML = '<div class="dashboard-empty text-danger">Grafik aktivitas gagal dimuat.</div>';
-      tableBody.innerHTML = '<tr><td colspan="7" class="table-state error-state">' + escapeHtml(error.message || "Data dashboard gagal dimuat.") + '</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" class="table-state error-state">' + escapeHtml(error.message || "Data dashboard gagal dimuat.") + '</td></tr>';
       resultCount.textContent = "Data gagal dimuat";
     }
   }
