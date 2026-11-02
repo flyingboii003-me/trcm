@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="TRCM - Dashboard Truck Registration & Control Management">
+<meta name="description" content="TRCM - Monitoring operasional kunjungan gudang">
 <title>Dashboard — TRCM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,93 +12,96 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../assets/css/trcm.css">
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<style>
+.dashboard-live-meta{display:flex;align-items:center;gap:.55rem;color:var(--text-muted);font-size:.78rem;font-weight:600}
+.dashboard-live-dot{width:8px;height:8px;border-radius:50%;background:var(--sys-green);box-shadow:0 0 0 4px rgba(34,197,94,.12)}
+.dashboard-section-note{margin:.35rem 0 0;color:var(--text-muted);font-size:.78rem}
+.monitoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.monitoring-panel{border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem;min-width:0}
+.monitoring-panel-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
+.monitoring-panel-title{font-size:1rem;font-weight:700;margin:0}
+.monitoring-panel-type{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
+.monitoring-stat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+.monitoring-stat{padding:.8rem;border-radius:var(--radius-md);background:#F7F9F8;min-width:0}
+.monitoring-stat-label{display:block;color:var(--text-muted);font-size:.72rem;font-weight:600;margin-bottom:.25rem}
+.monitoring-stat-value{display:block;color:var(--text-main);font-size:1.35rem;font-weight:800;line-height:1.2}
+.monitoring-stat-foot{display:block;color:var(--text-muted);font-size:.7rem;margin-top:.25rem}
+.monitoring-panel-foot{display:flex;justify-content:space-between;gap:.75rem;border-top:1px solid var(--border);margin-top:.85rem;padding-top:.75rem;color:var(--text-muted);font-size:.75rem}
+.dashboard-table-meta{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.dashboard-activity-table{min-width:850px}
+.dashboard-activity-table td{vertical-align:middle}
+.dashboard-activity-table .plate{font-weight:800;letter-spacing:.025em}
+.dashboard-activity-table .table-subline{display:block;color:var(--text-muted);font-size:.72rem;margin-top:.2rem}
+.dashboard-activity-table .duration{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.dashboard-empty{padding:2rem 1rem;text-align:center;color:var(--text-muted);font-size:.85rem}
+@media(max-width:767.98px){.monitoring-grid{grid-template-columns:1fr}.monitoring-panel{padding:.9rem}.page-header{margin-bottom:1.25rem}}
+</style>
 </head>
 <body class="trcm-app" data-page-resource="dashboard">
 <div class="app-layout">
-  
   <div id="sidebar-container"></div>
-
   <div class="main-wrapper">
     <div id="topbar-container"></div>
-
-    
     <main class="content-wrapper">
       <div class="container-fluid px-0">
-        <section class="welcome-card alert-green-card">
-          <div class="welcome-card-copy">
-            <span class="welcome-kicker">TRCM CJ LOGISTICS</span>
-            <h2>Selamat datang di TRCM CJ Logistics</h2>
-            <p>Atur pendaftaran dan transportasi armada di sini. Masuk ke menu <a href="riwayat.html">Riwayat</a> untuk melihat data pendaftaran secara lebih lengkap.</p>
-          </div>
-          </section>
-
         <div class="page-header">
           <div>
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">Pantau status armada dan performa kunjungan gudang secara ringkas.</p>
+            <span class="page-header-kicker">TRCM CJ LOGISTICS</span>
+            <h1 class="page-title">Dashboard Monitoring</h1>
+            <p class="page-subtitle">Pantau kondisi kunjungan gudang dan aktivitas armada hari ini.</p>
           </div>
-          
+          <div class="dashboard-live-meta"><span class="dashboard-live-dot" aria-hidden="true"></span><span>Hari ini · Real-time</span></div>
         </div>
 
-        <div class="row g-3 mb-4">
-          <div class="col-12 col-sm-6 col-xl-3"><div class="card card-stat d-flex flex-column justify-content-between h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Menunggu</div><div class="stat-value stat-value-with-unit" id="stat-waiting">—</div><div class="stat-note" id="stat-waiting-note">Data hari ini</div>
-          </div></div></div>
-          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
-            <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note" id="stat-process-note">Data hari ini</div>
-          </div></div></div>
-          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
-            <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note" id="stat-done-note">Data hari ini</div>
-          </div></div></div>
-          <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
-            <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
-            <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note" id="stat-average-note">Data hari ini</div>
-          </div></div></div>
-        </div>
+        <section aria-label="Ringkasan KPI hari ini">
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3"><div class="card card-stat h-100"><div class="card-body">
+              <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><span class="stat-trend">LIVE</span></div>
+              <div class="stat-label">Menunggu</div><div class="stat-value stat-value-with-unit" id="stat-waiting">—</div><div class="stat-note" id="stat-waiting-note">Kunjungan hari ini</div>
+            </div></div></div>
+            <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
+              <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
+              <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note" id="stat-process-note">Kunjungan hari ini</div>
+            </div></div></div>
+            <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
+              <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
+              <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note" id="stat-done-note">Selesai Checker hari ini</div>
+            </div></div></div>
+            <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
+              <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
+              <div class="stat-label">Waktu di gudang</div><div class="stat-value stat-value-mono" id="stat-average">—</div><div class="stat-note" id="stat-average-note">WH In sampai WH Out hari ini</div>
+            </div></div></div>
+          </div>
+        </section>
 
-        <div class="row g-3 mb-4 dashboard-chart-row">
-          <div class="col-12 col-xl-6">
-            <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Status armada</h3><p>Distribusi armada berdasarkan status hari ini.</p></div></div>
-              <div class="card-body"><div id="status-overview" class="status-overview" aria-label="Status armada"></div></div>
-            </section>
-          </div>
-          <div class="col-12 col-xl-6">
-            <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Tipe aktivitas armada</h3><p>Jumlah armada hari ini.</p></div></div>
-              <div class="card-body"><div id="destination-chart" class="operational-chart" aria-label="Grafik tipe aktivitas armada"></div></div>
-            </section>
-          </div>
-        </div>
-
-        <div class="row g-3 mb-4 dashboard-chart-row">
-          <div class="col-12 col-xl-6">
-            <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by vendor</h3><p>Jumlah armada hari ini.</p></div></div>
-              <div class="card-body"><div id="vendor-chart" class="operational-chart" aria-label="Grafik jumlah armada by vendor"></div><div id="vendor-chart-legend" class="chart-category-legend" aria-label="Legenda vendor"></div></div>
-            </section>
-          </div>
-          <div class="col-12 col-xl-6">
-            <section class="card content-card h-100">
-              <div class="card-header content-card-header"><div><h3 class="card-title">Jumlah armada by klien</h3><p>Jumlah armada hari ini.</p></div></div>
-              <div class="card-body"><div id="client-chart" class="operational-chart" aria-label="Grafik jumlah armada by klien"></div><div id="client-chart-legend" class="chart-category-legend" aria-label="Legenda klien"></div></div>
-            </section>
-          </div>
-        </div>
-
-        <section class="card content-card dashboard-history-card">
+        <section class="card content-card" aria-labelledby="operational-monitoring-title">
           <div class="card-header content-card-header">
-            <div><h3 class="card-title">Riwayat Pendaftaran</h3><p id="recent-result-count">Memuat data...</p></div>
+            <div><h2 class="card-title" id="operational-monitoring-title">Monitoring operasional</h2><p class="dashboard-section-note">Kondisi visit dikelompokkan berdasarkan tipe aktivitas.</p></div>
+          </div>
+          <div class="card-body pt-0">
+            <div class="monitoring-grid" id="operational-monitoring">
+              <div class="dashboard-empty">Memuat monitoring operasional...</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card content-card" aria-labelledby="hourly-activity-title">
+          <div class="card-header content-card-header">
+            <div><h2 class="card-title" id="hourly-activity-title">Grafik aktivitas per jam</h2><p class="dashboard-section-note">Jumlah WH In dan Selesai Checker berdasarkan waktu aktivitas hari ini.</p></div>
+          </div>
+          <div class="card-body pt-0"><div id="hourly-activity-chart" class="operational-chart" aria-label="Grafik aktivitas WH In dan Selesai Checker per jam"></div></div>
+        </section>
+
+        <section class="card content-card dashboard-history-card" aria-labelledby="visit-activity-title">
+          <div class="card-header content-card-header">
+            <div><h2 class="card-title" id="visit-activity-title">Daftar aktivitas visit</h2><p class="dashboard-section-note" id="activity-result-count">Memuat data visit...</p></div>
             <a class="btn btn-primary dashboard-history-link" href="riwayat.html"><span>Lihat Semua</span></a>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover align-middle trcm-table mb-0">
-                <thead><tr><th>Plat nomor</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Jam masuk</th></tr></thead>
-                <tbody id="recent-truck-table"><tr><td colspan="4" class="table-state">Memuat data pendaftaran...</td></tr></tbody>
+              <table class="table table-hover align-middle trcm-table dashboard-activity-table mb-0">
+                <thead><tr><th>Plat nomor</th><th>Aktivitas</th><th>Vendor / Klien</th><th>Status</th><th>WH In</th><th>Durasi</th><th>Update terakhir</th></tr></thead>
+                <tbody id="visit-activity-table"><tr><td colspan="7" class="table-state">Memuat data visit...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -107,202 +110,289 @@
     </main>
   </div>
 </div>
-
 <div id="visit-detail-container"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
 <script>
-window.trcmComponentsReady.then(async function () {
-const recentTable = document.getElementById("recent-truck-table");
-const recentResultCount = document.getElementById("recent-result-count");
-let trcmSession = null;
-let visits = [];
-let activityChart = null;
-let vendorChart = null;
-let clientChart = null;
+window.trcmComponentsReady.then(function () {
+  "use strict";
 
-trcmSession = getTrcmSession();
-if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
-  window.location.replace("../index.html");
-  return;
-}
+  const tableBody = document.getElementById("visit-activity-table");
+  const resultCount = document.getElementById("activity-result-count");
+  const monitoringTarget = document.getElementById("operational-monitoring");
+  const chartTarget = document.getElementById("hourly-activity-chart");
+  const session = getTrcmSession();
+  let visits = [];
+  let hourlyChart = null;
 
-function localDateKey(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).formatToParts(date).reduce(function (result, part) {
-    result[part.type] = part.value;
-    return result;
-  }, {});
-  return parts.year + "-" + parts.month + "-" + parts.day;
-}
-function formatTime(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(date);
-}
-function formatDuration(minutes) {
-  if (!Number.isFinite(minutes) || minutes <= 0) return "—";
-  const rounded = Math.round(minutes);
-  return Math.floor(rounded / 60) + "j " + String(rounded % 60).padStart(2,"0") + "m";
-}
-function countForDay(dayKey, predicate) {
-  return visits.filter(function (visit) {
-    return localDateKey(visit.wh_in_at || visit.registered_at || visit.created_at) === dayKey && predicate(visit);
-  }).length;
-}
-function completedOutForDay(dayKey) {
-  return visits.filter(function (visit) {
-    return localDateKey(visit.wh_out_at) === dayKey && visit.wh_in_at && visit.wh_out_at;
-  });
-}
-function averageWarehouseMinutes(dayKey) {
-  const rows = completedOutForDay(dayKey);
-  if (!rows.length) return 0;
-  const total = rows.reduce(function (sum, visit) {
-    return sum + Math.max(0, (new Date(visit.wh_out_at) - new Date(visit.wh_in_at)) / 60000);
-  }, 0);
-  return total / rows.length;
-}
-function renderStats(todayKey) {
-  const waiting = v => v.process_status === "wh_in" || v.process_status === "registered";
-  const processing = v => v.process_status === "queue" || v.process_status === "started";
-  const done = v => v.process_status === "completed";
-  const waitingCount = countForDay(todayKey, waiting);
-  const processingCount = countForDay(todayKey, processing);
-  const doneCount = countForDay(todayKey, done);
-  document.getElementById("stat-waiting").textContent = waitingCount + " Armada";
-  document.getElementById("stat-process").textContent = processingCount + " Armada";
-  document.getElementById("stat-done").textContent = doneCount + " Armada";
-  document.getElementById("stat-average").textContent = formatDuration(averageWarehouseMinutes(todayKey));
-  document.getElementById("stat-waiting-note").textContent = "Pendaftaran hari ini";
-  document.getElementById("stat-process-note").textContent = "Proses hari ini";
-  document.getElementById("stat-done-note").textContent = "Selesai hari ini";
-  document.getElementById("stat-average-note").textContent = "Kunjungan selesai hari ini";
-}
-function statusCount(visit, dayKey) {
-  if (localDateKey(visit.wh_in_at || visit.registered_at || visit.created_at) !== dayKey) return null;
-  if (visit.wh_out_at) return "wh_out";
-  if (visit.process_status === "completed") return "completed";
-  if (visit.process_status === "started") return "started";
-  if (visit.process_status === "queue") return "queue";
-  return "wh_in";
-}
-function renderStatusOverview(todayKey) {
-  const definitions = [
-    {key:"wh_in",label:"Terdaftar"},
-    {key:"queue",label:"Antri/Parkir"},
-    {key:"started",label:"Proses Loading"},
-    {key:"completed",label:"Selesai Loading"},
-    {key:"wh_out",label:"Selesai/Keluar Gudang"}
-  ];
-  const clientColors = {"kimberly clark":"#006ECD","henkel":"#EF151E","modena":"#111111"};
-  const colorForClient = function(name) {
-    return clientColors[String(name || "").trim().toLowerCase()] || "#6B7280";
-  };
-  const todayVisits = visits.filter(function(visit) { return statusCount(visit,todayKey) !== null; });
-  const clients = Array.from(new Set(todayVisits.map(function(visit) {
-    return String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
-  }))).sort(function(a,b) { return a.localeCompare(b,"id"); });
-  const target = document.getElementById("status-overview");
-  if (!target) return;
+  if (!session || !session.access_token || !session.user) {
+    window.location.replace("../index.html");
+    return;
+  }
 
-  const statusRows = definitions.map(function(definition) {
-    const todayByClient = {};
-    let todayTotal = 0;
-    visits.forEach(function(visit) {
-      const statusToday = statusCount(visit,todayKey);
-      const clientName = String((visit.clients && visit.clients.name) || "Tanpa klien").trim() || "Tanpa klien";
-      if (statusToday === definition.key) {
-        todayByClient[clientName] = (todayByClient[clientName] || 0) + 1;
-        todayTotal += 1;
+  function localDateKey(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit"
+    }).formatToParts(date).reduce(function (result, part) {
+      result[part.type] = part.value;
+      return result;
+    }, {});
+    return parts.year + "-" + parts.month + "-" + parts.day;
+  }
+
+  function localHour(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    const hour = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Jakarta", hour: "2-digit", hourCycle: "h23"
+    }).format(date);
+    return Number(hour);
+  }
+
+  function formatTime(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit"
+    }).format(date);
+  }
+
+  function formatDuration(minutes) {
+    if (!Number.isFinite(minutes) || minutes < 0) return "—";
+    const rounded = Math.round(minutes);
+    if (rounded < 60) return rounded + "m";
+    return Math.floor(rounded / 60) + "j " + String(rounded % 60).padStart(2, "0") + "m";
+  }
+
+  function elapsedMinutes(start, end) {
+    if (!start || !end) return null;
+    const startMs = new Date(start).getTime();
+    const endMs = new Date(end).getTime();
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) return null;
+    return (endMs - startMs) / 60000;
+  }
+
+  function visitStart(visit) {
+    return visit.wh_in_at || visit.registered_at || visit.created_at || "";
+  }
+
+  function lastActivity(visit) {
+    return visit.wh_out_at || visit.completed_at || visit.started_at || visit.wh_in_at || visit.registered_at || visit.created_at || "";
+  }
+
+  function isTodayVisit(visit, todayKey) {
+    return localDateKey(visitStart(visit)) === todayKey;
+  }
+
+  function currentStatus(visit) {
+    if (visit.wh_out_at) return "wh_out";
+    return String(visit.process_status || "wh_in").toLowerCase();
+  }
+
+  function statusLabel(visit) {
+    const status = currentStatus(visit);
+    const config = window.trcmStatusConfig && window.trcmStatusConfig[status];
+    if (config) return config.label;
+    return status || "—";
+  }
+
+  function statusBadge(visit) {
+    if (typeof window.trcmStatusBadge === "function") return window.trcmStatusBadge(currentStatus(visit));
+    return '<span class="status-badge status-unknown">' + escapeHtml(statusLabel(visit)) + '</span>';
+  }
+
+  function statusGroup(visit) {
+    const status = currentStatus(visit);
+    if (status === "wh_in" || status === "registered") return "waiting";
+    if (status === "queue" || status === "parked") return "parking";
+    if (status === "started" || status === "start_loading" || status === "processing") return "processing";
+    if (status === "completed" || status === "done_loading") return "completed";
+    return "other";
+  }
+
+  function countStatus(rows, group) {
+    return rows.filter(function (visit) { return statusGroup(visit) === group; }).length;
+  }
+
+  function renderStats(todayKey) {
+    const todayVisits = visits.filter(function (visit) { return isTodayVisit(visit, todayKey); });
+    const waiting = todayVisits.filter(function (visit) {
+      return visit.process_status === "wh_in" || visit.process_status === "registered";
+    }).length;
+    const processing = todayVisits.filter(function (visit) {
+      return visit.process_status === "queue" || visit.process_status === "parked" || visit.process_status === "started" || visit.process_status === "start_loading" || visit.process_status === "processing";
+    }).length;
+    const done = todayVisits.filter(function (visit) {
+      return visit.process_status === "completed" || visit.process_status === "done_loading";
+    }).length;
+    const completedToday = visits.filter(function (visit) {
+      return localDateKey(visit.wh_out_at) === todayKey && visit.wh_in_at && visit.wh_out_at;
+    });
+    const durations = completedToday.map(function (visit) {
+      return elapsedMinutes(visit.wh_in_at, visit.wh_out_at);
+    }).filter(function (value) { return value !== null; });
+    const average = durations.length
+      ? durations.reduce(function (sum, value) { return sum + value; }, 0) / durations.length
+      : null;
+
+    document.getElementById("stat-waiting").textContent = waiting + " Armada";
+    document.getElementById("stat-process").textContent = processing + " Armada";
+    document.getElementById("stat-done").textContent = done + " Armada";
+    document.getElementById("stat-average").textContent = average === null ? "—" : formatDuration(average);
+    document.getElementById("stat-waiting-note").textContent = "Terdaftar dan belum mulai proses";
+    document.getElementById("stat-process-note").textContent = "Parkir atau proses Checker";
+    document.getElementById("stat-done-note").textContent = "Selesai Checker hari ini";
+    document.getElementById("stat-average-note").textContent = durations.length + " visit dengan WH Out hari ini";
+  }
+
+  function renderMonitoring(todayKey) {
+    const todayVisits = visits.filter(function (visit) { return isTodayVisit(visit, todayKey); });
+    const definitions = [
+      { key: "inbound", label: "Inbound", type: "Inbound" },
+      { key: "outbound", label: "Outbound", type: "Outbound" }
+    ];
+    if (!todayVisits.length) {
+      monitoringTarget.innerHTML = '<div class="dashboard-empty">Belum ada aktivitas visit hari ini.</div>';
+      return;
+    }
+    monitoringTarget.innerHTML = definitions.map(function (definition) {
+      const rows = todayVisits.filter(function (visit) {
+        return String(visit.activity_type || "").toLowerCase() === definition.key;
+      });
+      const waiting = countStatus(rows, "waiting");
+      const parking = countStatus(rows, "parking");
+      const processing = countStatus(rows, "processing");
+      const completed = countStatus(rows, "completed");
+      const left = rows.filter(function (visit) { return Boolean(visit.wh_out_at); }).length;
+      return '<section class="monitoring-panel" aria-label="Monitoring ' + definition.label + '">' +
+        '<div class="monitoring-panel-head"><div><span class="monitoring-panel-type">Tipe aktivitas</span><h3 class="monitoring-panel-title">' + definition.label + '</h3></div><span class="badge rounded-pill text-bg-light">' + rows.length + ' visit</span></div>' +
+        '<div class="monitoring-stat-list">' +
+          '<div class="monitoring-stat"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + '</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
+          '<div class="monitoring-stat"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + '</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
+          '<div class="monitoring-stat"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + '</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
+          '<div class="monitoring-stat"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + '</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
+        '</div>' +
+        '<div class="monitoring-panel-foot"><span>Sudah WH Out</span><strong>' + left + ' visit</strong></div>' +
+      '</section>';
+    }).join("");
+  }
+
+  function renderHourlyChart(todayKey) {
+    if (typeof ApexCharts === "undefined") {
+      chartTarget.innerHTML = '<div class="dashboard-empty">Grafik tidak dapat dimuat karena pustaka chart tidak tersedia.</div>';
+      return;
+    }
+    const labels = Array.from({ length: 24 }, function (_, hour) {
+      return String(hour).padStart(2, "0") + ":00";
+    });
+    const whIn = Array(24).fill(0);
+    const completed = Array(24).fill(0);
+    visits.forEach(function (visit) {
+      const inTimestamp = visit.wh_in_at || visit.registered_at;
+      if (inTimestamp && localDateKey(inTimestamp) === todayKey) {
+        const hour = localHour(inTimestamp);
+        if (hour !== null && hour >= 0 && hour < 24) whIn[hour] += 1;
+      }
+      if (visit.completed_at && localDateKey(visit.completed_at) === todayKey) {
+        const hour = localHour(visit.completed_at);
+        if (hour !== null && hour >= 0 && hour < 24) completed[hour] += 1;
       }
     });
-    const segments = clients.map(function(clientName) {
-      const count = todayByClient[clientName] || 0;
-      if (!count) return "";
-      const percentage = todayTotal ? count / todayTotal * 100 : 0;
-      return '<span class="status-overview-segment" style="width:'+percentage+'%;background:'+colorForClient(clientName)+'" title="'+escapeHtml(clientName)+': '+count+' armada" aria-label="'+escapeHtml(clientName)+': '+count+' armada"></span>';
-    }).join("");
-    return '<div class="status-overview-item">' +
-      '<div class="status-overview-head"><span class="status-overview-label">'+escapeHtml(definition.label)+'</span><span class="status-overview-value">'+todayTotal+' Armada</span></div>' +
-      '<div class="status-overview-track status-overview-segmented" role="img" aria-label="'+escapeHtml(definition.label)+': '+todayTotal+' armada hari ini">'+(todayTotal ? segments : '<span class="status-overview-no-data"></span>')+'</div>' +
-    '</div>';
-  });
-
-  const legend = clients.length
-    ? '<div class="status-client-legend" aria-label="Legenda warna klien">'+clients.map(function(clientName) {
-        return '<span class="status-client-legend-item"><span class="status-client-legend-dot" style="background:'+colorForClient(clientName)+'"></span>'+escapeHtml(clientName)+'</span>';
-      }).join("")+'</div>'
-    : "";
-  const totalToday = todayVisits.length;
-  target.innerHTML = totalToday
-    ? '<div class="small text-muted mb-3">Distribusi status hari ini · warna menunjukkan klien</div>'+statusRows.join("")+legend
-    : '<div class="status-overview-empty">Belum ada data armada hari ini.</div>';
-}
-function destroyCharts() {
-  [activityChart,vendorChart,clientChart].forEach(function(c){if(c)c.destroy();});
-  activityChart = vendorChart = clientChart = null;
-}
-function renderCharts(todayKey) {
-  if (typeof ApexCharts === "undefined") return;
-  destroyCharts();
-  const base = {chart:{type:"bar",height:230,toolbar:{show:false},zoom:{enabled:false},fontFamily:"Plus Jakarta Sans, sans-serif"},states:{hover:{filter:{type:"none"}}},dataLabels:{enabled:false},grid:{borderColor:"#E9EFEF",strokeDashArray:4},tooltip:{theme:"dark"},legend:{show:false}};
-  const todayVisits = visits.filter(v => localDateKey(v.wh_in_at||v.registered_at||v.created_at) === todayKey);
-  const activityValues = ["inbound","outbound"].map(type => todayVisits.filter(v => v.activity_type === type).length);
-  activityChart = new ApexCharts(document.querySelector("#destination-chart"),{...base,series:[{name:"Hari ini",data:activityValues}],plotOptions:{bar:{horizontal:false,columnWidth:"48%",borderRadius:0}},xaxis:{categories:["Inbound","Outbound"],axisBorder:{show:false},axisTicks:{show:false}},colors:["#006ECD"]});
-  const buildCounts = field => {
-    const counts={};
-    todayVisits.forEach(v => {const name=field==="vendor"?String(v.vendor||"Tanpa vendor").trim()||"Tanpa vendor":String((v.clients&&v.clients.name)||"Tanpa klien").trim()||"Tanpa klien";counts[name]=(counts[name]||0)+1;});
-    const names=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]).slice(0,6);
-    return {names,values:names.map(n=>counts[n]||0)};
-  };
-  const vendor=buildCounts("vendor");
-  vendorChart=new ApexCharts(document.querySelector("#vendor-chart"),{...base,series:[{name:"Hari ini",data:vendor.values}],plotOptions:{bar:{horizontal:true,barHeight:"55%",borderRadius:0}},xaxis:{categories:vendor.names,labels:{show:false}},yaxis:{show:true,labels:{show:true,maxWidth:120,style:{colors:"#42524B",fontSize:"11px",fontWeight:600,fontFamily:"Plus Jakarta Sans, sans-serif"}}},colors:["#006ECD"]});
-  const client=buildCounts("client"), clientColor={"kimberly clark":"#006ECD",henkel:"#EF151E",modena:"#111111"}, clientTarget=document.querySelector("#client-chart");
-  if(clientTarget){const maxValue=Math.max(1,...client.values);clientTarget.classList.add("client-overview");clientTarget.innerHTML=client.names.length ? '<div class="small text-muted mb-3">Jumlah armada hari ini · warna mengikuti klien</div>'+client.names.map((name,index)=>{const color=clientColor[name.toLowerCase()]||"#6B7280",width=Math.max(client.values[index]?5:0,Math.round(client.values[index]/maxValue*100));return '<div class="status-overview-item"><div class="status-overview-head"><span class="status-overview-label"><span class="status-overview-dot" style="background:'+color+'"></span>'+escapeHtml(name)+'</span><span class="status-overview-value">'+client.values[index]+' armada</span></div><div class="status-overview-track"><div class="status-overview-fill" style="width:'+width+'%;background:'+color+'"></div></div></div>';}).join("") : '<div class="status-overview-empty">Belum ada data klien hari ini.</div>';}
-  [activityChart,vendorChart].forEach(c=>c.render());
-}
-function renderRecent(todayKey) {
-  const rows=visits.filter(v=>localDateKey(v.wh_in_at||v.registered_at||v.created_at)===todayKey).sort((a,b)=>new Date(b.wh_in_at||b.registered_at||b.created_at)-new Date(a.wh_in_at||a.registered_at||a.created_at)).slice(0,5);
-  recentResultCount.textContent=rows.length+" pendaftaran hari ini";
-  if(!rows.length){recentTable.innerHTML='<tr><td colspan="4" class="table-state">Belum ada pendaftaran hari ini.</td></tr>';return;}
-  recentTable.innerHTML=rows.map(function(v){
-    const activity=v.activity_type==="inbound"?"Inbound":v.activity_type==="outbound"?"Outbound":"—";
-    const driver=String(v.driver_name||"—").trim();
-    const client=String((v.clients&&v.clients.name)||"—").trim();
-    return '<tr><td><span class="plate">'+escapeHtml(v.plate_number)+'</span><span class="table-subline">'+escapeHtml(driver+" / "+client)+'</span></td><td><span class="destination '+(v.activity_type==="inbound"?"destination-inbound":"destination-outbound")+'">'+escapeHtml(activity)+'</span></td><td>'+escapeHtml(v.vendor||"—")+'</td><td><span class="duration">'+escapeHtml(formatTime(v.wh_in_at||v.registered_at||v.created_at))+'</span></td></tr>';
-  }).join("");
-}
-async function loadDashboard() {
-  try {
-    const select=["id","plate_number","driver_name","activity_type","vendor","client_id","process_status","wh_in_at","registered_at","started_at","completed_at","wh_out_at","created_at","clients(name)"].join(",");
-    const response=await fetch(SUPABASE_URL+"/rest/v1/visits?select="+encodeURIComponent(select)+"&order=created_at.desc",{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+trcmSession.access_token}});
-    const data=await response.json().catch(()=>({}));
-    if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return;}
-    if(!response.ok||!Array.isArray(data))throw new Error(data.message||"Gagal mengambil data dashboard.");
-    visits=data;
-    const todayKey=localDateKey(new Date());
-    renderStats(todayKey);
-    renderStatusOverview(todayKey);
-    renderCharts(todayKey);
-    renderRecent(todayKey);
-  }catch(error){
-    recentTable.innerHTML='<tr><td colspan="4" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
-    recentResultCount.textContent="Gagal memuat data";
-    console.error("TRCM dashboard:",error);
+    if (hourlyChart) hourlyChart.destroy();
+    hourlyChart = new ApexCharts(chartTarget, {
+      chart: { type: "bar", height: 290, toolbar: { show: false }, zoom: { enabled: false }, fontFamily: "Plus Jakarta Sans, sans-serif" },
+      series: [
+        { name: "WH In", data: whIn },
+        { name: "Selesai Checker", data: completed }
+      ],
+      colors: ["#006ECD", "#22C55E"],
+      plotOptions: { bar: { columnWidth: "58%", borderRadius: 3 } },
+      dataLabels: { enabled: false },
+      stroke: { show: false },
+      grid: { borderColor: "#E9EFEF", strokeDashArray: 4 },
+      xaxis: { categories: labels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { rotate: -45, hideOverlappingLabels: true } },
+      yaxis: { min: 0, forceNiceScale: true, decimalsInFloat: 0, labels: { formatter: function (value) { return Math.round(value); } } },
+      legend: { position: "top", horizontalAlign: "right", fontSize: "12px" },
+      tooltip: { shared: true, intersect: false, theme: "light" },
+      noData: { text: "Belum ada aktivitas hari ini" }
+    });
+    hourlyChart.render();
   }
-}
-window.trcmRegisterRefresh(loadDashboard);
-loadDashboard();
+
+  function renderActivityTable(todayKey) {
+    const rows = visits.filter(function (visit) { return isTodayVisit(visit, todayKey); })
+      .sort(function (a, b) {
+        return new Date(lastActivity(b)).getTime() - new Date(lastActivity(a)).getTime();
+      });
+    resultCount.textContent = rows.length + " visit hari ini · menampilkan maksimal 10 aktivitas terbaru";
+    if (!rows.length) {
+      tableBody.innerHTML = '<tr><td colspan="7" class="table-state">Belum ada aktivitas visit hari ini.</td></tr>';
+      return;
+    }
+    const now = Date.now();
+    tableBody.innerHTML = rows.slice(0, 10).map(function (visit) {
+      const activity = String(visit.activity_type || "").toLowerCase();
+      const activityLabel = activity === "inbound" ? "Inbound" : activity === "outbound" ? "Outbound" : "—";
+      const activityClass = activity === "inbound" ? "destination-inbound" : "destination-outbound";
+      const clientName = visit.clients && visit.clients.name ? visit.clients.name : "—";
+      const start = visit.wh_in_at || visit.registered_at || visit.created_at;
+      const end = visit.wh_out_at || "";
+      const duration = start ? elapsedMinutes(start, end || new Date(now).toISOString()) : null;
+      const driver = String(visit.driver_name || "").trim();
+      return '<tr>' +
+        '<td><span class="plate">' + escapeHtml(visit.plate_number || "—") + '</span><span class="table-subline">' + escapeHtml(driver || clientName) + '</span></td>' +
+        '<td><span class="destination ' + activityClass + '">' + escapeHtml(activityLabel) + '</span></td>' +
+        '<td>' + escapeHtml(visit.vendor || "—") + '<span class="table-subline">' + escapeHtml(clientName) + '</span></td>' +
+        '<td>' + statusBadge(visit) + '</td>' +
+        '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at)) + '</span></td>' +
+        '<td><span class="duration">' + escapeHtml(duration === null ? "—" : formatDuration(duration)) + '</span></td>' +
+        '<td><span class="duration">' + escapeHtml(formatTime(lastActivity(visit))) + '</span></td>' +
+      '</tr>';
+    }).join("");
+  }
+
+  async function loadDashboard() {
+    try {
+      const select = [
+        "id", "plate_number", "driver_name", "activity_type", "vendor", "client_id",
+        "process_status", "wh_in_at", "registered_at", "started_at", "completed_at",
+        "wh_out_at", "created_at", "clients(name)"
+      ].join(",");
+      const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
+      });
+      const data = await response.json().catch(function () { return {}; });
+      if (response.status === 401) {
+        sessionStorage.removeItem("trcm_session");
+        window.location.replace("../index.html");
+        return;
+      }
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error(data.message || "Gagal mengambil data dashboard.");
+      }
+      visits = data;
+      const todayKey = localDateKey(new Date());
+      renderStats(todayKey);
+      renderMonitoring(todayKey);
+      renderHourlyChart(todayKey);
+      renderActivityTable(todayKey);
+    } catch (error) {
+      console.error("TRCM dashboard:", error);
+      monitoringTarget.innerHTML = '<div class="dashboard-empty text-danger">Monitoring gagal dimuat. Periksa koneksi lalu coba perbarui data.</div>';
+      chartTarget.innerHTML = '<div class="dashboard-empty text-danger">Grafik aktivitas gagal dimuat.</div>';
+      tableBody.innerHTML = '<tr><td colspan="7" class="table-state error-state">' + escapeHtml(error.message || "Data dashboard gagal dimuat.") + '</td></tr>';
+      resultCount.textContent = "Data gagal dimuat";
+    }
+  }
+
+  window.trcmRegisterRefresh(loadDashboard);
+  loadDashboard();
 });
 </script>
 </body>
