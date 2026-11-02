@@ -398,7 +398,7 @@ window.trcmComponentsReady.then(function () {
     items.forEach(function (item) {
       const plan = Array.isArray(item.import_plans) ? item.import_plans[0] : item.import_plans;
       if (!plan || !plan.id || plan.status !== "active") return;
-      const reference = String(plan.activity_type === "outbound" ? item.shipment_number : item.do_number || "").trim();
+      const reference = String((plan.activity_type === "outbound" ? item.shipment_number : item.do_number) || "").trim();
       if (!reference) return;
       const key = plan.id + "|" + reference.toLocaleLowerCase("id-ID");
       const group = progress.get(key) || { planId: plan.id, processed: false };
