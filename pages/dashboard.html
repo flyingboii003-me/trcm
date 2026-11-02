@@ -87,6 +87,22 @@
           </div>
         </section>
 
+
+        <section class="card content-card" aria-labelledby="plan-overview-title">
+          <div class="card-header content-card-header">
+            <div>
+              <h2 class="card-title" id="plan-overview-title">Monitoring Plan</h2>
+              <p class="dashboard-section-note">Seluruh Plan aktif, termasuk Plan yang belum selesai dari tanggal sebelumnya.</p>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="daftar-plan.html">Lihat seluruh Plan</a>
+          </div>
+          <div class="card-body pt-0">
+            <div class="row g-3" id="plan-overview">
+              <div class="col-12"><div class="dashboard-empty">Memuat ringkasan Plan...</div></div>
+            </div>
+          </div>
+        </section>
+
         <section class="card content-card" aria-labelledby="hourly-activity-title">
           <div class="card-header content-card-header">
             <div><h2 class="card-title" id="hourly-activity-title">Grafik aktivitas per jam</h2></div>
@@ -376,6 +392,98 @@ window.trcmComponentsReady.then(function () {
     }).join("");
   }
 
+
+  function renderPlanOverview(plans, items, linkedIds, todayKey) {
+    const progress = new Map();
+    items.forEach(function (item) {
+      const plan = Array.isArray(item.import_plans) ? item.import_plans[0] : item.import_plans;
+      if (!plan || !plan.id || plan.status !== "active") return;
+      const reference = String(plan.activity_type === "outbound" ? item.shipment_number : item.do_number || "").trim();
+      if (!reference) return;
+      const key = plan.id + "|" + reference.toLocaleLowerCase("id-ID");
+      const group = progress.get(key) || { planId: plan.id, processed: false };
+      group.processed = group.processed || linkedIds.has(item.id) || item.manual_processed === true;
+      progress.set(key, group);
+    });
+
+    const planProgress = new Map();
+    progress.forEach(function (group) {
+      const current = planProgress.get(group.planId) || { total: 0, processed: 0 };
+      current.total += 1;
+      if (group.processed) current.processed += 1;
+      planProgress.set(group.planId, current);
+    });
+
+    const activePlans = plans.filter(function (plan) { return plan.status === "active"; });
+    const groups = {
+      today: { inbound: 0, outbound: 0 },
+      upcoming: { inbound: 0, outbound: 0 },
+      outstanding: { inbound: 0, outbound: 0 },
+      completed: { inbound: 0, outbound: 0 }
+    };
+
+    activePlans.forEach(function (plan) {
+      const date = String(plan.operational_date || "");
+      const type = plan.activity_type === "outbound" ? "outbound" : "inbound";
+      const itemProgress = planProgress.get(plan.id) || { total: 0, processed: 0 };
+      let category = "";
+      if (itemProgress.total > 0 && itemProgress.processed === itemProgress.total) {
+        category = "completed";
+      } else if (date === todayKey) {
+        category = "today";
+      } else if (date > todayKey) {
+        category = "upcoming";
+      } else {
+        category = "outstanding";
+      }
+      groups[category][type] += 1;
+    });
+
+    const definitions = [
+      { key: "today", label: "Plan Hari Ini", icon: "bi-calendar-event", note: "Tanggal operasional hari ini" },
+      { key: "upcoming", label: "Plan Mendatang", icon: "bi-calendar-plus", note: "Tanggal operasional berikutnya" },
+      { key: "outstanding", label: "Plan Outstanding", icon: "bi-exclamation-circle", note: "Tanggal lewat, masih ada DO / Shipment belum selesai" },
+      { key: "completed", label: "Plan Selesai", icon: "bi-check-circle", note: "Seluruh DO / Shipment sudah diproses" }
+    ];
+    const target = document.getElementById("plan-overview");
+    target.innerHTML = definitions.map(function (definition) {
+      const values = groups[definition.key];
+      const total = values.inbound + values.outbound;
+      return '<div class="col-12 col-sm-6 col-xl-3"><div class="monitoring-panel h-100">' +
+        '<div class="d-flex align-items-center justify-content-between gap-2 mb-2"><span class="monitoring-panel-type">' + definition.label + '</span><i class="bi ' + definition.icon + ' text-primary"></i></div>' +
+        '<strong class="monitoring-stat-value">' + total + ' Plan</strong>' +
+        '<div class="monitoring-panel-foot mt-2"><span>Inbound ' + values.inbound + '</span><span>Outbound ' + values.outbound + '</span></div>' +
+        '<p class="dashboard-section-note mb-0 mt-2">' + definition.note + '</p></div></div>';
+    }).join("");
+  }
+
+  async function loadPlanOverview(todayKey) {
+    const target = document.getElementById("plan-overview");
+    try {
+      const [plans, items, links] = await Promise.all([
+        fetch(SUPABASE_URL + "/rest/v1/import_plans?select=id,operational_date,activity_type,status&order=operational_date.desc", {
+          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
+        }),
+        fetch(SUPABASE_URL + "/rest/v1/import_plan_items?select=id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,status)", {
+          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
+        }),
+        fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id", {
+          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
+        })
+      ]);
+      const responses = await Promise.all([plans.json(), items.json(), links.json()]);
+      if (![plans, items, links].every(function (response) { return response.ok; }) ||
+          !responses.every(Array.isArray)) {
+        throw new Error("Data Plan tidak dapat dimuat.");
+      }
+      const linkedIds = new Set(responses[2].map(function (link) { return link.plan_item_id; }).filter(Boolean));
+      renderPlanOverview(responses[0], responses[1], linkedIds, todayKey);
+    } catch (error) {
+      console.error("TRCM plan overview:", error);
+      target.innerHTML = '<div class="col-12"><div class="dashboard-empty text-danger">Ringkasan Plan gagal dimuat. Periksa koneksi atau hak akses akun.</div></div>';
+    }
+  }
+
   async function loadDashboard() {
     try {
       const select = [
@@ -401,6 +509,7 @@ window.trcmComponentsReady.then(function () {
       renderMonitoring(todayKey);
       renderHourlyChart(todayKey);
       renderActivityTable(todayKey);
+      loadPlanOverview(todayKey);
     } catch (error) {
       console.error("TRCM dashboard:", error);
       monitoringTarget.innerHTML = '<div class="dashboard-empty text-danger">Monitoring gagal dimuat. Periksa koneksi lalu coba perbarui data.</div>';
