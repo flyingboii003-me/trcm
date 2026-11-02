@@ -208,7 +208,7 @@ window.trcmComponentsReady.then(function () {
   }
 
   function statusGroup(visit) {
-    const status = currentStatus(visit);
+    const status = String(visit.process_status || "wh_in").toLowerCase();
     if (status === "wh_in" || status === "registered") return "waiting";
     if (status === "queue" || status === "parked") return "parking";
     if (status === "started" || status === "start_loading" || status === "processing") return "processing";
