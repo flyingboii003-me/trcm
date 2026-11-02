@@ -91,14 +91,14 @@
         <section class="card content-card" aria-labelledby="plan-overview-title">
           <div class="card-header content-card-header">
             <div>
-              <h2 class="card-title" id="plan-overview-title">Monitoring DO / Shipment</h2>
-              <p class="dashboard-section-note">Jumlah DO Inbound dan Shipment Outbound berdasarkan status tanggal operasional.</p>
+              <h2 class="card-title" id="plan-overview-title">Monitoring Armada per Plan</h2>
+              <p class="dashboard-section-note">Jumlah truk / armada terkonfirmasi pada Plan Inbound dan Outbound.</p>
             </div>
             <a class="btn btn-outline-primary btn-sm" href="daftar-plan.html">Lihat daftar Plan</a>
           </div>
           <div class="card-body pt-0">
             <div class="row g-3" id="plan-overview">
-              <div class="col-12"><div class="dashboard-empty">Memuat ringkasan DO / Shipment...</div></div>
+              <div class="col-12"><div class="dashboard-empty">Memuat ringkasan armada per Plan...</div></div>
             </div>
           </div>
         </section>
@@ -393,7 +393,7 @@ window.trcmComponentsReady.then(function () {
   }
 
 
-  function renderPlanOverview(plans, items, linkedIds, todayKey) {
+  function renderPlanOverview(plans, items, trips, linkedIds, todayKey) {
     const progress = new Map();
     items.forEach(function (item) {
       const plan = Array.isArray(item.import_plans) ? item.import_plans[0] : item.import_plans;
@@ -415,73 +415,87 @@ window.trcmComponentsReady.then(function () {
 
     const activePlans = plans.filter(function (plan) { return plan.status === "active"; });
     const groups = {
-      today: { inbound: 0, outbound: 0 },
-      upcoming: { inbound: 0, outbound: 0 },
-      outstanding: { inbound: 0, outbound: 0 },
-      completed: { inbound: 0, outbound: 0 }
+      inbound: { today: 0, upcoming: 0, outstanding: 0, completed: 0 },
+      outbound: { today: 0, upcoming: 0, outstanding: 0, completed: 0 }
     };
+    const tripsByPlan = new Map();
+    trips.forEach(function (trip) {
+      if (!trip.plan_id) return;
+      const current = tripsByPlan.get(trip.plan_id) || [];
+      current.push(trip);
+      tripsByPlan.set(trip.plan_id, current);
+    });
 
     activePlans.forEach(function (plan) {
-      const date = String(plan.operational_date || "");
       const type = plan.activity_type === "outbound" ? "outbound" : "inbound";
       const references = planProgress.get(plan.id) || [];
-      references.forEach(function (reference) {
-        let category = "";
-        if (reference.processed) {
-          category = "completed";
-        } else if (date === todayKey) {
-          category = "today";
-        } else if (date > todayKey) {
-          category = "upcoming";
-        } else {
-          category = "outstanding";
-        }
-        groups[category][type] += 1;
-      });
+      let category = "";
+      if (references.length && references.every(function (reference) { return reference.processed; })) {
+        category = "completed";
+      } else if (String(plan.operational_date || "") === todayKey) {
+        category = "today";
+      } else if (String(plan.operational_date || "") > todayKey) {
+        category = "upcoming";
+      } else {
+        category = "outstanding";
+      }
+
+      const planTrips = tripsByPlan.get(plan.id) || [];
+      const truckCount = type === "inbound"
+        ? planTrips.filter(function (trip) {
+            return items.some(function (item) { return item.trip_id === trip.id; });
+          }).length
+        : planTrips.filter(function (trip) { return String(trip.plate_number || "").trim(); }).length;
+      groups[type][category] += truckCount;
     });
 
     const definitions = [
-      { key: "today", label: "Hari Ini", icon: "bi-calendar-event", note: "DO / Shipment dengan tanggal operasional hari ini" },
-      { key: "upcoming", label: "Mendatang", icon: "bi-calendar-plus", note: "DO / Shipment dengan tanggal operasional berikutnya" },
-      { key: "outstanding", label: "Outstanding", icon: "bi-exclamation-circle", note: "DO / Shipment lewat tanggal dan belum selesai" },
-      { key: "completed", label: "Selesai", icon: "bi-check-circle", note: "DO / Shipment yang seluruh prosesnya selesai" }
+      { key: "today", label: "Hari Ini", note: "Tanggal operasional hari ini" },
+      { key: "upcoming", label: "Mendatang", note: "Tanggal operasional berikutnya" },
+      { key: "outstanding", label: "Outstanding", note: "Lewat tanggal operasional, belum selesai" },
+      { key: "completed", label: "Selesai", note: "Seluruh DO / Shipment telah diproses" }
     ];
     const target = document.getElementById("plan-overview");
-    target.innerHTML = definitions.map(function (definition) {
-      const values = groups[definition.key];
-      const total = values.inbound + values.outbound;
-      return '<div class="col-12 col-sm-6 col-xl-3"><div class="monitoring-panel h-100">' +
-        '<div class="d-flex align-items-center justify-content-between gap-2 mb-2"><span class="monitoring-panel-type">' + definition.label + '</span><i class="bi ' + definition.icon + ' text-primary"></i></div>' +
-        '<strong class="monitoring-stat-value">' + total + ' Referensi</strong>' +
-        '<div class="monitoring-panel-foot mt-2"><span>Inbound ' + values.inbound + ' DO</span><span>Outbound ' + values.outbound + ' Shipment</span></div>' +
-        '<p class="dashboard-section-note mb-0 mt-2">' + definition.note + '</p></div></div>';
+    target.innerHTML = ["inbound", "outbound"].map(function (type) {
+      const title = type === "inbound" ? "Inbound" : "Outbound";
+      const values = groups[type];
+      return '<div class="col-12 col-xl-6"><section class="monitoring-panel h-100" aria-label="Monitoring Plan ' + title + '">' +
+        '<div class="monitoring-panel-head"><h3 class="monitoring-panel-title">Plan ' + title + '</h3><span class="monitoring-panel-type">Jumlah armada</span></div>' +
+        '<div class="monitoring-stat-list">' + definitions.map(function (definition) {
+          return '<div class="monitoring-stat"><span class="monitoring-stat-label">' + definition.label + '</span>' +
+            '<strong class="monitoring-stat-value">' + values[definition.key] + ' Armada</strong>' +
+            '<span class="monitoring-stat-foot">' + definition.note + '</span></div>';
+        }).join("") + '</div></section></div>';
     }).join("");
   }
 
   async function loadPlanOverview(todayKey) {
     const target = document.getElementById("plan-overview");
     try {
-      const [plans, items, links] = await Promise.all([
+      const [plans, items, links, trips] = await Promise.all([
         fetch(SUPABASE_URL + "/rest/v1/import_plans?select=id,operational_date,activity_type,status&order=operational_date.desc", {
           headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
         }),
-        fetch(SUPABASE_URL + "/rest/v1/import_plan_items?select=id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,status)", {
+        fetch(SUPABASE_URL + "/rest/v1/import_plan_items?select=id,plan_id,trip_id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,status)", {
           headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
         }),
         fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id", {
           headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
+        }),
+        fetch(SUPABASE_URL + "/rest/v1/import_plan_trips?select=id,plan_id,plate_number", {
+          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
         })
       ]);
-      const responses = await Promise.all([plans.json(), items.json(), links.json()]);
-      if (![plans, items, links].every(function (response) { return response.ok; }) ||
+      const responses = await Promise.all([plans.json(), items.json(), links.json(), trips.json()]);
+      if (![plans, items, links, trips].every(function (response) { return response.ok; }) ||
           !responses.every(Array.isArray)) {
         throw new Error("Data Plan tidak dapat dimuat.");
       }
       const linkedIds = new Set(responses[2].map(function (link) { return link.plan_item_id; }).filter(Boolean));
-      renderPlanOverview(responses[0], responses[1], linkedIds, todayKey);
+      renderPlanOverview(responses[0], responses[1], responses[3], linkedIds, todayKey);
     } catch (error) {
       console.error("TRCM plan overview:", error);
-      target.innerHTML = '<div class="col-12"><div class="dashboard-empty text-danger">Ringkasan DO / Shipment gagal dimuat. Periksa koneksi atau hak akses akun.</div></div>';
+      target.innerHTML = '<div class="col-12"><div class="dashboard-empty text-danger">Ringkasan armada per Plan gagal dimuat. Periksa koneksi atau hak akses akun.</div></div>';
     }
   }
 
