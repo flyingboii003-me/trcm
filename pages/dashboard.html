@@ -13,8 +13,6 @@
 <link rel="stylesheet" href="../assets/css/trcm.css">
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
-.dashboard-live-meta{display:flex;align-items:center;gap:.55rem;color:var(--text-muted);font-size:.78rem;font-weight:600}
-.dashboard-live-dot{width:8px;height:8px;border-radius:50%;background:var(--sys-green);box-shadow:0 0 0 4px rgba(34,197,94,.12)}
 .dashboard-section-note{margin:.35rem 0 0;color:var(--text-muted);font-size:.78rem}
 .operational-chart{min-height:220px}
 .monitoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
@@ -51,7 +49,6 @@
             <h1 class="page-title">Dashboard Monitoring</h1>
             <p class="page-subtitle">Pantau kondisi kunjungan gudang dan aktivitas armada hari ini.</p>
           </div>
-          <div class="dashboard-live-meta"><span class="dashboard-live-dot" aria-hidden="true"></span><span>Hari ini · Real-time</span></div>
         </div>
 
         <section aria-label="Ringkasan KPI hari ini">
@@ -307,7 +304,7 @@ window.trcmComponentsReady.then(function () {
     });
     if (hourlyChart) hourlyChart.destroy();
     hourlyChart = new ApexCharts(chartTarget, {
-      chart: { type: "bar", height: 260, toolbar: { show: false }, zoom: { enabled: false }, parentHeightOffset: 0, fontFamily: "Plus Jakarta Sans, sans-serif" },
+      chart: { type: "bar", height: 260, redrawOnParentResize: true, redrawOnWindowResize: true, toolbar: { show: false }, zoom: { enabled: false }, parentHeightOffset: 0, fontFamily: "Plus Jakarta Sans, sans-serif" },
       series: [
         { name: "WH In", data: whIn },
         { name: "Selesai Checker", data: completed }
@@ -317,16 +314,16 @@ window.trcmComponentsReady.then(function () {
       dataLabels: { enabled: false },
       stroke: { show: false },
       grid: { borderColor: "#E9EFEF", strokeDashArray: 4 },
-      xaxis: { categories: labels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { rotate: -35, hideOverlappingLabels: true, trim: true, style: { fontSize: "11px", fontWeight: 500 }, formatter: function (value, timestamp, options) { return window.innerWidth < 576 && options && options.i % 3 !== 0 ? "" : value; } } },
+      xaxis: { categories: labels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { rotate: 0, hideOverlappingLabels: true, trim: false, style: { fontSize: "11px", fontWeight: 500 } } },
       yaxis: { min: 0, forceNiceScale: true, decimalsInFloat: 0, labels: { formatter: function (value) { return Math.round(value); } } },
       legend: { position: "top", horizontalAlign: "right", fontSize: "11px", itemMargin: { horizontal: 8, vertical: 2 }, markers: { width: 8, height: 8, radius: 8 } },
       responsive: [{ breakpoint: 576, options: {
-        chart: { height: 220 },
-        plotOptions: { bar: { columnWidth: "52%", borderRadius: 2 } },
-        grid: { padding: { left: -6, right: 2, top: 0, bottom: 0 } },
-        xaxis: { labels: { rotate: 0, style: { fontSize: "9px", fontWeight: 500 } } },
-        yaxis: { labels: { style: { fontSize: "9px" } } },
-        legend: { position: "top", horizontalAlign: "left", fontSize: "10px", itemMargin: { horizontal: 6, vertical: 1 } }
+        chart: { height: 210 },
+        plotOptions: { bar: { columnWidth: "48%", borderRadius: 2 } },
+        grid: { padding: { left: 2, right: 8, top: 2, bottom: 2 } },
+        xaxis: { labels: { rotate: 0, rotateAlways: false, hideOverlappingLabels: false, trim: false, maxHeight: 24, style: { fontSize: "9px", fontWeight: 500 }, formatter: function (value) { const hour = Number(String(value).slice(0, 2)); return hour % 6 === 0 ? value : ""; } } },
+        yaxis: { labels: { minWidth: 12, style: { fontSize: "9px" } } },
+        legend: { position: "top", horizontalAlign: "left", fontSize: "10px", itemMargin: { horizontal: 8, vertical: 1 } }
       }}],
       tooltip: { shared: true, intersect: false, theme: "light" },
       noData: { text: "Belum ada aktivitas hari ini" }
