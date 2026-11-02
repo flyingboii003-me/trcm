@@ -685,8 +685,9 @@ button,input,select{font:inherit}
   background:#EEF5FB;
   color:var(--cj-blue);
   font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-  font-size:.72rem;
-  font-weight:800;
+  font-size:.8rem;
+  font-weight:700;
+  letter-spacing:.015em;
   white-space:nowrap;
 }
 .client-overview{
@@ -746,8 +747,9 @@ button,input,select{font:inherit}
     min-height:40px;
   }
   .table-card-number{
-    font-size:.68rem;
-    padding:.2rem .4rem;
+    font-size:.74rem;
+    font-weight:700;
+    padding:.22rem .42rem;
   }
   .client-overview{
     min-height:205px;
