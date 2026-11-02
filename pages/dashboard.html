@@ -29,6 +29,10 @@
 .monitoring-stat-label{display:block;color:var(--text-muted);font-size:.72rem;font-weight:600;margin-bottom:.25rem}
 .monitoring-stat-value{display:block;color:var(--text-main);font-size:1.35rem;font-weight:800;line-height:1.2}
 .monitoring-stat-foot{display:block;color:var(--text-muted);font-size:.7rem;margin-top:.25rem}
+.plan-stat-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+.plan-stat{min-width:0;padding:.8rem;border:1px solid var(--border);border-radius:var(--radius-md);background:#F7F9F8}
+.plan-stat .monitoring-stat-label{font-size:.75rem}
+.plan-stat .monitoring-stat-value{font-size:clamp(1rem,2vw,1.35rem);overflow-wrap:anywhere}
 .monitoring-panel-foot{display:flex;justify-content:space-between;gap:.75rem;border-top:1px solid var(--border);margin-top:.85rem;padding-top:.75rem;color:var(--text-muted);font-size:.75rem}
 .dashboard-table-meta{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .dashboard-activity-table{min-width:850px}
@@ -37,7 +41,7 @@
 .dashboard-activity-table .table-subline{display:block;color:var(--text-muted);font-size:.72rem;margin-top:.2rem}
 .dashboard-activity-table .duration{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .dashboard-empty{padding:2rem 1rem;text-align:center;color:var(--text-muted);font-size:.85rem}
-@media(max-width:767.98px){.monitoring-grid{grid-template-columns:1fr}.monitoring-panel{padding:.9rem}.page-header{margin-bottom:1.25rem}.operational-chart{margin:0 -.35rem;min-height:200px}}
+@media(max-width:767.98px){.monitoring-grid{grid-template-columns:1fr}.monitoring-panel{padding:.9rem}.plan-stat-list{grid-template-columns:1fr;gap:.55rem}.plan-stat{padding:.7rem}.plan-stat .monitoring-stat-value{font-size:1.15rem}.page-header{margin-bottom:1.25rem}.operational-chart{margin:0 -.35rem;min-height:200px}}
 </style>
 </head>
 <body class="trcm-app" data-page-resource="dashboard">
@@ -457,9 +461,9 @@ window.trcmComponentsReady.then(function () {
       const title = type === "inbound" ? "Inbound" : "Outbound";
       const values = groups[type];
       return '<div class="col-12 col-xl-6"><section class="monitoring-panel h-100" aria-label="Monitoring Plan ' + title + '">' +
-        '<div class="monitoring-panel-head"><h3 class="monitoring-panel-title">Plan ' + title + '</h3><span class="monitoring-panel-type">Jumlah armada</span></div>' +
-        '<div class="monitoring-stat-list">' + definitions.map(function (definition) {
-          return '<div class="monitoring-stat"><span class="monitoring-stat-label">' + definition.label + '</span>' +
+        '<div class="monitoring-panel-head"><h3 class="monitoring-panel-title">Plan ' + title + '</h3></div>' +
+        '<div class="plan-stat-list">' + definitions.map(function (definition) {
+          return '<div class="plan-stat"><span class="monitoring-stat-label">' + definition.label + '</span>' +
             '<strong class="monitoring-stat-value">' + values[definition.key] + ' Armada</strong></div>';
         }).join("") + '</div></section></div>';
     }).join("");
