@@ -304,12 +304,12 @@ window.trcmComponentsReady.then(function () {
       return '<section class="monitoring-panel" aria-label="Monitoring ' + definition.label + '">' +
         '<div class="monitoring-panel-head"><div><span class="monitoring-panel-type">Tipe aktivitas</span><h3 class="monitoring-panel-title">' + definition.label + '</h3></div></div>' +
         '<div class="monitoring-stat-list">' +
-          '<div class="monitoring-stat monitoring-stat--waiting"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + '</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--parking"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + '</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--processing"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + '</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--completed"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + '</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--waiting"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + ' Truk</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--parking"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + ' Truk</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--processing"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + ' Truk</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--completed"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + ' Truk</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
         '</div>' +
-        '<div class="monitoring-panel-foot"><span>Sudah WH Out</span><strong>' + left + ' visit</strong></div>' +
+        '<div class="monitoring-panel-foot"><span>Sudah WH Out</span><strong>' + left + ' Truk</strong></div>' +
       '</section>';
     }).join("");
   }
