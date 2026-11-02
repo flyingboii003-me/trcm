@@ -370,7 +370,7 @@ window.trcmComponentsReady.then(function () {
         '<td><span class="destination ' + activityClass + '">' + escapeHtml(activityLabel) + '</span></td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '<span class="table-subline">' + escapeHtml(clientName) + '</span></td>' +
         '<td>' + statusBadge(visit) + '</td>' +
-        '<td><span class="duration">' + escapeHtml(formatDateTime(visit.wh_in_at || visit.registered_at)) + '</span></td>' +
+        '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at)) + '</span></td>' +
         '<td><span class="duration">' + escapeHtml(duration === null ? "—" : formatDuration(duration)) + '</span></td>' +
       '</tr>';
     }).join("");
