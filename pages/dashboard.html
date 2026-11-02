@@ -92,7 +92,6 @@
           <div class="card-header content-card-header">
             <div>
               <h2 class="card-title" id="plan-overview-title">Monitoring Armada per Plan</h2>
-              <p class="dashboard-section-note">Jumlah truk / armada terkonfirmasi pada Plan Inbound dan Outbound.</p>
             </div>
             <a class="btn btn-outline-primary btn-sm" href="daftar-plan.html">Lihat daftar Plan</a>
           </div>
@@ -415,8 +414,8 @@ window.trcmComponentsReady.then(function () {
 
     const activePlans = plans.filter(function (plan) { return plan.status === "active"; });
     const groups = {
-      inbound: { today: 0, upcoming: 0, outstanding: 0, completed: 0 },
-      outbound: { today: 0, upcoming: 0, outstanding: 0, completed: 0 }
+      inbound: { today: 0, total: 0, outstanding: 0, completed: 0 },
+      outbound: { today: 0, total: 0, outstanding: 0, completed: 0 }
     };
     const tripsByPlan = new Map();
     trips.forEach(function (trip) {
@@ -434,10 +433,8 @@ window.trcmComponentsReady.then(function () {
         category = "completed";
       } else if (String(plan.operational_date || "") === todayKey) {
         category = "today";
-      } else if (String(plan.operational_date || "") > todayKey) {
-        category = "upcoming";
       } else {
-        category = "outstanding";
+        category = String(plan.operational_date || "") > todayKey ? "" : "outstanding";
       }
 
       const planTrips = tripsByPlan.get(plan.id) || [];
@@ -446,14 +443,15 @@ window.trcmComponentsReady.then(function () {
             return items.some(function (item) { return item.trip_id === trip.id; });
           }).length
         : planTrips.filter(function (trip) { return String(trip.plate_number || "").trim(); }).length;
-      groups[type][category] += truckCount;
+      groups[type].total += truckCount;
+      if (category) groups[type][category] += truckCount;
     });
 
     const definitions = [
-      { key: "today", label: "Hari Ini", note: "Tanggal operasional hari ini" },
-      { key: "upcoming", label: "Mendatang", note: "Tanggal operasional berikutnya" },
-      { key: "outstanding", label: "Outstanding", note: "Lewat tanggal operasional, belum selesai" },
-      { key: "completed", label: "Selesai", note: "Seluruh DO / Shipment telah diproses" }
+      { key: "today", label: "Hari Ini" },
+      { key: "total", label: "Total Armada" },
+      { key: "outstanding", label: "Outstanding" },
+      { key: "completed", label: "Selesai" }
     ];
     const target = document.getElementById("plan-overview");
     target.innerHTML = ["inbound", "outbound"].map(function (type) {
@@ -463,8 +461,7 @@ window.trcmComponentsReady.then(function () {
         '<div class="monitoring-panel-head"><h3 class="monitoring-panel-title">Plan ' + title + '</h3><span class="monitoring-panel-type">Jumlah armada</span></div>' +
         '<div class="monitoring-stat-list">' + definitions.map(function (definition) {
           return '<div class="monitoring-stat"><span class="monitoring-stat-label">' + definition.label + '</span>' +
-            '<strong class="monitoring-stat-value">' + values[definition.key] + ' Armada</strong>' +
-            '<span class="monitoring-stat-foot">' + definition.note + '</span></div>';
+            '<strong class="monitoring-stat-value">' + values[definition.key] + ' Armada</strong></div>';
         }).join("") + '</div></section></div>';
     }).join("");
   }
