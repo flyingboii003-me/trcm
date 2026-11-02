@@ -43,7 +43,7 @@
   <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><div class="d-flex flex-wrap align-items-center gap-2"><button class="btn btn-date-picker" id="export-button" type="button" data-bs-toggle="modal" data-bs-target="#export-settings-modal"><i class="bi bi-file-earmark-spreadsheet"></i><span>Ekspor Excel</span></button></div></div>
   <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
-    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan (Gudang / Kota)</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Jam masuk</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="8" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
+    <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Tanggal</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="8" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
     <div class="pagination-wrap">
       <div class="pagination-summary" id="pagination-summary"></div>
       <nav aria-label="Paginasi riwayat">
@@ -723,7 +723,7 @@ function renderTable() {
       '<td><span class="destination ' + (visit.activity_type === "inbound" ? "destination-inbound" : visit.activity_type === "outbound" ? "destination-outbound" : "") + '">' + escapeHtml(destination) + '</span></td>' +
       '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
       '<td>' + (window.trcmStatusBadge ? window.trcmStatusBadge(window.trcmVisitStatus ? window.trcmVisitStatus(visit) : visit.process_status) : '<span class="status-badge status-unknown"><span class="status-dot"></span>' + escapeHtml(status) + '</span>') + '</td>' +
-      '<td><span class="duration">' + escapeHtml(formatTime(visit.wh_in_at || visit.registered_at || visit.created_at)) + '</span></td>' +
+      '<td><span class="duration">' + escapeHtml(formatDateTime(visit.wh_in_at || visit.registered_at || visit.created_at)) + '</span></td>' +
       '<td class="action-cell">' +
         '<button class="detail-button me-1" type="button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-arrow-up-right-square"></i><span>Detail</span></button>' +
         (canManageVisits
