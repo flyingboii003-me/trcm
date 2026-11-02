@@ -425,22 +425,19 @@ window.trcmComponentsReady.then(function () {
       const date = String(plan.operational_date || "");
       const type = plan.activity_type === "outbound" ? "outbound" : "inbound";
       const references = planProgress.get(plan.id) || [];
-      const pendingCount = references.filter(function (reference) { return !reference.processed; }).length;
-      const completedCount = references.length - pendingCount;
-      let category = "";
-      if (references.length > 0 && pendingCount === 0) {
-        category = "completed";
-        groups[category][type] += completedCount;
-      } else if (date === todayKey) {
-        category = "today";
-        groups[category][type] += references.length;
-      } else if (date > todayKey) {
-        category = "upcoming";
-        groups[category][type] += references.length;
-      } else {
-        category = "outstanding";
-        groups[category][type] += pendingCount;
-      }
+      references.forEach(function (reference) {
+        let category = "";
+        if (reference.processed) {
+          category = "completed";
+        } else if (date === todayKey) {
+          category = "today";
+        } else if (date > todayKey) {
+          category = "upcoming";
+        } else {
+          category = "outstanding";
+        }
+        groups[category][type] += 1;
+      });
     });
 
     const definitions = [
