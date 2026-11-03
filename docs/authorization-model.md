@@ -18,6 +18,9 @@ auth.users
 - Gate Security (`gatesec`)
 - Checker (`checker`)
 - Viewer (`viewer`)
+- Admin Office (`office_admin`)
+
+Role tambahan dapat dibuat melalui halaman User & Role dan tidak dibatasi pada daftar role awal.
 
 ## Initial permissions
 
@@ -49,7 +52,7 @@ auth.users
 - `role_id`
 - `is_active`
 
-The existing role field is retained for compatibility while the authorization model migrates to role records.
+`role_id` is the source of truth for authorization. The `role` column is retained as a text compatibility mirror containing the selected role key. It is intentionally `text`, not a PostgreSQL enum, so roles created through User & Role can be assigned without a schema migration for every new role.
 
 ## Authorization direction
 
