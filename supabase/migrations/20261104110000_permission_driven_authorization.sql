@@ -10,7 +10,10 @@ with check (private.has_permission('daftar_plan', 'update'));
 drop policy if exists import_plans_delete_permission on public.import_plans;
 create policy import_plans_delete_permission on public.import_plans
 for delete to authenticated
-using (private.has_permission('daftar_plan', 'delete'));
+using (
+  private.has_permission('daftar_plan', 'update')
+  or private.has_permission('daftar_plan', 'delete')
+);
 
 drop policy if exists import_plan_items_update_permission on public.import_plan_items;
 create policy import_plan_items_update_permission on public.import_plan_items
