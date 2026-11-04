@@ -77,3 +77,22 @@ Pengujian database di atas tidak menggantikan pengujian browser. Tandai setiap b
 2. Kebijakan SELECT luas pada `visits`, `visit_events`, dan `photos` tidak diubah sesuai keputusan cakupan.
 3. Pengujian transisi status penuh belum dilakukan karena data saat pemeriksaan tidak mencakup semua status awal yang dibutuhkan.
 4. Setelah keputusan tentang `checker:queue_parking:create`, jalankan SQL hanya jika disetujui, kemudian ulangi pemeriksaan permission dan uji role.
+
+
+## Audit otorisasi dinamis — 4 November 2026
+
+Pemeriksaan lanjutan mengidentifikasi pembatasan berbasis nama role yang masih berjalan di frontend, Edge Function, trigger transisi operasional, dan enam policy RLS Plan. Perubahan permission-driven dilakukan agar nama role tidak menjadi lapisan otorisasi kedua.
+
+| Area | Enforcement setelah perubahan |
+|---|---|
+| Daftar Plan | `daftar_plan.update` dan `daftar_plan.delete` pada UI serta RLS parent/child |
+| Riwayat | `history.update` dan `history.delete` secara terpisah |
+| Mulai Loading | `start_loading.view` dan `start_loading.update` |
+| Antri/Parkir | `queue_parking.update` |
+| User & Role | `user_role.view/create/update/delete` pada halaman dan Edge Function |
+| Transisi ke antrean | `queue_parking.update` pada trigger database |
+| Profil sendiri | Akses tetap dibatasi ke profil pemanggil; tidak ada pengecualian berdasarkan nama role |
+
+Pembatasan bisnis Gate Security terhadap perubahan nomor/jenis shipment sebelum WH Out tetap dipertahankan karena merupakan aturan proses khusus, bukan pengganti permission fitur.
+
+**Verifikasi deployment browser/E2E:** belum dilakukan. Pengujian database dan verifikasi Edge Function deployment dicatat terpisah pada hasil implementasi.
