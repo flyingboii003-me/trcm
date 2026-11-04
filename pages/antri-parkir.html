@@ -110,9 +110,6 @@ window.trcmComponentsReady.then(async function () {
   session = getTrcmSession();
   if(!session||!session.access_token||!session.user){window.location.replace("../index.html");return;}
   const canQueueUpdate=window.trcmPermissions.can("queue_parking","update");
-  const currentRole=String(session.user.role||"").toLowerCase();
-  const isAdmin=currentRole==="admin";
-  const isGateSecurity=currentRole==="gatesec";
   const table=document.getElementById("queue-table");
   const resultCount=document.getElementById("result-count");
   const searchCard=document.getElementById("search-card");
@@ -137,13 +134,13 @@ window.trcmComponentsReady.then(async function () {
     table.innerHTML=filtered.map(function(v){
       const card=v.cards&&v.cards.card_number?v.cards.card_number:"—",client=v.clients&&v.clients.name?v.clients.name:"—";
       const isQueued=v.process_status==="queue";
-      const canParkThisVisit=(isGateSecurity || isAdmin) && canQueueUpdate && v.process_status==="wh_in" && Boolean(v.wh_in_at);
+      const canParkThisVisit=canQueueUpdate && v.process_status==="wh_in" && Boolean(v.wh_in_at);
       const queueButton=isQueued
         ? '<button type="button" class="btn btn-light border btn-sm" disabled><i class="bi bi-p-square me-1"></i>Sudah Antri</button>'
         : v.process_status==="wh_in"
           ? canParkThisVisit
             ? '<button type="button" class="btn btn-light border btn-sm park-button" data-visit-id="'+escapeHtml(v.id)+'"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
-            : '<button type="button" class="btn btn-light border btn-sm" disabled title="Hanya Gate Security atau Admin yang dapat mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
+            : '<button type="button" class="btn btn-light border btn-sm" disabled title="Akun tidak memiliki permission untuk mengubah Terdaftar menjadi Antri / Parkir"><i class="bi bi-p-square me-1"></i>Antri / Parkir</button>'
           : '';
       return '<tr><td><span class="table-card-number">'+escapeHtml(card)+'</span></td><td><span class="font-monospace fw-semibold d-block">'+escapeHtml(v.plate_number||"—")+'</span><span class="small text-muted">'+escapeHtml(v.driver_name||"—")+' / '+escapeHtml(v.vendor||"—")+'</span></td><td>'+escapeHtml(client)+'</td><td>'+escapeHtml(activityLabel(v.activity_type))+'</td><td><span class="font-monospace">'+escapeHtml(formatDateTime(v.wh_in_at))+'</span></td><td>'+window.trcmStatusBadge(v.process_status)+'</td><td class="action-cell"><div class="queue-table-actions">'+queueButton+'</div></td></tr>';
     }).join("");;
@@ -158,7 +155,7 @@ window.trcmComponentsReady.then(async function () {
     finally{refreshButton.disabled=false;}
   }
   async function parkVisit(visit){
-    if(!visit||!canQueueUpdate||(!isGateSecurity&&!isAdmin))return;
+    if(!visit||!canQueueUpdate)return;
     const card=visit.cards&&visit.cards.card_number?visit.cards.card_number:"—";
     try{
       const result=await request("/rest/v1/rpc/park_visit",{
