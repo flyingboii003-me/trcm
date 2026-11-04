@@ -16,6 +16,9 @@ function json(body: unknown, status = 200) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (!["POST", "PATCH", "DELETE"].includes(req.method)) {
+    return json({ error: "Method tidak didukung." }, 405);
+  }
 
   const url = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -31,12 +34,32 @@ Deno.serve(async (req) => {
 
   const { data: caller } = await admin
     .from("users")
-    .select("id,is_active,roles!inner(key,is_active)")
+    .select("id,is_active,role_id,roles!inner(is_active)")
     .eq("id", authData.user.id)
     .single();
 
-  if (!caller?.is_active || caller.roles?.key !== "admin" || !caller.roles?.is_active) {
-    return json({ error: "Akses hanya tersedia untuk Administrator." }, 403);
+  if (!caller?.is_active || !caller.roles?.is_active || !caller.role_id) {
+    return json({ error: "Profil aktif tidak ditemukan." }, 403);
+  }
+
+  const requiredPermission = req.method === "POST" ? "create" : req.method === "PATCH" ? "update" : "delete";
+  const { data: rolePermissions, error: rolePermissionsError } = await admin
+    .from("role_permissions")
+    .select("resources!inner(key,is_active),permissions!inner(key)")
+    .eq("role_id", caller.role_id);
+
+  if (rolePermissionsError) {
+    return json({ error: "Permission pengguna gagal diverifikasi." }, 500);
+  }
+
+  const isAllowed = (rolePermissions || []).some((entry: any) =>
+    entry.resources?.key === "user_role" &&
+    entry.resources?.is_active === true &&
+    entry.permissions?.key === requiredPermission
+  );
+
+  if (!isAllowed) {
+    return json({ error: "Anda tidak memiliki permission user_role." + requiredPermission + "." }, 403);
   }
 
   let body: Record<string, unknown> = {};
@@ -76,7 +99,7 @@ Deno.serve(async (req) => {
 
   const id = String(body.id || "");
   if (!id) return json({ error: "ID user wajib diisi." }, 400);
-  if (id === authData.user.id && (req.method === "PATCH" || req.method === "DELETE")) return json({ error: "Administrator yang sedang login tidak dapat mengubah atau menghapus akun sendiri." }, 403);
+  if (id === authData.user.id) return json({ error: "Pengguna yang sedang login tidak dapat mengubah atau menghapus akun sendiri." }, 403);
 
   if (req.method === "PATCH") {
     const updates: Record<string, unknown> = {};
@@ -87,7 +110,8 @@ Deno.serve(async (req) => {
     if (body.role_id !== undefined) {
       const { data: role } = await admin.from("roles").select("id,key,is_active").eq("id", String(body.role_id)).single();
       if (!role?.is_active) return json({ error: "Role tidak valid atau tidak aktif." }, 400);
-      updates.role_id = role.id; updates.role = role.key;
+      updates.role_id = role.id;
+      updates.role = role.key;
     }
     if (!Object.keys(updates).length) return json({ error: "Tidak ada perubahan." }, 400);
 
