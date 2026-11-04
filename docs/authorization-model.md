@@ -59,3 +59,19 @@ Role tambahan dapat dibuat melalui halaman User & Role dan tidak dibatasi pada d
 Menu visibility in the frontend is derived from permissions, but frontend visibility is not the security boundary. Supabase RLS remains responsible for enforcing access.
 
 User-specific permission overrides are intentionally deferred until a concrete requirement exists; the default model is role-based permissions.
+
+
+## Permission-driven enforcement
+
+Resource/action permissions are the authorization source for application features. A role key such as `admin`, `gatesec`, `checker`, or `office_admin` must not grant or deny a feature by itself.
+
+- Frontend actions use `window.trcmPermissions.can(resource, action)`.
+- RLS policies use `private.has_permission(resource, action)`.
+- Operational status transitions use the permission for the transition being performed.
+- User & Role Edge Function endpoints require `user_role.create`, `user_role.update`, or `user_role.delete` according to HTTP method.
+- History edit and delete are independently controlled by `history.update` and `history.delete`.
+- Plan edit and delete are independently controlled by `daftar_plan.update` and `daftar_plan.delete`.
+
+Role-name checks remain only for explicit system safeguards or business invariants, not as a second feature authorization layer. Examples include protecting the built-in `admin` role from modification/deletion in the User & Role screen and the Gate Security shipment-identifier lock before WH Out.
+
+The legacy `public.is_admin()` helper is retained for compatibility, but the active Plan write/delete RLS policies no longer use it.
