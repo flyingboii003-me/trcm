@@ -23,7 +23,7 @@
 .master-actions{display:flex;align-items:center;gap:.5rem}
 .master-table-wrap{overflow:auto}
 .master-table .table-state{min-height:160px;vertical-align:middle}
-.master-count{font-size:.75rem;color:var(--text-muted);font-weight:600}.master-status-inactive{background:#FEE2E2!important;color:#B91C1C!important}.master-status-inactive .status-dot{background:#DC2626!important}.master-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--border)}.master-pagination-info{font-size:.75rem;color:var(--text-muted);white-space:nowrap}.master-pagination-controls{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-numbers{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-button{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:var(--radius-md);font-size:.78rem;font-weight:700}.master-page-button:hover:not(:disabled){background:#F8FAF9;color:var(--cj-blue)}.master-page-button.active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff}.master-page-button:disabled{opacity:.45;cursor:not-allowed}.master-page-ellipsis{min-width:24px;text-align:center;color:var(--text-muted);font-size:.78rem}
+.master-status-inactive{background:#FEE2E2!important;color:#B91C1C!important}.master-status-inactive .status-dot{background:#DC2626!important}.master-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--border)}.master-pagination-info{font-size:.75rem;color:var(--text-muted);white-space:nowrap}.master-pagination-controls{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-numbers{display:flex;align-items:center;gap:.35rem;min-width:0}.master-page-button{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:var(--radius-md);font-size:.78rem;font-weight:700}.master-page-button:hover:not(:disabled){background:#F8FAF9;color:var(--cj-blue)}.master-page-button.active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff}.master-page-button:disabled{opacity:.45;cursor:not-allowed}.master-page-ellipsis{min-width:24px;text-align:center;color:var(--text-muted);font-size:.78rem}
 .master-status{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:50rem;font-size:.72rem;font-weight:700}
 .master-status.active{background:var(--sys-green-bg);color:#15803D}
 .master-status.inactive{background:#F1F5F4;color:var(--text-muted)}
@@ -79,7 +79,6 @@
               <h2 class="card-title" id="master-section-title">Kartu</h2>
               <p id="master-section-subtitle">Nomor kartu yang digunakan saat registrasi armada.</p>
             </div>
-            <span class="master-count" id="master-count">0 data</span>
           </div>
           <div class="card-body">
             <div class="master-toolbar">
@@ -259,7 +258,6 @@
     accessAlert: document.getElementById("access-alert"),
     title: document.getElementById("master-section-title"),
     subtitle: document.getElementById("master-section-subtitle"),
-    count: document.getElementById("master-count"),
     paginationInfo: document.getElementById("master-pagination-info"),
     pagePrev: document.getElementById("master-page-prev"),
     pageNext: document.getElementById("master-page-next"),
@@ -403,7 +401,6 @@
     const rows = filteredRows.slice(start, start + pageSize);
 
     totalRows = filteredRows.length;
-    elements.count.textContent = totalRows + " data";
 
     elements.head.innerHTML =
       "<tr>" +
@@ -684,7 +681,6 @@
   async function loadData() {
     const config = configs[activeTab];
     elements.body.innerHTML = '<tr><td class="table-state" colspan="' + (config.columns.length + 1) + '"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Memuat data...</td></tr>';
-    elements.count.textContent = "Memuat data...";
     elements.refresh.disabled = true;
 
     try {
@@ -699,7 +695,6 @@
     } catch (error) {
       masterRows = [];
       totalRows = 0;
-      elements.count.textContent = "Gagal memuat";
       elements.body.innerHTML = '<tr><td class="table-state error-state" colspan="' + (config.columns.length + 1) + '">Data gagal dimuat. ' + escapeHtml(error.message || "Silakan coba lagi.") + "</td></tr>";
       renderPagination();
     } finally {

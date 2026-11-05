@@ -41,6 +41,10 @@ loginForm.addEventListener("submit",async event=>{
       body:JSON.stringify({username,password})
     });
     const data=await response.json().catch(()=>({}));
+    if(response.status===403&&data.code==="ACCOUNT_INACTIVE"){
+      showError("Akun Tidak Aktif",data.error||"Akun Anda saat ini tidak aktif. Silakan hubungi administrator.");
+      return;
+    }
     if(!response.ok)throw new Error(data.error||"Nama pengguna atau kata sandi salah.");
     if(!data.access_token||!data.refresh_token||!data.user)throw new Error("Respons autentikasi dari server tidak valid.");
     sessionStorage.setItem("trcm_session",JSON.stringify(data));

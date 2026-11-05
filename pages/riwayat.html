@@ -160,7 +160,8 @@ const editModal = new bootstrap.Modal(editModalElement);
 const editForm = document.getElementById("visit-edit-form");
 const editAlert = document.getElementById("visit-edit-alert");
 const editSaveButton = document.getElementById("edit-save-button");
-const canManageVisits = Boolean(trcmSession.user && (trcmSession.user.role === "gatesec" || trcmSession.user.role === "admin") && window.trcmPermissions && window.trcmPermissions.can("history", "update"));
+const canUpdateVisits = Boolean(window.trcmPermissions && window.trcmPermissions.can("history", "update"));
+const canDeleteVisits = Boolean(window.trcmPermissions && window.trcmPermissions.can("history", "delete"));
 const filterClient = document.getElementById("filter-client");
 const filterPlate = document.getElementById("filter-plate");
 const filterCard = document.getElementById("filter-card");
@@ -251,7 +252,7 @@ function populateEditClients(selectedId) {
 }
 
 function openEditModal(visit) {
-  if (!canManageVisits) return;
+  if (!canUpdateVisits) return;
   clearEditAlert();
   editForm.classList.remove("was-validated");
   document.getElementById("edit-visit-id").value = visit.id;
@@ -726,10 +727,11 @@ function renderTable() {
       '<td><span class="duration">' + escapeHtml(formatDateTime(visit.wh_in_at || visit.registered_at || visit.created_at)) + '</span></td>' +
       '<td class="action-cell">' +
         '<button class="detail-button me-1" type="button" data-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-arrow-up-right-square"></i><span>Detail</span></button>' +
-        (canManageVisits
-          ? '<button class="action-button me-1" type="button" title="Edit data kunjungan" aria-label="Edit data kunjungan" data-edit-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-pencil-square"></i></button>' +
-            '<button class="action-button action-button-danger" type="button" title="Hapus kunjungan" aria-label="Hapus kunjungan" data-delete-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-trash3"></i></button>'
-          : '') +
+        ((canUpdateVisits
+          ? '<button class="action-button me-1" type="button" title="Edit data kunjungan" aria-label="Edit data kunjungan" data-edit-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-pencil-square"></i></button>'
+          : '') + (canDeleteVisits
+          ? '<button class="action-button action-button-danger" type="button" title="Hapus kunjungan" aria-label="Hapus kunjungan" data-delete-visit-id="' + escapeHtml(visit.id) + '"><i class="bi bi-trash3"></i></button>'
+          : '')) +
       '</td></tr>';
   }).join("");
 
@@ -880,13 +882,13 @@ truckTable.addEventListener("click", async function (event) {
     return;
   }
 
-  if (editButton && canManageVisits) {
+  if (editButton && canUpdateVisits) {
     const visit = visits.find(function (item) { return item.id === editButton.dataset.editVisitId; });
     if (visit) openEditModal(visit);
     return;
   }
 
-  if (deleteButton && canManageVisits) {
+  if (deleteButton && canDeleteVisits) {
     const visit = visits.find(function (item) { return item.id === deleteButton.dataset.deleteVisitId; });
     if (!visit) return;
     const confirmation = await Swal.fire({
