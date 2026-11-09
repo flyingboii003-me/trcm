@@ -434,7 +434,6 @@
         });
         if(!documents.size)return;
         const documentRows=Array.from(documents.values());
-        const allDocumentsDone=documentRows.every(rows=>rows.some(item=>item.manual_processed===true||completedIds.has(item.id)));
         const hasPendingDocument=documentRows.some(rows=>!rows.some(item=>item.manual_processed===true||completedIds.has(item.id)));
         const allDocumentsCompletedToday=documentRows.every(rows=>rows.some(item=>completedTodayIds.has(item.id)));
         if(hasPendingDocument)totals.pending++;
