@@ -37,6 +37,7 @@
     .list-badge.inbound{background:#EAF3FC;color:#175A91}
     .list-badge.outbound{background:#F0EAFE;color:#6842A6}
     .list-badge.processed{background:#E7F7EE;color:#17663B}
+    .list-badge.truck-completed{background:rgba(0,110,205,.1);color:var(--cj-blue)}
     .list-badge.pending{background:#FFF4D6;color:#8A5700}
     .status-edit-btn{white-space:nowrap}
     .list-empty{padding:3rem 1rem;text-align:center;color:var(--list-muted)}
@@ -339,7 +340,7 @@
           </div>
           <div class="list-card-body">
             <div class="row g-3 mb-4">
-              <div class="col-lg-4 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien, ID Plan, atau tanggal"></div></div>
+              <div class="col-lg-6 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien, ID Plan, atau tanggal"></div></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-activity">Jenis aktivitas</label><select class="form-select list-filter" id="filter-activity"><option value="">Semua jenis</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-from">Tanggal operasional dari</label><input class="form-control list-filter" id="filter-from" type="date"></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-to">Sampai tanggal</label><input class="form-control list-filter" id="filter-to" type="date"></div>
@@ -477,7 +478,7 @@
     $("plan-table-body").innerHTML=rows.map(p=>{
       const client=p.clients&&p.clients.name||"Klien tidak tersedia";
       const progress=state.planProgress.get(p.id)||{completedTrucks:0,totalTrucks:0};
-      const progressHtml='<span class="list-badge processed"><i class="bi bi-check-circle-fill"></i>'+progress.completedTrucks+' Truk Selesai</span>';
+      const progressHtml='<span class="list-badge truck-completed"><i class="bi bi-check-circle-fill"></i>'+progress.completedTrucks+' Truk Selesai</span>';
       return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td>'+esc(countTrips(p)||"—")+'</td><td>'+progressHtml+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
     }).join("");
     $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));
