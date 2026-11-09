@@ -4,8 +4,12 @@
 -- Upload permissions remain governed by the existing INSERT policy. This
 -- policy only grants SELECT (download / signed URL access) and does not make
 -- the bucket public or grant upload, update, or delete access.
+--
+-- Drop the target policy as well so this migration can safely reconcile a
+-- policy that was previously applied manually through the SQL Editor.
 DROP POLICY IF EXISTS "operational roles can view visit photos" ON storage.objects;
 DROP POLICY IF EXISTS "gatesec checker and admin can view visit photos" ON storage.objects;
+DROP POLICY IF EXISTS "authenticated users can view visit photos" ON storage.objects;
 
 CREATE POLICY "authenticated users can view visit photos"
 ON storage.objects
