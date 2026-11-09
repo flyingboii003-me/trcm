@@ -20,7 +20,7 @@
 .monitoring-panel-head{display:flex;align-items:center;justify-content:flex-start;gap:.75rem;margin-bottom:1rem}
 .monitoring-panel-title{font-size:1rem;font-weight:700;margin:0}
 .monitoring-panel-type{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
-.monitoring-stat-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.65rem}
+.monitoring-stat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
 .monitoring-stat{padding:.8rem;border-radius:var(--radius-md);background:#F7F9F8;min-width:0;border:1px solid transparent;border-left-width:3px}
 .monitoring-stat--waiting{background:#F0F6FC;border-color:#D8E8F8;border-left-color:#006ECD}.monitoring-stat--waiting .monitoring-stat-value{color:#006ECD}
 .monitoring-stat--parking{background:#FFFAEB;border-color:#F8EAC2;border-left-color:#D69E00}.monitoring-stat--parking .monitoring-stat-value{color:#A16207}
@@ -304,12 +304,12 @@ window.trcmComponentsReady.then(function () {
       return '<section class="monitoring-panel" aria-label="Monitoring ' + definition.label + '">' +
         '<div class="monitoring-panel-head"><div><span class="monitoring-panel-type">Tipe aktivitas</span><h3 class="monitoring-panel-title">' + definition.label + '</h3></div></div>' +
         '<div class="monitoring-stat-list">' +
-          '<div class="monitoring-stat monitoring-stat--waiting"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + ' Truk</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--parking"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + ' Truk</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--processing"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + ' Truk</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--completed"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + ' Truk</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--waiting"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + ' Armada</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--parking"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + ' Armada</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--processing"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + ' Armada</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--completed"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + ' Armada</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
         '</div>' +
-        '<div class="monitoring-panel-foot"><span>Sudah WH Out</span><strong>' + left + ' Truk</strong></div>' +
+        '<div class="monitoring-panel-foot"><span>Sudah WH Out</span><strong>' + left + ' Armada</strong></div>' +
       '</section>';
     }).join("");
   }
