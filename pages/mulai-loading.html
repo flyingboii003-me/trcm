@@ -581,7 +581,7 @@ window.trcmComponentsReady.then(async function () {
         "&operational_date=gte." + encodeURIComponent(dateFrom) +
         "&operational_date=lte." + encodeURIComponent(dateTo) +
         "&status=eq.active&order=operational_date.asc,created_at.desc";
-      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,revision,row_count,import_plan_trips(count)&" + filters);
+      const plans = await request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,row_count,import_plan_trips(count)&" + filters);
       if (sequence !== planLoadSequence) return;
       if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
       availablePlans = plans;
