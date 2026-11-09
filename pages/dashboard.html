@@ -15,6 +15,7 @@
 <style>
 .dashboard-section-note{margin:.35rem 0 0;color:var(--text-muted);font-size:.78rem}
 .operational-chart{min-height:220px}
+.hourly-chart-scroll{max-width:100%;min-width:0}
 .monitoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
 .monitoring-panel{border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem;min-width:0}
 .monitoring-panel-head{display:flex;align-items:center;justify-content:flex-start;gap:.75rem;margin-bottom:1rem}
@@ -41,7 +42,7 @@
 .dashboard-activity-table .table-subline{display:block;color:var(--text-muted);font-size:.72rem;margin-top:.2rem}
 .dashboard-activity-table .duration{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .dashboard-empty{padding:2rem 1rem;text-align:center;color:var(--text-muted);font-size:.85rem}
-@media(max-width:767.98px){.monitoring-grid{grid-template-columns:1fr}.monitoring-panel{padding:.9rem}.monitoring-stat-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.monitoring-stat{padding:.7rem}.monitoring-stat-value{font-size:clamp(1.05rem,5vw,1.3rem);overflow-wrap:anywhere}.plan-stat-list{grid-template-columns:1fr;gap:.55rem}.plan-stat{padding:.7rem}.plan-stat .monitoring-stat-value{font-size:1.15rem}.page-header{margin-bottom:1.25rem}.operational-chart{margin:0 -.35rem;min-height:200px}}
+@media(max-width:767.98px){.monitoring-grid{grid-template-columns:1fr}.monitoring-panel{padding:.9rem}.monitoring-stat-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.monitoring-stat{padding:.7rem}.monitoring-stat-value{font-size:clamp(1.05rem,5vw,1.3rem);overflow-wrap:anywhere}.plan-stat-list{grid-template-columns:1fr;gap:.55rem}.plan-stat{padding:.7rem}.plan-stat .monitoring-stat-value{font-size:1.15rem}.page-header{margin-bottom:1.25rem}.hourly-chart-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.hourly-chart-scroll .operational-chart{width:720px;min-width:720px;min-height:200px;margin:0}}
 </style>
 </head>
 <body class="trcm-app" data-page-resource="dashboard">
@@ -110,7 +111,7 @@
           <div class="card-header content-card-header">
             <div><h2 class="card-title" id="hourly-activity-title">Grafik aktivitas per jam</h2></div>
           </div>
-          <div class="card-body pt-0"><div id="hourly-activity-chart" class="operational-chart" aria-label="Grafik aktivitas WH In dan Selesai Checker per jam"></div></div>
+          <div class="card-body pt-0"><div class="hourly-chart-scroll" role="region" aria-label="Grafik aktivitas per jam, geser horizontal untuk melihat seluruh jam" tabindex="0"><div id="hourly-activity-chart" class="operational-chart" aria-label="Grafik aktivitas WH In dan Selesai Checker per jam"></div></div></div>
         </section>
 
         <section class="card content-card dashboard-history-card" aria-labelledby="visit-activity-title">
@@ -354,7 +355,7 @@ window.trcmComponentsReady.then(function () {
         chart: { height: 210 },
         plotOptions: { bar: { columnWidth: "48%", borderRadius: 2 } },
         grid: { padding: { left: 2, right: 8, top: 2, bottom: 2 } },
-        xaxis: { labels: { rotate: 0, rotateAlways: false, hideOverlappingLabels: false, trim: false, maxHeight: 24, style: { fontSize: "9px", fontWeight: 500 }, formatter: function (value) { const hour = Number(String(value).slice(0, 2)); return hour % 6 === 0 ? value : ""; } } },
+        xaxis: { labels: { rotate: 0, rotateAlways: false, hideOverlappingLabels: false, trim: false, maxHeight: 24, style: { fontSize: "9px", fontWeight: 500 }, formatter: function (value) { return value; } } },
         yaxis: { labels: { minWidth: 12, style: { fontSize: "9px" } } },
         legend: { position: "top", horizontalAlign: "left", fontSize: "10px", itemMargin: { horizontal: 8, vertical: 1 } }
       }}],
