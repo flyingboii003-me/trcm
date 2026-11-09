@@ -48,6 +48,12 @@
     .list-detail-item{padding:.85rem;border:1px solid var(--list-line);border-radius:var(--radius-md);min-width:0}
     .list-detail-label{font-size:.7rem;color:var(--list-muted);font-weight:700}
     .list-detail-value{margin-top:.3rem;font-size:.84rem;font-weight:800;overflow-wrap:anywhere}
+    .user-role-table-wrap{overflow:auto}
+    .user-role-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--border)}
+    .user-role-pagination-info{font-size:.75rem;color:var(--text-muted)}
+    .user-role-page{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--border);background:#fff;color:var(--text-main);border-radius:var(--radius-md);font-size:.78rem;font-weight:700}
+    .user-role-page.active{background:var(--cj-blue);border-color:var(--cj-blue);color:#fff}.user-role-page:disabled{opacity:.45}
+    .user-role-page-list{display:flex;align-items:center;gap:.35rem}.user-role-page-controls{display:flex;gap:.35rem;align-items:center}
     @media(max-width:767.98px){.list-card-head,.list-card-body{padding:1rem}.list-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.list-toolbar-button{width:100%}}
     /* Responsive modal Ubah Plan: keep wide editing tables usable on phones. */
     .swal2-popup.trcm-edit-plan-popup{
@@ -323,8 +329,8 @@
         <div class="row g-3 mb-4">
           <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan Inbound</div><div class="list-stat-value" id="stat-inbound">—</div><div class="list-note">DO / Transport Task</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-in-down"></i></span></div></div></div>
           <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan Outbound</div><div class="list-stat-value" id="stat-outbound">—</div><div class="list-note">Shipment terdaftar</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-up"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Plan Outbound Selesai (Hari ini)</div><div class="list-stat-value" id="stat-outbound-done-today">—</div><div class="list-note">Shipment selesai</div></div><span class="list-stat-icon"><i class="bi bi-check-circle"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Plan Inbound Selesai (Hari ini)</div><div class="list-stat-value" id="stat-inbound-done-today">—</div><div class="list-note">DO / Transport Task selesai</div></div><span class="list-stat-icon"><i class="bi bi-check-circle-fill"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Shipment Selesai Hari Ini</div><div class="list-stat-value" id="stat-outbound-done-today">—</div><div class="list-note">Berdasarkan completed_at</div></div><span class="list-stat-icon"><i class="bi bi-check-circle"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">DO Selesai Hari Ini</div><div class="list-stat-value" id="stat-inbound-done-today">—</div><div class="list-note">Berdasarkan completed_at</div></div><span class="list-stat-icon"><i class="bi bi-check-circle-fill"></i></span></div></div></div>
         </div>
 
         <section class="list-card">
@@ -335,24 +341,20 @@
             <div class="row g-3 mb-4">
               <div class="col-lg-4 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien, ID Plan, atau tanggal"></div></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-activity">Jenis aktivitas</label><select class="form-select list-filter" id="filter-activity"><option value="">Semua jenis</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select></div>
-              <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-status">Status</label><select class="form-select list-filter" id="filter-status"><option value="">Semua status</option><option value="active">Aktif</option><option value="cancelled">Dibatalkan</option></select></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-from">Tanggal operasional dari</label><input class="form-control list-filter" id="filter-from" type="date"></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-to">Sampai tanggal</label><input class="form-control list-filter" id="filter-to" type="date"></div>
             </div>
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-              <div class="list-note" id="filter-summary">Semua status dan jenis Plan.</div>
+              <div class="list-note" id="filter-summary">Semua jenis dan tanggal operasional.</div>
               <button class="btn btn-sm btn-light border" id="clear-filters" type="button"><i class="bi bi-x-circle me-1"></i>Hapus filter</button>
             </div>
-            <div class="list-table-wrap">
-              <table class="table list-table align-middle">
-                <thead><tr><th>Klien</th><th>Tanggal operasional</th><th>Jenis</th><th>Truk</th><th>Proses DO / Shipment</th><th>Diimpor pada</th><th>Aksi</th></tr></thead>
-                <tbody id="plan-table-body"><tr><td colspan="7"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr></tbody>
+            <div class="user-role-table-wrap">
+              <table class="table trcm-table align-middle">
+                <thead><tr><th>Klien</th><th>Tanggal operasional</th><th>Jenis</th><th>Truk</th><th>Status Truk</th><th>Diimpor pada</th><th>Aksi</th></tr></thead>
+                <tbody id="plan-table-body"><tr><td class="table-state" colspan="7">Memuat daftar Plan...</td></tr></tbody>
               </table>
             </div>
-            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mt-3">
-              <span class="list-note" id="page-info">—</span>
-              <div class="d-flex align-items-center gap-2"><label for="page-size" class="list-note">Baris per halaman</label><select id="page-size" class="form-select form-select-sm" style="width:auto"><option>10</option><option>25</option><option>50</option></select><button id="prev-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><button id="next-page" type="button" class="btn btn-sm btn-outline-secondary" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div>
-            </div>
+            <div class="user-role-pagination"><div class="user-role-pagination-info" id="page-info">—</div><div class="user-role-page-controls"><button class="user-role-page" id="prev-page" type="button" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><div class="user-role-page-list" id="plan-pages"></div><button class="user-role-page" id="next-page" type="button" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div></div>
           </div>
         </section>
       </div>
@@ -383,6 +385,7 @@
   const $=id=>document.getElementById(id);
   const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,detailItems:[],linkedItemIds:new Set(),planProgress:new Map(),canUpdate:false,canCreatePlan:false,canDelete:false};
   const statusLabels={active:"Aktif",cancelled:"Dibatalkan"};
+  const PAGE=10;
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
   function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
   function toast(message,icon="info"){
@@ -395,9 +398,19 @@
   function activityBadge(type){const s=String(type||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="inbound"?"bi-box-arrow-in-down":"bi-box-arrow-up")+'"></i>'+esc(activityLabels[s]||s||"—")+'</span>';}
   function countItems(plan){return Array.isArray(plan.import_plan_items)?plan.import_plan_items.length:Number(plan.row_count)||0;}
   function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token},options&&options.headers||{});const response=await fetch(SUPABASE_URL+path,config);const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");window.location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)?(data.message||data.details||data.hint):"Permintaan database gagal ("+response.status+").");return data;}
-  function localDateKey(date=new Date()){const year=date.getFullYear(),month=String(date.getMonth()+1).padStart(2,"0"),day=String(date.getDate()).padStart(2,"0");return year+"-"+month+"-"+day;}
-  function updateStats(plans,items=[],linkedIds=new Set()){
+  function localDateKey(value=new Date()){
+    const date=value instanceof Date?value:new Date(value);
+    if(Number.isNaN(date.getTime()))return "";
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Jakarta",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(date).reduce((result,part)=>{result[part.type]=part.value;return result;},{});
+    return parts.year+"-"+parts.month+"-"+parts.day;
+  }
+  function visitCompletedAt(link){
+    const visit=Array.isArray(link.visits)?link.visits[0]:link.visits;
+    return visit&&visit.completed_at||"";
+  }
+  function updateStats(plans,items=[],completedLinks=[]){
     const today=localDateKey(),inboundRefs=new Set(),outboundRefs=new Set(),doneInboundRefs=new Set(),doneOutboundRefs=new Set();
+    const completedTodayIds=new Set(completedLinks.filter(link=>localDateKey(visitCompletedAt(link))===today).map(link=>link.plan_item_id).filter(Boolean));
     items.forEach(item=>{
       const plan=Array.isArray(item.import_plans)?item.import_plans[0]:item.import_plans;
       if(!plan)return;
@@ -407,8 +420,7 @@
       const key=String(plan.id||item.plan_id||"")+"|"+reference.toLocaleLowerCase("id-ID");
       if(type==="inbound")inboundRefs.add(key);
       if(type==="outbound")outboundRefs.add(key);
-      const completed=linkedIds.has(item.id)||item.manual_processed===true;
-      if(completed&&plan.operational_date===today){
+      if(completedTodayIds.has(item.id)){
         if(type==="inbound")doneInboundRefs.add(key);
         if(type==="outbound")doneOutboundRefs.add(key);
       }
@@ -418,30 +430,54 @@
     $("stat-outbound-done-today").textContent=doneOutboundRefs.size;
     $("stat-inbound-done-today").textContent=doneInboundRefs.size;
   }
+  function updateTruckProgress(plans,items,completedItemIds){
+    state.planProgress=new Map();
+    plans.forEach(plan=>{
+      const planItems=items.filter(item=>item.plan_id===plan.id);
+      const trips=Array.isArray(plan.import_plan_trips)?plan.import_plan_trips:[];
+      let completedTrucks=0;
+      trips.forEach(trip=>{
+        const tripItems=planItems.filter(item=>item.trip_id===trip.id);
+        const documentKey=plan.activity_type==="outbound"?"shipment_number":"do_number";
+        const documents=new Map();
+        tripItems.forEach(item=>{
+          const reference=String(item[documentKey]||"").trim();
+          if(!reference)return;
+          const key=reference.toLocaleLowerCase("id-ID");
+          if(!documents.has(key))documents.set(key,[]);
+          documents.get(key).push(item);
+        });
+        const allDocumentsDone=documents.size>0&&Array.from(documents.values()).every(rows=>rows.every(item=>item.manual_processed===true||completedItemIds.has(item.id)));
+        if(allDocumentsDone)completedTrucks++;
+      });
+      state.planProgress.set(plan.id,{completedTrucks:completedTrucks,totalTrucks:trips.length});
+    });
+  }
   function applyFilters(){
-    const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,status=$("filter-status").value,from=$("filter-from").value,to=$("filter-to").value;
+    const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,from=$("filter-from").value,to=$("filter-to").value;
     state.filtered=state.plans.filter(p=>{
       const client=p.clients&&p.clients.name||"";
-      const hay=[client,p.id,p.operational_date,p.activity_type,p.status].join(" ").toLowerCase();
-      return (!q||hay.includes(q))&&(!activity||p.activity_type===activity)&&(!status||p.status===status)&&(!from||p.operational_date>=from)&&(!to||p.operational_date<=to);
+      const hay=[client,p.id,p.operational_date,p.activity_type].join(" ").toLowerCase();
+      return (!q||hay.includes(q))&&(!activity||p.activity_type===activity)&&(!from||p.operational_date>=from)&&(!to||p.operational_date<=to);
     });
     state.page=1;
-    $("filter-summary").textContent=[activity?activityLabels[activity]:"Semua jenis",status?statusLabels[status]:"Semua status",from?"Dari "+dateLabel(from):"",to?"sampai "+dateLabel(to):""].filter(Boolean).join(" · ");
+    $("filter-summary").textContent=[activity?activityLabels[activity]:"Semua jenis",from?"Dari "+dateLabel(from):"",to?"sampai "+dateLabel(to):""].filter(Boolean).join(" · ");
     renderTable();
   }
   function renderTable(){
-    const size=Number($("page-size").value)||10,total=state.filtered.length,pages=Math.max(1,Math.ceil(total/size));
+    const total=state.filtered.length,pages=Math.max(1,Math.ceil(total/PAGE));
     state.page=Math.min(state.page,pages);
-    const start=(state.page-1)*size,rows=state.filtered.slice(start,start+size);
+    const start=(state.page-1)*PAGE,rows=state.filtered.slice(start,start+PAGE);
     const resultCount = $("result-count");
     if (resultCount) resultCount.textContent=total+" Plan ditemukan";
-    $("page-info").textContent=total?("Menampilkan "+(start+1)+"–"+Math.min(start+size,total)+" dari "+total+" Plan"):"Tidak ada Plan yang cocok";
-    $("prev-page").disabled=state.page<=1;$("next-page").disabled=state.page>=pages;
+    $("page-info").textContent=total?("Menampilkan "+(start+1)+"–"+Math.min(start+PAGE,total)+" dari "+total+" data"):"0 data";
+    $("prev-page").disabled=state.page===1;$("next-page").disabled=state.page===pages;
+    $("plan-pages").innerHTML=Array.from({length:pages},(_,i)=>i+1).filter(page=>pages<=7||page===1||page===pages||Math.abs(page-state.page)<=1).map(page=>'<button type="button" class="user-role-page '+(page===state.page?"active":"")+'" data-page="'+page+'">'+page+'</button>').join("");
     if(!rows.length){$("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty"><i class="bi bi-inbox"></i><strong>Tidak ada Plan ditemukan</strong><div class="mt-1">Ubah filter atau periksa kembali data yang tersimpan.</div></div></td></tr>';return;}
     $("plan-table-body").innerHTML=rows.map(p=>{
       const client=p.clients&&p.clients.name||"Klien tidak tersedia";
-      const progress=state.planProgress.get(p.id)||{processed:0,pending:0};
-      const progressHtml='<div class="d-flex flex-column gap-1"><span class="list-badge processed"><i class="bi bi-check-circle-fill"></i>'+progress.processed+' selesai</span><span class="list-badge pending"><i class="bi bi-hourglass-split"></i>'+progress.pending+' belum proses</span></div>';
+      const progress=state.planProgress.get(p.id)||{completedTrucks:0,totalTrucks:0};
+      const progressHtml='<span class="list-badge processed"><i class="bi bi-check-circle-fill"></i>'+progress.completedTrucks+' Truk Selesai</span>';
       return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td>'+esc(countTrips(p)||"—")+'</td><td>'+progressHtml+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
     }).join("");
     $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));
@@ -456,30 +492,18 @@
       const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id)";
       const [data,items,linkedItems]=await Promise.all([
         request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc"),
-        request("/rest/v1/import_plan_items?select=id,plan_id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,operational_date)"),
-        request("/rest/v1/visit_plan_items?select=plan_item_id")
+        request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,do_number,shipment_number,manual_processed"),
+        request("/rest/v1/visit_plan_items?select=plan_item_id,visits(completed_at)")
       ]);
       if(!Array.isArray(data)||!Array.isArray(items)||!Array.isArray(linkedItems))throw new Error("Respons daftar Plan atau referensi DO / Shipment tidak valid.");
       const linkedIds=new Set(linkedItems.map(item=>item.plan_item_id).filter(Boolean));
-      state.planProgress=new Map();
-      const groupedProgress=new Map();
-      items.forEach(item=>{
-        const plan=Array.isArray(item.import_plans)?item.import_plans[0]:item.import_plans;
-        if(!plan||!plan.id)return;
-        const raw=plan.activity_type==="outbound"?item.shipment_number:item.do_number;
-        const label=String(raw||"").trim();
-        if(!label)return;
-        const key=String(plan.id)+"|"+label.toLocaleLowerCase("id-ID");
-        const current=groupedProgress.get(key)||{planId:plan.id,processed:false};
-        current.processed=current.processed||linkedIds.has(item.id)||item.manual_processed===true;
-        groupedProgress.set(key,current);
+      const completedItemIds=new Set(linkedItems.filter(link=>!!visitCompletedAt(link)).map(link=>link.plan_item_id).filter(Boolean));
+      updateTruckProgress(data,items,completedItemIds);
+      const statsItems=items.map(item=>{
+        const plan=data.find(row=>row.id===item.plan_id);
+        return Object.assign({},item,{import_plans:plan?{id:plan.id,activity_type:plan.activity_type}:null});
       });
-      groupedProgress.forEach(group=>{
-        const progress=state.planProgress.get(group.planId)||{processed:0,pending:0};
-        if(group.processed)progress.processed++;else progress.pending++;
-        state.planProgress.set(group.planId,progress);
-      });
-      state.plans=data;updateStats(data,items,linkedIds);applyFilters();
+      state.plans=data;updateStats(data,statsItems,linkedItems);applyFilters();
     }catch(error){
       console.error("TRCM daftar Plan:",error);
       $("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
@@ -699,11 +723,11 @@
     }
   }
   $("plan-search").addEventListener("input",applyFilters);
-  ["filter-activity","filter-status","filter-from","filter-to"].forEach(id=>$(id).addEventListener("change",applyFilters));
-  $("clear-filters").addEventListener("click",()=>{["plan-search","filter-activity","filter-status","filter-from","filter-to"].forEach(id=>$(id).value="");applyFilters();});
-  $("page-size").addEventListener("change",()=>{state.page=1;renderTable();});
-  $("prev-page").addEventListener("click",()=>{state.page=Math.max(1,state.page-1);renderTable();});
+  ["filter-activity","filter-from","filter-to"].forEach(id=>$(id).addEventListener("change",applyFilters));
+  $("clear-filters").addEventListener("click",()=>{["plan-search","filter-activity","filter-from","filter-to"].forEach(id=>$(id).value="");applyFilters();});
+  $("prev-page").addEventListener("click",()=>{if(state.page>1){state.page--;renderTable();}});
   $("next-page").addEventListener("click",()=>{state.page++;renderTable();});
+  $("plan-pages").addEventListener("click",event=>{const button=event.target.closest("[data-page]");if(button){state.page=Number(button.dataset.page);renderTable();}});
   $("refresh-plans").addEventListener("click",loadPlans);
   window.trcmComponentsReady.then(async()=>{
     const title=document.querySelector("[data-page-title]");if(title)title.textContent="Daftar Plan";
