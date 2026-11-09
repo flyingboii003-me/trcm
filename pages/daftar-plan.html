@@ -328,10 +328,10 @@
         </div>
 
         <div class="row g-3 mb-4">
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan Inbound</div><div class="list-stat-value" id="stat-inbound">—</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-in-down"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Total Plan Outbound</div><div class="list-stat-value" id="stat-outbound">—</div></div><span class="list-stat-icon"><i class="bi bi-box-arrow-up"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Inbound · DO Selesai Hari Ini</div><div class="list-stat-value" id="stat-inbound-done-today">—</div></div><span class="list-stat-icon"><i class="bi bi-check-circle-fill"></i></span></div></div></div>
-          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Outbound · Shipment Selesai Hari Ini</div><div class="list-stat-value" id="stat-outbound-done-today">—</div></div><span class="list-stat-icon"><i class="bi bi-check-circle"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Inbound Belum Diproses</div><div class="list-stat-value" id="stat-inbound-pending">—</div></div><span class="list-stat-icon"><i class="bi bi-hourglass-split"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Outbound Belum Diproses</div><div class="list-stat-value" id="stat-outbound-pending">—</div></div><span class="list-stat-icon"><i class="bi bi-hourglass-split"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Inbound Diproses Hari Ini</div><div class="list-stat-value" id="stat-inbound-processed-today">—</div></div><span class="list-stat-icon"><i class="bi bi-check-circle-fill"></i></span></div></div></div>
+          <div class="col-6 col-xl-3"><div class="list-stat"><div class="d-flex justify-content-between align-items-start gap-2"><div><div class="list-stat-label">Outbound Diproses Hari Ini</div><div class="list-stat-value" id="stat-outbound-processed-today">—</div></div><span class="list-stat-icon"><i class="bi bi-check-circle"></i></span></div></div></div>
         </div>
 
         <section class="list-card">
@@ -410,26 +410,41 @@
     return visit&&visit.completed_at||"";
   }
   function updateStats(plans,items=[],completedLinks=[]){
-    const today=localDateKey(),inboundRefs=new Set(),outboundRefs=new Set(),doneInboundRefs=new Set(),doneOutboundRefs=new Set();
+    const today=localDateKey();
+    const completedIds=new Set(completedLinks.filter(link=>!!visitCompletedAt(link)).map(link=>link.plan_item_id).filter(Boolean));
     const completedTodayIds=new Set(completedLinks.filter(link=>localDateKey(visitCompletedAt(link))===today).map(link=>link.plan_item_id).filter(Boolean));
-    items.forEach(item=>{
-      const plan=Array.isArray(item.import_plans)?item.import_plans[0]:item.import_plans;
-      if(!plan)return;
-      const type=plan.activity_type,raw=type==="outbound"?item.shipment_number:item.do_number;
-      const reference=String(raw||"").trim();
-      if(!reference)return;
-      const key=String(plan.id||item.plan_id||"")+"|"+reference.toLocaleLowerCase("id-ID");
-      if(type==="inbound")inboundRefs.add(key);
-      if(type==="outbound")outboundRefs.add(key);
-      if(completedTodayIds.has(item.id)){
-        if(type==="inbound")doneInboundRefs.add(key);
-        if(type==="outbound")doneOutboundRefs.add(key);
-      }
+    const inbound={pending:0,processedToday:0},outbound={pending:0,processedToday:0};
+    plans.forEach(plan=>{
+      const planItems=items.filter(item=>item.plan_id===plan.id);
+      const trips=Array.isArray(plan.import_plan_trips)?plan.import_plan_trips:[];
+      const documentKey=plan.activity_type==="outbound"?"shipment_number":"do_number";
+      const totals=plan.activity_type==="inbound"?inbound:plan.activity_type==="outbound"?outbound:null;
+      if(!totals)return;
+      trips.forEach(trip=>{
+        const tripItems=planItems.filter(item=>item.trip_id===trip.id);
+        if(plan.activity_type==="inbound"&&!tripItems.length)return;
+        if(plan.activity_type==="outbound"&&!String(trip.plate_number||"").trim())return;
+        const documents=new Map();
+        tripItems.forEach(item=>{
+          const reference=String(item[documentKey]||"").trim();
+          if(!reference)return;
+          const key=reference.toLocaleLowerCase("id-ID");
+          if(!documents.has(key))documents.set(key,[]);
+          documents.get(key).push(item);
+        });
+        if(!documents.size)return;
+        const documentRows=Array.from(documents.values());
+        const allDocumentsDone=documentRows.every(rows=>rows.some(item=>item.manual_processed===true||completedIds.has(item.id)));
+        const hasPendingDocument=documentRows.some(rows=>!rows.some(item=>item.manual_processed===true||completedIds.has(item.id)));
+        const allDocumentsCompletedToday=documentRows.every(rows=>rows.some(item=>completedTodayIds.has(item.id)));
+        if(hasPendingDocument)totals.pending++;
+        if(allDocumentsCompletedToday)totals.processedToday++;
+      });
     });
-    $("stat-inbound").textContent=inboundRefs.size;
-    $("stat-outbound").textContent=outboundRefs.size;
-    $("stat-outbound-done-today").textContent=doneOutboundRefs.size;
-    $("stat-inbound-done-today").textContent=doneInboundRefs.size;
+    $("stat-inbound-pending").textContent=inbound.pending;
+    $("stat-inbound-processed-today").textContent=inbound.processedToday;
+    $("stat-outbound-pending").textContent=outbound.pending;
+    $("stat-outbound-processed-today").textContent=outbound.processedToday;
   }
   function updateTruckProgress(plans,items,completedItemIds){
     state.planProgress=new Map();
@@ -491,7 +506,7 @@
     const button=$("refresh-plans");button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memuat…';
     $("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
     try{
-      const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id)";
+      const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id,plate_number)";
       const [data,items,linkedItems]=await Promise.all([
         request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc"),
         request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,do_number,shipment_number,manual_processed"),
