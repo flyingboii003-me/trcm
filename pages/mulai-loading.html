@@ -287,10 +287,13 @@ window.trcmComponentsReady.then(async function () {
   let planLoadSequence = 0;
 
   const request = function (path, options) {
-    return window.TRCM.api.request(path, options, {
+    const settings = {
       errorFields: ["message", "details", "hint"],
       errorMessage: "Permintaan ke database gagal."
-    });
+    };
+    return window.TRCM.visit.handles(path)
+      ? window.TRCM.visit.request(path, options, settings)
+      : window.TRCM.api.request(path, options, settings);
   };
 
   function formatDestination(activityType) {
