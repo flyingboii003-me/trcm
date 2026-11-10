@@ -221,26 +221,33 @@ window.trcmComponentsReady.then(async function () {
   function clearAlert() { alertBox.className = "registration-alert d-none"; alertBox.textContent = ""; }
 
   async function getJson(path) {
-    return window.TRCM.api.request(path, {}, {
+    const settings = {
       errorFields: ["message", "hint"],
       errorMessage: "Gagal mengambil data master.",
       loginUrl: "../index.html"
-    });
+    };
+    return window.TRCM.visit.handles(path)
+      ? window.TRCM.visit.request(path, {}, settings)
+      : window.TRCM.api.request(path, {}, settings);
   }
 
   async function postJson(path, payload) {
-    return window.TRCM.api.request(path, {
+    const options = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Prefer: "return=representation"
       },
       body: JSON.stringify(payload)
-    }, {
+    };
+    const settings = {
       errorFields: ["message", "details", "hint"],
       errorMessage: "Data gagal disimpan.",
       loginUrl: "../index.html"
-    });
+    };
+    return window.TRCM.visit.handles(path)
+      ? window.TRCM.visit.request(path, options, settings)
+      : window.TRCM.api.request(path, options, settings);
   }
 
   function populateClients(rows) {
