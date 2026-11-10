@@ -10,6 +10,7 @@
     "api.js",
     "visit.js",
     "master-data.js",
+    "plan.js",
     "status.js",
     "refresh.js",
     "page-context.js",
