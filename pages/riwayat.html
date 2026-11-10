@@ -721,39 +721,18 @@ async function loadVisits() {
       "gates(gate_number)"
     ].join(",");
 
-    const url =
-      SUPABASE_URL +
-      "/rest/v1/visits?select=" +
-      encodeURIComponent(select) +
-      "&order=created_at.desc";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + trcmSession.access_token
+    const data = await window.TRCM.visit.request(
+      "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc",
+      {},
+      {
+        errorFields: ["message"],
+        errorMessage: "Gagal mengambil data dashboard.",
+        invalidResponseMessage: "Respons data dashboard tidak valid.",
+        requireJson: true,
+        loginUrl: "../index.html"
       }
-    });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = {};
-    }
-
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      return;
-    }
-
-    if (!response.ok) {
-      const message = data && data.message ? data.message : "Gagal mengambil data dashboard.";
-      throw new Error(message);
-    }
+    );
+    if (data === null) return;
 
     if (!Array.isArray(data)) {
       throw new Error("Respons data dashboard tidak valid.");
