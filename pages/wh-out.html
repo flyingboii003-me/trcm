@@ -118,30 +118,12 @@ window.trcmComponentsReady.then(async function () {
     return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(date);
   }
 
-  async function request(path, options) {
-    const response = await fetch(SUPABASE_URL + path, Object.assign({
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + session.access_token
-      }
-    }, options || {}));
-
-    const text = await response.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan ke database gagal.");
-    }
-
-    return data;
-  }
+  const request = function (path, options) {
+    return window.TRCM.api.request(path, options, {
+      errorFields: ["message", "details", "hint"],
+      errorMessage: "Permintaan ke database gagal."
+    });
+  };
 
   function renderTable() {
     const needle = searchCard.value.trim().toLowerCase();
@@ -243,8 +225,6 @@ window.trcmComponentsReady.then(async function () {
       const result = await request("/rest/v1/rpc/record_visit_wh_out", {
         method: "POST",
         headers: {
-          apikey: SUPABASE_PUBLISHABLE_KEY,
-          Authorization: "Bearer " + session.access_token,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ p_visit_id: visit.id })
