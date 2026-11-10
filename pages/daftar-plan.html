@@ -384,7 +384,7 @@
 (function(){
   "use strict";
   const $=id=>document.getElementById(id);
-  const state={session:null,plans:[],filtered:[],page:1,detailPlan:null,detailItems:[],linkedItemIds:new Set(),planProgress:new Map(),canUpdate:false,canCreatePlan:false,canDelete:false};
+  const state={session:null,plans:[],filtered:[],statsItems:[],statsLinks:[],page:1,detailPlan:null,detailItems:[],linkedItemIds:new Set(),planProgress:new Map(),canUpdate:false,canCreatePlan:false,canDelete:false};
   const statusLabels={active:"Aktif",cancelled:"Dibatalkan"};
   const PAGE=10;
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
@@ -477,6 +477,7 @@
     });
     state.page=1;
     $("filter-summary").textContent=[activity?activityLabels[activity]:"Semua jenis",from?"Dari "+dateLabel(from):"",to?"sampai "+dateLabel(to):""].filter(Boolean).join(" · ");
+    updateStats(state.filtered,state.statsItems,state.statsLinks);
     renderTable();
   }
   function renderTable(){
@@ -519,7 +520,7 @@
         const plan=data.find(row=>row.id===item.plan_id);
         return Object.assign({},item,{import_plans:plan?{id:plan.id,activity_type:plan.activity_type}:null});
       });
-      state.plans=data;updateStats(data,statsItems,linkedItems);applyFilters();
+      state.plans=data;state.statsItems=statsItems;state.statsLinks=linkedItems;applyFilters();
     }catch(error){
       console.error("TRCM daftar Plan:",error);
       $("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty text-danger"><i class="bi bi-exclamation-triangle"></i><strong>Daftar Plan gagal dimuat</strong><div class="mt-1">'+esc(error.message||"Periksa koneksi dan hak akses akun.")+'</div></div></td></tr>';
