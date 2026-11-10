@@ -486,8 +486,8 @@ window.trcmComponentsReady.then(function () {
       if (![plans, items, links, trips].every(Array.isArray)) {
         throw new Error("Data Plan tidak dapat dimuat.");
       }
-      const linkedIds = new Set(responses[2].map(function (link) { return link.plan_item_id; }).filter(Boolean));
-      renderPlanOverview(responses[0], responses[1], responses[3], linkedIds, todayKey);
+      const linkedIds = new Set(links.map(function (link) { return link.plan_item_id; }).filter(Boolean));
+      renderPlanOverview(plans, items, trips, linkedIds, todayKey);
     } catch (error) {
       console.error("TRCM plan overview:", error);
       target.innerHTML = '<div class="col-12"><div class="dashboard-empty text-danger">Ringkasan armada per Plan gagal dimuat. Periksa koneksi atau hak akses akun.</div></div>';
