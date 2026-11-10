@@ -4,17 +4,18 @@
   window.TRCM = window.TRCM || {};
   window.TRCM.visit = window.TRCM.visit || {};
 
-  const allowedRpc = new Set([
-    "confirm_visit_wh_in",
-    "record_visit_wh_out",
-    "start_loading_visit",
-    "finish_loading_visit"
-  ]);
+  const contract = window.TRCM.contracts && window.TRCM.contracts.services.visit;
+  if (!contract) throw new Error("TRCM service contract belum dimuat.");
+  const resources = new Set(contract.resources);
+  const allowedRpc = new Set(contract.rpc);
 
   function handles(path) {
-    return typeof path === "string" && (
-      /^\/rest\/v1\/visits(?:\?|$)/.test(path) ||
-      /^\/rest\/v1\/rpc\/(?:confirm_visit_wh_in|record_visit_wh_out|start_loading_visit|finish_loading_visit)(?:\?|$)/.test(path)
+    if (typeof path !== "string") return false;
+    const resourceMatch = path.match(/^\/rest\/v1\/([a-z_]+)(?:\?|$)/);
+    const rpcMatch = path.match(/^\/rest\/v1\/rpc\/([a-z_]+)(?:\?|$)/);
+    return Boolean(
+      (resourceMatch && resources.has(resourceMatch[1])) ||
+      (rpcMatch && allowedRpc.has(rpcMatch[1]))
     );
   }
 
