@@ -8,6 +8,7 @@
 
   const moduleNames = [
     "api.js",
+    "visit.js",
     "status.js",
     "refresh.js",
     "page-context.js",
