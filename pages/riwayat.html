@@ -73,7 +73,7 @@
           <div class="row g-3">
             <div class="col-12 col-md-6"><label class="form-label" for="edit-plate-number">Plat nomor <span class="text-danger">*</span></label><input class="form-control text-uppercase" id="edit-plate-number" maxlength="20" required></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-activity-type">Tipe Aktivitas <span class="text-danger">*</span></label><select class="form-select" id="edit-activity-type" required><option value="">Pilih tipe aktivitas</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select></div>
-            <div class="col-12 col-md-6"><label class="form-label" for="edit-vendor">Vendor <span class="text-danger">*</span></label><input class="form-control" id="edit-vendor" maxlength="120" required placeholder="Masukkan vendor"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="edit-vendor">Vendor <span class="text-danger">*</span></label><input class="form-control" id="edit-vendor" maxlength="120" required></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-client">Klien <span class="text-danger">*</span></label><select class="form-select" id="edit-client" required><option value="">Pilih klien</option></select></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-driver-name">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="edit-driver-name" maxlength="120" required></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-driver-phone">Nomor telepon driver</label><input class="form-control" id="edit-driver-phone" maxlength="30"></div>
@@ -530,7 +530,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Nomor SIM", visit.license_num, true),
       renderDetailItem("Masa berlaku SIM", visit.license_exp),
       renderDetailItem("Masa berlaku kendaraan", visit.vehicle_exp),
-      renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
+      renderDetailItem("Masa berlaku KIR", visit.vehicle_inspect_exp || "KIR Kadaluarsa"),
       renderDetailItem("Tujuan (Gudang / Kota)", visit.destination_city, true),
       renderDetailItem("Nomor gerbang", gate),
       renderDetailItem("Nomor line", lineNumber),
