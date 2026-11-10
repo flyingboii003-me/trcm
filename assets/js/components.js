@@ -9,6 +9,7 @@
   const moduleNames = [
     "api.js",
     "visit.js",
+    "master-data.js",
     "status.js",
     "refresh.js",
     "page-context.js",
