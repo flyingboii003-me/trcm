@@ -93,7 +93,7 @@ window.trcmComponentsReady.then(async function () {
   function dateTime(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?"—":new Intl.DateTimeFormat("id-ID",{dateStyle:"medium",timeStyle:"short"}).format(d);}
   function activity(value){return value==="inbound"?"Inbound":value==="outbound"?"Outbound":value||"—";}
   const request = function (path, options) {
-    return window.TRCM.api.request(path, options, {
+    return window.TRCM.visit.request(path, options, {
       errorFields: ["message", "details", "hint"],
       errorMessage: "Permintaan ke database gagal."
     });
