@@ -4,15 +4,9 @@
   window.TRCM = window.TRCM || {};
   window.TRCM.masterData = window.TRCM.masterData || {};
 
-  const resources = new Set([
-    "cards",
-    "vendors",
-    "clients",
-    "gates",
-    "truck_types",
-    "line_numbers",
-    "fleet_templates"
-  ]);
+  const contract = window.TRCM.contracts && window.TRCM.contracts.services.masterData;
+  if (!contract) throw new Error("TRCM service contract belum dimuat.");
+  const resources = new Set(contract.resources);
 
   function handles(path) {
     if (typeof path !== "string") return false;
