@@ -188,10 +188,10 @@ function activityOf(v){return v.activity_type==="inbound"?"Inbound":"Outbound";}
 function formatDuration(v){const start=v.wh_in_at||v.registered_at||v.created_at;if(!start)return"—";const mins=Math.max(0,Math.floor((Date.now()-new Date(start).getTime())/60000));return Math.floor(mins/60)+"j "+String(mins%60).padStart(2,"0")+"m";}
 function formatTime(v){const value=v.started_at||v.registered_at||v.wh_in_at;if(!value)return"Jam masuk belum tersedia";return"Masuk "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(new Date(value));}
 const clientPalette={"kimberly clark":"#006ECD","henkel":"#EF151E","modena":"#111111"};
-const statusPalette={registered:"#006ECD",wh_in:"#006ECD",queue:"#D6A000",started:"#F97316",completed:"#16A34A"};
+const statusPalette=Object.keys(window.TRCM.contracts.statuses).reduce((map,key)=>{map[key]=window.TRCM.contracts.statuses[key].liveViewColor;return map;},{});
 function clientColor(name){return clientPalette[String(name||"").trim().toLowerCase()]||"#6B7280";}
 function renderCounters(rows,prefix){
- const definitions=[["registered","Terdaftar"],["queue","Parkir"],["started","Proses"],["completed","Selesai"]];
+ const definitions=[["registered",labels.registered],["queue",labels.queue],["started",labels.started],["completed",labels.completed]];
  return '<div class="counters">'+definitions.map(([status,label])=>'<div class="counter" data-status="'+status+'"><div class="counter-label"><span class="counter-dot"></span>'+label+'</div><div class="counter-value">'+rows.filter(v=>statusOf(v)===status||(status==="registered"&&statusOf(v)==="wh_in")).length+'</div></div>').join("")+'</div>';
 }
 function renderTruckCard(v,color){
