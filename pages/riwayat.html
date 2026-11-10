@@ -530,7 +530,7 @@ async function openVisitModal(visitId) {
       renderDetailItem("Nomor SIM", visit.license_num, true),
       renderDetailItem("Masa berlaku SIM", visit.license_exp),
       renderDetailItem("Masa berlaku kendaraan", visit.vehicle_exp),
-      renderDetailItem("Masa berlaku inspeksi kendaraan", visit.vehicle_inspect_exp),
+      renderDetailItem("Masa berlaku KIR", visit.vehicle_inspect_exp || "KIR Kadaluarsa"),
       renderDetailItem("Tujuan (Gudang / Kota)", visit.destination_city, true),
       renderDetailItem("Nomor gerbang", gate),
       renderDetailItem("Nomor line", lineNumber),
