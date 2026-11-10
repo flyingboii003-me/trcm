@@ -42,7 +42,7 @@
   }
 
   function remove(objectPath) {
-    return fetch(SUPABASE_URL + storagePath("", objectPath).replace("/object//", "/object/"), {
+    return fetch(SUPABASE_URL + storagePath("", objectPath), {
       method: "DELETE",
       headers: getAuthHeaders()
     });
