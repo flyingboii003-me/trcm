@@ -526,9 +526,9 @@
         errorFields:["message","details","hint"],
         errorMessage:"Gagal menyimpan Plan.",
         loginUrl:"../index.html",
-        errorMessageBuilder:function(data,raw){
+        errorMessageBuilder:function(data,raw,status){
           const detail=[data&&data.message,data&&data.details,data&&data.hint].filter(Boolean).join(" · ");
-          return describeSaveError(detail||raw||"HTTP error");
+          return describeSaveError(detail||raw||("HTTP "+status));
         }
       });
       const saved=Array.isArray(result)?result[0]:result;
