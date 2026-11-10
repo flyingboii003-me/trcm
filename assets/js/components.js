@@ -11,6 +11,7 @@
     "visit.js",
     "master-data.js",
     "plan.js",
+    "photo.js",
     "status.js",
     "refresh.js",
     "page-context.js",
