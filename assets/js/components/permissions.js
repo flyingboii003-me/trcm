@@ -117,6 +117,7 @@
 
   window.TRCM = window.TRCM || {};
   window.TRCM.permissions = {
+    showAccessDenied: showPageAccessDenied,
     load: loadMyMenuPermissions,
     applyVisibility: applyPermissionVisibility,
     enforcePage: enforcePagePermission

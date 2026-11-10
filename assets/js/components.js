@@ -83,8 +83,7 @@
       return permitted;
     } catch (error) {
       console.error("TRCM permission guard:", error);
-      const main = document.querySelector("main") || document.body;
-      main.innerHTML = '<div class="container-fluid py-5"><div class="card border-0 shadow-sm"><div class="card-body text-center py-5"><div class="mb-3"><i class="bi bi-shield-lock fs-1 text-secondary"></i></div><h4 class="mb-2">Akses tidak tersedia</h4><p class="text-secondary mb-4">Anda tidak memiliki permission untuk membuka halaman ini.</p><a class="btn btn-primary" href="dashboard.html">Kembali ke Dashboard</a></div></div></div>';
+      if (window.TRCM.permissions) window.TRCM.permissions.showAccessDenied();
       return false;
     }
   }
