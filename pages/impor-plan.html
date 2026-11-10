@@ -123,7 +123,7 @@
               <div class="col-md-3">
                 <label class="plan-field-label" for="operational-date">Tanggal operasional <span class="plan-required">*</span></label>
                 <input class="form-control plan-input" id="operational-date" type="date" required>
-                <div class="plan-hint">Plan akan dikelompokkan berdasarkan tanggal operasional ini.</div>
+                
               </div>
               <div class="col-md-5">
                 <label class="plan-field-label" for="plan-template-name">Template yang dipilih</label>
@@ -134,7 +134,7 @@
 
             <div class="plan-dropzone mb-3">
               <span class="plan-drop-icon"><i class="bi bi-clipboard2-data"></i></span>
-              <div><div class="fw-bold mb-1">Tempel data dari Excel</div><div class="plan-hint mt-0">Salin baris header dan data di Excel, lalu tempel ke area di bawah. Tidak perlu mengunggah file.</div></div>
+              <div><div class="fw-bold mb-1">Tempel data dari Excel</div><div class="plan-hint mt-0">Tempel data Excel pada kolom di bawah.</div></div>
             </div>
             <label class="plan-field-label" for="paste-data">Data Excel (dipisahkan tab)</label>
             <textarea class="plan-paste" id="paste-data" spellcheck="false" aria-describedby="paste-hint"></textarea>
@@ -142,7 +142,7 @@
               <div class="plan-hint mt-0" id="paste-hint">Nama dan urutan kolom boleh bervariasi selama setiap header dikenali. Nomor DO dan Shipment dibaca sebagai teks.</div>
               <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-example"><i class="bi bi-arrow-counterclockwise me-1"></i>Muat contoh</button>
             </div>
-            <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div><strong>Tahap validasi lokal.</strong> Header dipetakan berdasarkan alias terkontrol dan urutannya boleh berbeda. Keunikan Shipment dan penyimpanan Plan diverifikasi kembali oleh database saat konfirmasi.</div></div>
+            <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div>Data diperiksa di halaman ini dan diverifikasi kembali saat disimpan.</div></div>
           </div>
           <div class="plan-card-body pt-0">
             <div class="plan-data-check-summary mb-3" id="data-check-summary" aria-live="polite">
@@ -170,7 +170,7 @@
             <span class="plan-status warning" id="truk-group-state"><i class="bi bi-truck"></i>Perlu diperiksa</span>
           </div>
           <div class="plan-card-body">
-            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: setiap nomor DO unik menjadi satu referensi kunjungan. Outbound: data vendor, plat nomor, driver, tipe truk, dan tujuan yang sama dihitung sebagai satu trip; plat sama dengan driver berbeda ditandai untuk diperiksa.</div></div>
+            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: satu referensi kunjungan per nomor DO unik. Outbound: satu trip per kombinasi vendor, plat nomor, driver, tipe truck, dan tujuan. Plat sama dengan driver berbeda perlu diperiksa.</div></div>
             <div class="plan-data-check-wrap">
               <table class="table plan-data-check-table align-middle mb-0">
                 <thead id="truk-group-head"><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Kelompok truk otomatis</th></tr></thead>
@@ -178,7 +178,7 @@
               </table>
             </div>
             <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mt-3">
-              <span class="plan-hint mt-0" id="truk-group-summary">Kelompok truk terdeteksi otomatis.</span>
+              <span class="plan-hint mt-0" id="truk-group-summary"></span>
             </div>
           </div>
         </section>
