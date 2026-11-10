@@ -37,6 +37,10 @@
     const text = await response.text();
     const data = parseResponse(text);
 
+    if (response.ok && config.requireJson && data === null) {
+      throw new Error(config.invalidResponseMessage || "Respons data tidak valid.");
+    }
+
     if (response.status === 401) {
       if (config.redirectOnUnauthorized !== false) {
         sessionStorage.removeItem("trcm_session");
