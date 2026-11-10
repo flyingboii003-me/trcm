@@ -552,8 +552,17 @@
   }
   $("confirm-import-final").addEventListener("click",saveAndActivatePlan);
   $("paste-data").value=schemas.inbound.sample;
-  loadClients();
-  if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function")window.trcmComponentsReady.then(()=>{const title=document.querySelector("[data-page-title]");if(title)title.textContent="Impor Plan";const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";});
+  if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function"){
+    window.trcmComponentsReady.then(()=>{
+      const title=document.querySelector("[data-page-title]");
+      if(title)title.textContent="Impor Plan";
+      const eyebrow=document.querySelector("[data-page-eyebrow]");
+      if(eyebrow)eyebrow.textContent="Administrasi";
+      loadClients();
+    });
+  }else{
+    loadClients();
+  }
 })();
 </script>
 </body>
