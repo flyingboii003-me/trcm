@@ -22,11 +22,12 @@
     "fragments.js"
   ];
   const scriptBaseUrl = new URL("./components/", document.currentScript.src).href;
+  const contractsUrl = new URL("./contracts.js", document.currentScript.src).href;
 
-  function loadModule(name) {
+  function loadScript(src, name) {
     return new Promise(function (resolve, reject) {
       const script = document.createElement("script");
-      script.src = scriptBaseUrl + name;
+      script.src = src;
       script.async = true;
       script.onload = function () {
         script.remove();
@@ -39,7 +40,12 @@
     });
   }
 
+  function loadModule(name) {
+    return loadScript(scriptBaseUrl + name, name);
+  }
+
   async function initializeComponents() {
+    await loadScript(contractsUrl, "contracts.js");
     await Promise.all(moduleNames.map(loadModule));
 
     const sidebarContainer = document.getElementById("sidebar-container");
