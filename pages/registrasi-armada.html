@@ -34,12 +34,11 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Registrasi Armada</h1>
-            <p class="page-subtitle">Masukkan identitas driver dan truck sebelum armada dikonfirmasi masuk gudang.</p>
           </div>
           <a class="btn btn-outline-primary" href="template-armada.html"><i class="bi bi-gear me-1"></i>Kelola Template Armada</a>
         </div>
         <section class="card content-card mb-3 fleet-template-card" id="fleet-template-panel">
-          <div class="card-header content-card-header fleet-template-card-header"><div><h2 class="card-title">Gunakan template armada</h2><p>Pilih template untuk mengisi data armada.</p></div></div>
+          <div class="card-header content-card-header fleet-template-card-header"><div><h2 class="card-title">Gunakan template armada</h2></div></div>
           <div class="card-body">
             <div class="row g-3 align-items-end fleet-template-controls">
               <div class="col-12 col-lg-7"><label class="form-label" for="fleet-template-select">Template armada</label><select class="form-select" id="fleet-template-select"><option value="">Memuat template...</option></select></div>
@@ -53,7 +52,7 @@
             <div class="col-12 col-xl-8">
               <section class="card content-card mb-3 vendor-master-card">
                 <div class="card-header content-card-header">
-                  <div><h2 class="card-title">Data kunjungan</h2><p>Informasi utama untuk membuat visit baru.</p></div>
+                  <div><h2 class="card-title">Data kunjungan</h2></div>
                 </div>
                 <div class="card-body">
                   <div id="registration-alert" class="registration-alert d-none" role="alert"></div>
@@ -80,7 +79,7 @@
                     </div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="container-num">Nomor container</label>
-                      <input class="form-control" id="container-num" type="text" maxlength="30" placeholder="Opsional">
+                      <input class="form-control" id="container-num" type="text" maxlength="30">
                     </div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="vendor-search">Vendor <span class="text-danger">*</span></label>
@@ -102,7 +101,7 @@
 
               <section class="card content-card mb-3">
                 <div class="card-header content-card-header">
-                  <div><h2 class="card-title">Data driver dan kendaraan</h2><p>Informasi driver dan kendaraan yang tersedia saat registrasi.</p></div>
+                  <div><h2 class="card-title">Data driver dan kendaraan</h2></div>
                 </div>
                 <div class="card-body">
                   <div class="row g-3">
@@ -124,7 +123,7 @@
               </section>
 
               <section class="card content-card">
-                <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2><p>Informasi pengiriman dan kota tujuan atau asal armada.</p></div></div>
+                <div class="card-header content-card-header"><div><h2 class="card-title">Shipment dan kota tujuan</h2></div></div>
                 <div class="card-body">
                   <div class="row g-3">
                     <div class="col-12"><label class="form-label" for="destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="destination-city" maxlength="100" placeholder="Contoh: Surabaya" required><div class="invalid-feedback">Tujuan (Gudang / Kota) wajib diisi.</div></div>
@@ -137,7 +136,6 @@
                     </div>
                     <input class="visually-hidden" id="wh-in-photo-camera" type="file" accept="image/*" capture="environment">
                     <input class="visually-hidden" id="wh-in-photo-gallery" type="file" accept="image/*" multiple>
-                    <div class="form-text">Foto tidak wajib. Gunakan kamera atau pilih gambar dari galeri.</div>
                     <div class="mt-3 photo-preview-grid" id="wh-in-photo-preview-grid"></div>
                     <div class="small text-muted mt-2" id="wh-in-photo-status">Belum ada foto dipilih.</div>
                   </div>
