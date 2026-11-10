@@ -510,13 +510,11 @@ async function openVisitModal(visitId) {
 
     let selectedPlanShipmentHtml = '<div class="modal-loading">Memuat DO/Shipment yang dipilih...</div>';
     try {
-      const linkedItems = await fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {
-        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + trcmSession.access_token }
-      });
-      const linkedText = await linkedItems.text();
-      let linkedRows = [];
-      try { linkedRows = linkedText ? JSON.parse(linkedText) : []; } catch { linkedRows = []; }
-      if (!linkedItems.ok) throw new Error("DO/Shipment tidak dapat dimuat.");
+      const linkedRows = await window.TRCM.plan.request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq.", {}, {
+        errorFields: [],
+        errorMessage: "DO/Shipment tidak dapat dimuat.",
+        loginUrl: "../index.html"
+      }) || [];
       if (Array.isArray(linkedRows) && linkedRows.length) {
         const references = new Map();
         const registrationVendor = String(visit.vendor || "").trim();
@@ -996,20 +994,13 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
   for (let offset = 0; offset < filteredRows.length; offset += 100) {
     const visitIds = filteredRows.slice(offset, offset + 100).map(function (visit) { return visit.id; }).filter(Boolean);
     if (!visitIds.length) continue;
-    const linkedUrl = SUPABASE_URL + "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(vendor,destination))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
-    const linkedResponse = await fetch(linkedUrl, {
-      method:"GET",
-      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
+    const linkedPath = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(vendor,destination))&visit_id=in.(\" + visitIds.map(encodeURIComponent).join(\",\") + \")";
+    const linkedRows = await window.TRCM.plan.request(linkedPath, {}, {
+      errorFields: [],
+      errorMessage: "Data DO/Shipment terkait kunjungan gagal diambil.",
+      loginUrl: "../index.html"
     });
-    const linkedText = await linkedResponse.text();
-    let linkedRows = null;
-    try { linkedRows = linkedText ? JSON.parse(linkedText) : []; } catch { linkedRows = null; }
-    if (linkedResponse.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      throw new Error("Sesi berakhir. Silakan masuk kembali.");
-    }
-    if (!linkedResponse.ok || !Array.isArray(linkedRows)) {
+    if (!Array.isArray(linkedRows)) {
       throw new Error("Data DO/Shipment terkait kunjungan gagal diambil.");
     }
     linkedRows.forEach(function (row) {
