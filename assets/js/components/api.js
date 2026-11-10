@@ -44,6 +44,10 @@
     }
 
     if (!response.ok) {
+      if (typeof config.errorMessageBuilder === "function") {
+        const customMessage = config.errorMessageBuilder(data, text);
+        if (customMessage) throw new Error(customMessage);
+      }
       const fields = Array.isArray(config.errorFields)
         ? config.errorFields
         : ["message", "details", "hint", "error_description", "error"];
