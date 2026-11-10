@@ -425,31 +425,18 @@ async function openVisitModal(visitId) {
       "photos(id,photo_type,file_location,created_at,uploaded_by,uploaded_by_user:users!photos_uploaded_by_fkey(username,full_name))"
     ].join(",");
 
-    const url = SUPABASE_URL +
+    const data = await window.TRCM.visit.request(
       "/rest/v1/visits?select=" + encodeURIComponent(select) +
       "&id=eq." + encodeURIComponent(visitId) +
-      "&limit=1";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + trcmSession.access_token
+      "&limit=1",
+      {},
+      {
+        errorFields: ["message"],
+        errorMessage: "Gagal mengambil detail visit.",
+        unauthorizedMessage: "Gagal mengambil detail visit.",
+        redirectOnUnauthorized: false
       }
-    });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = {};
-    }
-
-    if (!response.ok) {
-      throw new Error(data && data.message ? data.message : "Gagal mengambil detail visit.");
-    }
+    );
 
     if (!Array.isArray(data) || !data.length) {
       throw new Error("Visit tidak ditemukan.");
