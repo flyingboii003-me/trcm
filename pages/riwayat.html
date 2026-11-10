@@ -187,50 +187,19 @@ function clearEditAlert() {
 }
 
 async function patchVisit(visitId, payload) {
-  const response = await fetch(SUPABASE_URL + "/rest/v1/visits?id=eq." + encodeURIComponent(visitId), {
-    method: "PATCH",
-    headers: {
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: "Bearer " + trcmSession.access_token,
-      "Content-Type": "application/json",
-      Prefer: "return=representation"
-    },
-    body: JSON.stringify(payload)
+  return window.TRCM.visit.update(visitId, payload, {
+    errorFields: ["message", "details", "hint"],
+    errorMessage: "Data kunjungan gagal diperbarui.",
+    loginUrl: "../index.html"
   });
-  const text = await response.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-  if (response.status === 401) {
-    sessionStorage.removeItem("trcm_session");
-    window.location.replace("../index.html");
-    return null;
-  }
-  if (!response.ok) {
-    throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Data kunjungan gagal diperbarui.");
-  }
-  return data;
 }
 
 async function deleteVisit(visitId) {
-  const response = await fetch(SUPABASE_URL + "/rest/v1/visits?id=eq." + encodeURIComponent(visitId), {
-    method: "DELETE",
-    headers: {
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: "Bearer " + trcmSession.access_token,
-      Prefer: "return=minimal"
-    }
+  await window.TRCM.visit.remove(visitId, {
+    errorFields: ["message", "details", "hint"],
+    errorMessage: "Data kunjungan gagal dihapus.",
+    loginUrl: "../index.html"
   });
-  const text = await response.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-  if (response.status === 401) {
-    sessionStorage.removeItem("trcm_session");
-    window.location.replace("../index.html");
-    return;
-  }
-  if (!response.ok) {
-    throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Data kunjungan gagal dihapus.");
-  }
 }
 
 function populateEditClients(selectedId) {
