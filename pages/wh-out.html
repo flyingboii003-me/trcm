@@ -119,7 +119,7 @@ window.trcmComponentsReady.then(async function () {
   }
 
   const request = function (path, options) {
-    return window.TRCM.api.request(path, options, {
+    return window.TRCM.visit.request(path, options, {
       errorFields: ["message", "details", "hint"],
       errorMessage: "Permintaan ke database gagal."
     });
