@@ -20,12 +20,9 @@
 
   function syncCollapsibleMenuState() {
     const key = window.TRCM.pageContext.getCurrentPageKey();
-    const menus = [
-      { key: "kunjungan-armada", children: ["registrasi-armada", "wh-in", "antri-parkir", "wh-out"] },
-      { key: "checker", children: ["mulai-loading", "selesai-loading"] }
-    ];
+    const groups = window.TRCM.contracts.navigationGroups;
 
-    menus.forEach(function (menu) {
+    groups.forEach(function (menu) {
       const toggle = document.querySelector('[data-menu-toggle="' + menu.key + '"]');
       const submenu = document.querySelector('[data-menu-submenu="' + menu.key + '"]');
       if (!toggle || !submenu) return;
