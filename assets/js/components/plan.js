@@ -4,13 +4,10 @@
   window.TRCM = window.TRCM || {};
   window.TRCM.plan = window.TRCM.plan || {};
 
-  const resources = new Set([
-    "import_plans",
-    "import_plan_items",
-    "import_plan_trips",
-    "visit_plan_items"
-  ]);
-  const rpcNames = new Set(["save_import_plan", "update_import_plan"]);
+  const contract = window.TRCM.contracts && window.TRCM.contracts.services.plan;
+  if (!contract) throw new Error("TRCM service contract belum dimuat.");
+  const resources = new Set(contract.resources);
+  const rpcNames = new Set(contract.rpc);
 
   function handles(path) {
     if (typeof path !== "string") return false;
