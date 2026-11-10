@@ -221,30 +221,26 @@ window.trcmComponentsReady.then(async function () {
   function clearAlert() { alertBox.className = "registration-alert d-none"; alertBox.textContent = ""; }
 
   async function getJson(path) {
-    const response = await fetch(SUPABASE_URL + path, {headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + session.access_token}});
-    const text = await response.text();
-    let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-    if (response.status === 401) { sessionStorage.removeItem("trcm_session"); window.location.replace("../index.html"); return null; }
-    if (!response.ok) throw new Error(data && (data.message || data.hint) ? (data.message || data.hint) : "Gagal mengambil data master.");
-    return data;
+    return window.TRCM.api.request(path, {}, {
+      errorFields: ["message", "hint"],
+      errorMessage: "Gagal mengambil data master.",
+      loginUrl: "../index.html"
+    });
   }
 
   async function postJson(path, payload) {
-    const response = await fetch(SUPABASE_URL + path, {
+    return window.TRCM.api.request(path, {
       method: "POST",
       headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + session.access_token,
         "Content-Type": "application/json",
         Prefer: "return=representation"
       },
       body: JSON.stringify(payload)
+    }, {
+      errorFields: ["message", "details", "hint"],
+      errorMessage: "Data gagal disimpan.",
+      loginUrl: "../index.html"
     });
-    const text = await response.text();
-    let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-    if (response.status === 401) { sessionStorage.removeItem("trcm_session"); window.location.replace("../index.html"); return null; }
-    if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Data gagal disimpan.");
-    return data;
   }
 
   function populateClients(rows) {
