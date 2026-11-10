@@ -506,17 +506,16 @@ window.trcmComponentsReady.then(function () {
         "process_status", "wh_in_at", "registered_at", "started_at", "completed_at",
         "wh_out_at", "created_at", "clients(name)"
       ].join(",");
-      const response = await fetch(SUPABASE_URL + "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc", {
-        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
-      });
-      const data = await response.json().catch(function () { return {}; });
-      if (response.status === 401) {
-        sessionStorage.removeItem("trcm_session");
-        window.location.replace("../index.html");
-        return;
-      }
-      if (!response.ok || !Array.isArray(data)) {
-        throw new Error(data.message || "Gagal mengambil data dashboard.");
+      const data = await window.TRCM.visit.list(
+        "select=" + encodeURIComponent(select) + "&order=created_at.desc",
+        {
+          errorFields: ["message", "details", "hint"],
+          errorMessage: "Gagal mengambil data dashboard.",
+          loginUrl: "../index.html"
+        }
+      );
+      if (!Array.isArray(data)) {
+        throw new Error("Gagal mengambil data dashboard.");
       }
       visits = data;
       const todayKey = localDateKey(new Date());
