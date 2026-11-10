@@ -517,18 +517,20 @@
     button.disabled=true;
     button.innerHTML='<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyimpan Plan...';
     try{
-      const response=await fetch(SUPABASE_URL+"/rest/v1/rpc/save_import_plan",{
-        method:"POST",
-        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+sessionNow.access_token,"Content-Type":"application/json"},
-        body:JSON.stringify({p_client_id:$("plan-client").value,p_operational_date:$("operational-date").value,p_activity_type:type,p_rows:buildPayloadRows()})
+      const result=await window.TRCM.plan.rpc("save_import_plan",{
+        p_client_id:$("plan-client").value,
+        p_operational_date:$("operational-date").value,
+        p_activity_type:type,
+        p_rows:buildPayloadRows()
+      },{
+        errorFields:["message","details","hint"],
+        errorMessage:"Gagal menyimpan Plan.",
+        loginUrl:"../index.html",
+        errorMessageBuilder:function(data,raw){
+          const detail=[data&&data.message,data&&data.details,data&&data.hint].filter(Boolean).join(" · ");
+          return describeSaveError(detail||raw||"HTTP error");
+        }
       });
-      const raw=await response.text();
-      let result=null;
-      try{result=raw?JSON.parse(raw):null}catch(_){result={message:raw}}
-      if(!response.ok){
-        const detail=[result&&result.message,result&&result.details,result&&result.hint].filter(Boolean).join(" · ");
-        throw new Error(describeSaveError(detail||raw||("HTTP "+response.status)));
-      }
       const saved=Array.isArray(result)?result[0]:result;
       if(!saved||!saved.plan_id) throw new Error("Respons database tidak menyertakan ID Plan. Periksa data Plan sebelum mencoba ulang.");
       bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).hide();
