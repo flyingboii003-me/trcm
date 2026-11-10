@@ -291,9 +291,9 @@ window.trcmComponentsReady.then(async function () {
       errorFields: ["message", "details", "hint"],
       errorMessage: "Permintaan ke database gagal."
     };
-    return window.TRCM.visit.handles(path)
-      ? window.TRCM.visit.request(path, options, settings)
-      : window.TRCM.api.request(path, options, settings);
+    if (window.TRCM.visit.handles(path)) return window.TRCM.visit.request(path, options, settings);
+    if (window.TRCM.masterData.handles(path)) return window.TRCM.masterData.request(path, options, settings);
+    return window.TRCM.api.request(path, options, settings);
   };
 
   function formatDestination(activityType) {
