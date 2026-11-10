@@ -40,6 +40,7 @@
     if (response.status === 401) {
       sessionStorage.removeItem("trcm_session");
       window.location.replace(config.loginUrl || "../index.html");
+      if (config.unauthorizedMessage) throw new Error(config.unauthorizedMessage);
       return null;
     }
 
