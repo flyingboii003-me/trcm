@@ -298,7 +298,7 @@
       Accept: "application/json"
     }, (options && options.headers) || {});
 
-    return window.TRCM.api.request(path, requestOptions, {
+    return window.TRCM.masterData.request(path, requestOptions, {
       errorFields: ["message", "error_description", "error"],
       errorMessage: "Permintaan ke database gagal.",
       loginUrl: "../index.html"
