@@ -226,9 +226,9 @@ window.trcmComponentsReady.then(async function () {
       errorMessage: "Gagal mengambil data master.",
       loginUrl: "../index.html"
     };
-    return window.TRCM.visit.handles(path)
-      ? window.TRCM.visit.request(path, {}, settings)
-      : window.TRCM.api.request(path, {}, settings);
+    if (window.TRCM.visit.handles(path)) return window.TRCM.visit.request(path, {}, settings);
+    if (window.TRCM.masterData.handles(path)) return window.TRCM.masterData.request(path, {}, settings);
+    return window.TRCM.api.request(path, {}, settings);
   }
 
   async function postJson(path, payload) {
@@ -245,9 +245,9 @@ window.trcmComponentsReady.then(async function () {
       errorMessage: "Data gagal disimpan.",
       loginUrl: "../index.html"
     };
-    return window.TRCM.visit.handles(path)
-      ? window.TRCM.visit.request(path, options, settings)
-      : window.TRCM.api.request(path, options, settings);
+    if (window.TRCM.visit.handles(path)) return window.TRCM.visit.request(path, options, settings);
+    if (window.TRCM.masterData.handles(path)) return window.TRCM.masterData.request(path, options, settings);
+    return window.TRCM.api.request(path, options, settings);
   }
 
   function populateClients(rows) {
