@@ -18,7 +18,8 @@
 
   function storagePath(operation, objectPath) {
     const encodedPath = String(objectPath || "").split("/").map(encodeURIComponent).join("/");
-    return "/storage/v1/object/" + operation + "/trcm-visit-photos/" + encodedPath;
+    const action = operation ? operation + "/" : "";
+    return "/storage/v1/object/" + action + "trcm-visit-photos/" + encodedPath;
   }
 
   function request(path, options, settings) {
@@ -30,7 +31,7 @@
   }
 
   function upload(objectPath, file, contentType, extraHeaders) {
-    return fetch(SUPABASE_URL + storagePath("", objectPath).replace("/object//", "/object/"), {
+    return fetch(SUPABASE_URL + storagePath("", objectPath), {
       method: "POST",
       headers: getAuthHeaders(Object.assign({
         "Content-Type": contentType || (file && file.type) || "application/octet-stream",
