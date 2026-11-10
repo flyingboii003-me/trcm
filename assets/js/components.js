@@ -7,6 +7,7 @@
   window.trcmSidebarReady = Promise.resolve(false);
 
   const moduleNames = [
+    "api.js",
     "status.js",
     "refresh.js",
     "page-context.js",
