@@ -472,23 +472,18 @@ window.trcmComponentsReady.then(function () {
   async function loadPlanOverview(todayKey) {
     const target = document.getElementById("plan-overview");
     try {
+      const settings = {
+        errorFields: [],
+        errorMessage: "Data Plan tidak dapat dimuat.",
+        loginUrl: "../index.html"
+      };
       const [plans, items, links, trips] = await Promise.all([
-        fetch(SUPABASE_URL + "/rest/v1/import_plans?select=id,operational_date,activity_type,status&order=operational_date.desc", {
-          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
-        }),
-        fetch(SUPABASE_URL + "/rest/v1/import_plan_items?select=id,plan_id,trip_id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,status)", {
-          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
-        }),
-        fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id", {
-          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
-        }),
-        fetch(SUPABASE_URL + "/rest/v1/import_plan_trips?select=id,plan_id,plate_number", {
-          headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token }
-        })
+        window.TRCM.plan.list("import_plans", "select=id,operational_date,activity_type,status&order=operational_date.desc", settings),
+        window.TRCM.plan.list("import_plan_items", "select=id,plan_id,trip_id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,status)", settings),
+        window.TRCM.plan.list("visit_plan_items", "select=plan_item_id", settings),
+        window.TRCM.plan.list("import_plan_trips", "select=id,plan_id,plate_number", settings)
       ]);
-      const responses = await Promise.all([plans.json(), items.json(), links.json(), trips.json()]);
-      if (![plans, items, links, trips].every(function (response) { return response.ok; }) ||
-          !responses.every(Array.isArray)) {
+      if (![plans, items, links, trips].every(Array.isArray)) {
         throw new Error("Data Plan tidak dapat dimuat.");
       }
       const linkedIds = new Set(responses[2].map(function (link) { return link.plan_item_id; }).filter(Boolean));
