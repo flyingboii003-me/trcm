@@ -51,16 +51,16 @@ tidak ada dalam daftar halaman saat kontrak ini diaudit.
 ## Status
 
 Status disimpan sebagai key proses dan alias. Setiap definisi berisi label/class badge yang dipakai
-komponen bersama dan `liveViewLabel` yang mempertahankan teks Live View saat ini.
+komponen bersama dan `liveViewLabel` / `liveViewColor` yang mempertahankan label dan warna Live View saat ini.
 
-| Key | Label komponen | Label Live View | Class |
+| Key | Label komponen | Label Live View | Class | Warna Live View |
 |---|---|---|---|
-| `wh_in`, `registered` | Terdaftar | Terdaftar | `status-wh-in` |
-| `queue`, `parked` | Parkir | Parkir | `status-queue` |
-| `start_loading` | Proses Loading | Sedang proses | `status-start-loading` |
-| `started`, `processing` | Proses | Sedang proses | `status-start-loading` |
-| `done_loading`, `completed` | Selesai Loading | Selesai | `status-done-loading` |
-| `wh_out` | WH Out | Keluar gudang | `status-wh-out` |
+| `wh_in`, `registered` | Terdaftar | Terdaftar | `status-wh-in` | `#006ECD` |
+| `queue`, `parked` | Parkir | Parkir | `status-queue` | `#D6A000` |
+| `start_loading` | Proses Loading | Sedang proses | `status-start-loading` | `#F97316` |
+| `started`, `processing` | Proses | Sedang proses | `status-start-loading` | `#F97316` |
+| `done_loading`, `completed` | Selesai Loading | Selesai | `status-done-loading` | `#16A34A` |
+| `wh_out` | WH Out | Keluar gudang | `status-wh-out` | `#006ECD` |
 
 `trcmVisitStatus(visit)` tetap memprioritaskan `wh_out_at` untuk menghasilkan key `wh_out`;
 jika belum keluar gudang, fungsi mengembalikan `process_status` dari record.
