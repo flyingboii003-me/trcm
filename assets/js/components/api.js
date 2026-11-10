@@ -52,7 +52,7 @@
 
     if (!response.ok) {
       if (typeof config.errorMessageBuilder === "function") {
-        const customMessage = config.errorMessageBuilder(data, text);
+        const customMessage = config.errorMessageBuilder(data, text, response.status);
         if (customMessage) throw new Error(customMessage);
       }
       const fields = Array.isArray(config.errorFields)
