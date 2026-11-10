@@ -1,18 +1,11 @@
 (function () {
   "use strict";
 
-  const statusConfig = {
-    wh_in: { label: "Terdaftar", className: "status-wh-in" },
-    queue: { label: "Parkir", className: "status-queue" },
-    parked: { label: "Parkir", className: "status-queue" },
-    start_loading: { label: "Proses Loading", className: "status-start-loading" },
-    done_loading: { label: "Selesai Loading", className: "status-done-loading" },
-    wh_out: { label: "WH Out", className: "status-wh-out" },
-    registered: { label: "Terdaftar", className: "status-wh-in" },
-    started: { label: "Proses", className: "status-start-loading" },
-    processing: { label: "Proses", className: "status-start-loading" },
-    completed: { label: "Selesai Loading", className: "status-done-loading" }
-  };
+  const contracts = window.TRCM && window.TRCM.contracts;
+  if (!contracts || !contracts.statuses) {
+    throw new Error("TRCM status contract belum dimuat.");
+  }
+  const statusConfig = contracts.statuses;
 
   window.trcmStatusConfig = statusConfig;
   window.trcmStatusLabels = Object.keys(statusConfig).reduce(function (labels, key) {
