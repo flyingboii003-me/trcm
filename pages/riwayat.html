@@ -510,7 +510,7 @@ async function openVisitModal(visitId) {
 
     let selectedPlanShipmentHtml = '<div class="modal-loading">Memuat DO/Shipment yang dipilih...</div>';
     try {
-      const linkedRows = await window.TRCM.plan.request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq.", {}, {
+      const linkedRows = await window.TRCM.plan.request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {}, {
         errorFields: [],
         errorMessage: "DO/Shipment tidak dapat dimuat.",
         loginUrl: "../index.html"
@@ -994,7 +994,7 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
   for (let offset = 0; offset < filteredRows.length; offset += 100) {
     const visitIds = filteredRows.slice(offset, offset + 100).map(function (visit) { return visit.id; }).filter(Boolean);
     if (!visitIds.length) continue;
-    const linkedPath = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(vendor,destination))&visit_id=in.(\" + visitIds.map(encodeURIComponent).join(\",\") + \")";
+    const linkedPath = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(vendor,destination))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
     const linkedRows = await window.TRCM.plan.request(linkedPath, {}, {
       errorFields: [],
       errorMessage: "Data DO/Shipment terkait kunjungan gagal diambil.",
