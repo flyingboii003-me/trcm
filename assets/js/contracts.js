@@ -28,16 +28,16 @@
   ];
 
   const statuses = {
-    wh_in: { label: "Terdaftar", className: "status-wh-in", liveViewLabel: "Terdaftar" },
-    queue: { label: "Parkir", className: "status-queue", liveViewLabel: "Parkir" },
-    parked: { label: "Parkir", className: "status-queue", liveViewLabel: "Parkir" },
-    start_loading: { label: "Proses Loading", className: "status-start-loading", liveViewLabel: "Sedang proses" },
-    done_loading: { label: "Selesai Loading", className: "status-done-loading", liveViewLabel: "Selesai" },
-    wh_out: { label: "WH Out", className: "status-wh-out", liveViewLabel: "Keluar gudang" },
-    registered: { label: "Terdaftar", className: "status-wh-in", liveViewLabel: "Terdaftar" },
-    started: { label: "Proses", className: "status-start-loading", liveViewLabel: "Sedang proses" },
-    processing: { label: "Proses", className: "status-start-loading", liveViewLabel: "Sedang proses" },
-    completed: { label: "Selesai Loading", className: "status-done-loading", liveViewLabel: "Selesai" }
+    wh_in: { label: "Terdaftar", className: "status-wh-in", liveViewLabel: "Terdaftar", liveViewColor: "#006ECD" },
+    queue: { label: "Parkir", className: "status-queue", liveViewLabel: "Parkir", liveViewColor: "#D6A000" },
+    parked: { label: "Parkir", className: "status-queue", liveViewLabel: "Parkir", liveViewColor: "#D6A000" },
+    start_loading: { label: "Proses Loading", className: "status-start-loading", liveViewLabel: "Sedang proses", liveViewColor: "#F97316" },
+    done_loading: { label: "Selesai Loading", className: "status-done-loading", liveViewLabel: "Selesai", liveViewColor: "#16A34A" },
+    wh_out: { label: "WH Out", className: "status-wh-out", liveViewLabel: "Keluar gudang", liveViewColor: "#006ECD" },
+    registered: { label: "Terdaftar", className: "status-wh-in", liveViewLabel: "Terdaftar", liveViewColor: "#006ECD" },
+    started: { label: "Proses", className: "status-start-loading", liveViewLabel: "Sedang proses", liveViewColor: "#F97316" },
+    processing: { label: "Proses", className: "status-start-loading", liveViewLabel: "Sedang proses", liveViewColor: "#F97316" },
+    completed: { label: "Selesai Loading", className: "status-done-loading", liveViewLabel: "Selesai", liveViewColor: "#16A34A" }
   };
 
   const services = {
