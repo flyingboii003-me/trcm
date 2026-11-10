@@ -166,11 +166,11 @@
 
         <section class="plan-card mb-4 d-none" id="truk-group-card" aria-labelledby="truk-group-title">
           <div class="plan-card-head">
-            <div><h2 class="plan-card-title" id="truk-group-title">Pengelompokan Truk Otomatis</h2><p class="plan-card-subtitle">Plan Inbound dikelompokkan berdasarkan nomor DO / Transport task; Plan Outbound dikelompokkan berdasarkan kecocokan vendor, plat nomor, driver, tipe truk, dan tujuan.</p></div>
+            <div><h2 class="plan-card-title" id="truk-group-title">Pengelompokan Truk Otomatis</h2></div>
             <span class="plan-status warning" id="truk-group-state"><i class="bi bi-truck"></i>Perlu diperiksa</span>
           </div>
           <div class="plan-card-body">
-            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: satu referensi kunjungan per nomor DO unik. Outbound: satu trip per kombinasi vendor, plat nomor, driver, tipe truck, dan tujuan. Plat sama dengan driver berbeda perlu diperiksa.</div></div>
+            <div class="plan-callout mb-3"><i class="bi bi-info-circle-fill"></i><div>Inbound: satu referensi kunjungan per nomor DO unik. Outbound: satu trip per kombinasi vendor, plat nomor, driver, tipe truck, dan tujuan.</div></div>
             <div class="plan-data-check-wrap">
               <table class="table plan-data-check-table align-middle mb-0">
                 <thead id="truk-group-head"><tr><th>No.</th><th>Plat nomor</th><th>Shipment</th><th>Vendor</th><th>Tujuan</th><th>Kelompok truk otomatis</th></tr></thead>
@@ -258,11 +258,12 @@
       return;
     }
     try{
-      const response=await fetch(SUPABASE_URL+"/rest/v1/clients?select=id,name&order=name.asc",{
-        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}
+      const rows=await window.TRCM.masterData.list("clients","select=id,name&order=name.asc",{
+        errorFields:[],
+        errorMessage:"Daftar klien tidak dapat dimuat.",
+        loginUrl:"../index.html"
       });
-      const rows=await response.json();
-      if(!response.ok||!Array.isArray(rows))throw new Error("Daftar klien tidak dapat dimuat.");
+      if(!Array.isArray(rows))throw new Error("Daftar klien tidak dapat dimuat.");
       select.innerHTML='<option value="">Pilih klien</option>'+rows.map(client=>'<option value="'+textSafe(client.id)+'">'+textSafe(client.name)+'</option>').join("");
       select.disabled=rows.length===0;
       $("plan-client-hint").textContent=rows.length?"Pilih klien yang sesuai dengan data Excel.":"Belum ada klien pada Master Data.";
@@ -460,7 +461,6 @@
     $("confirm-rows").textContent=String(parsed.length);
     const groups=type==="inbound"?new Set(parsed.map(r=>(r.cells[0]||"").trim().toUpperCase()).filter(Boolean)).size:new Set(parsed.filter(r=>(r.cells[1]||"").trim()&&(r.cells[2]||"").trim()).map(r=>truckKey(r))).size;
     $("confirm-groups").textContent=String(groups);
-    $("confirm-warning").innerHTML='<i class="bi bi-exclamation-triangle-fill me-2"></i>Plan dapat aktif berdampingan untuk klien, tanggal, dan jenis yang sama selama nomor DO (Inbound) atau Shipment (Outbound) belum digunakan pada Plan aktif lain.';
     const headers=type==="inbound"?["DO / Transport task","Status"]:["Truk","Plat nomor","Nama driver","Shipment","Vendor","Tipe truck","Tujuan","Status"];
     $("confirm-table-head").innerHTML="<tr>"+headers.map(h=>"<th>"+textSafe(h)+"</th>").join("")+"</tr>";
     $("confirm-table-body").innerHTML=parsed.map((r,i)=>{
@@ -516,18 +516,20 @@
     button.disabled=true;
     button.innerHTML='<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyimpan Plan...';
     try{
-      const response=await fetch(SUPABASE_URL+"/rest/v1/rpc/save_import_plan",{
-        method:"POST",
-        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+sessionNow.access_token,"Content-Type":"application/json"},
-        body:JSON.stringify({p_client_id:$("plan-client").value,p_operational_date:$("operational-date").value,p_activity_type:type,p_rows:buildPayloadRows()})
+      const result=await window.TRCM.plan.rpc("save_import_plan",{
+        p_client_id:$("plan-client").value,
+        p_operational_date:$("operational-date").value,
+        p_activity_type:type,
+        p_rows:buildPayloadRows()
+      },{
+        errorFields:["message","details","hint"],
+        errorMessage:"Gagal menyimpan Plan.",
+        loginUrl:"../index.html",
+        errorMessageBuilder:function(data,raw,status){
+          const detail=[data&&data.message,data&&data.details,data&&data.hint].filter(Boolean).join(" · ");
+          return describeSaveError(detail||raw||("HTTP "+status));
+        }
       });
-      const raw=await response.text();
-      let result=null;
-      try{result=raw?JSON.parse(raw):null}catch(_){result={message:raw}}
-      if(!response.ok){
-        const detail=[result&&result.message,result&&result.details,result&&result.hint].filter(Boolean).join(" · ");
-        throw new Error(describeSaveError(detail||raw||("HTTP "+response.status)));
-      }
       const saved=Array.isArray(result)?result[0]:result;
       if(!saved||!saved.plan_id) throw new Error("Respons database tidak menyertakan ID Plan. Periksa data Plan sebelum mencoba ulang.");
       bootstrap.Modal.getOrCreateInstance($("confirm-import-modal")).hide();
@@ -549,8 +551,17 @@
   }
   $("confirm-import-final").addEventListener("click",saveAndActivatePlan);
   $("paste-data").value=schemas.inbound.sample;
-  loadClients();
-  if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function")window.trcmComponentsReady.then(()=>{const title=document.querySelector("[data-page-title]");if(title)title.textContent="Impor Plan";const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";});
+  if(window.trcmComponentsReady&&typeof window.trcmComponentsReady.then==="function"){
+    window.trcmComponentsReady.then(()=>{
+      const title=document.querySelector("[data-page-title]");
+      if(title)title.textContent="Impor Plan";
+      const eyebrow=document.querySelector("[data-page-eyebrow]");
+      if(eyebrow)eyebrow.textContent="Administrasi";
+      loadClients();
+    });
+  }else{
+    loadClients();
+  }
 })();
 </script>
 </body>

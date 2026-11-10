@@ -292,37 +292,17 @@
     elements.refresh.disabled = true;
   }
 
-  function apiHeaders(extra) {
-    return Object.assign({
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: "Bearer " + session.access_token,
+  function apiRequest(path, options) {
+    const requestOptions = Object.assign({}, options || {});
+    requestOptions.headers = Object.assign({
       Accept: "application/json"
-    }, extra || {});
-  }
+    }, (options && options.headers) || {});
 
-  async function apiRequest(path, options) {
-    const response = await fetch(SUPABASE_URL + path, Object.assign({}, options || {}, {
-      headers: apiHeaders((options && options.headers) || {})
-    }));
-
-    const text = await response.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      return null;
-    }
-
-    if (!response.ok) {
-      const message =
-        (data && (data.message || data.error_description || data.error)) ||
-        "Permintaan ke database gagal.";
-      throw new Error(message);
-    }
-
-    return data;
+    return window.TRCM.masterData.request(path, requestOptions, {
+      errorFields: ["message", "error_description", "error"],
+      errorMessage: "Permintaan ke database gagal.",
+      loginUrl: "../index.html"
+    });
   }
 
   function formatDate(value) {

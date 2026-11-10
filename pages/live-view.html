@@ -169,6 +169,10 @@ h1{font-size:clamp(1.8rem,3vw,3.3rem);line-height:1.05;margin:5px 0 0;font-weigh
 <footer class="footer"><span id="updated-at">Pembaruan terakhir: —</span></footer>
 </main>
 <script src="../assets/js/config.js"></script>
+<script src="../assets/js/contracts.js"></script>
+<script src="../assets/js/components/api.js"></script>
+<script src="../assets/js/components/visit.js"></script>
+<script src="../assets/js/components/master-data.js"></script>
 <script>
 (function(){
 "use strict";
@@ -177,17 +181,17 @@ const pageState=document.getElementById("page-state"),panels=document.getElement
 const connection=document.getElementById("connection"),connectionLabel=document.getElementById("connection-label");
 let visits=[],clients=[],realtimeClient=null,realtimeTimer=null,clockTimer=null,fallbackTimer=null;
 const fullscreenButton=document.getElementById("fullscreen-button");
-const labels={registered:"Terdaftar",wh_in:"Terdaftar",queue:"Parkir",started:"Sedang proses",completed:"Selesai"};
+const labels=Object.keys(window.TRCM.contracts.statuses).reduce((map,key)=>{map[key]=window.TRCM.contracts.statuses[key].liveViewLabel;return map;},{});
 function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function statusOf(v){return labels[v.process_status]?v.process_status:"registered";}
 function activityOf(v){return v.activity_type==="inbound"?"Inbound":"Outbound";}
 function formatDuration(v){const start=v.wh_in_at||v.registered_at||v.created_at;if(!start)return"—";const mins=Math.max(0,Math.floor((Date.now()-new Date(start).getTime())/60000));return Math.floor(mins/60)+"j "+String(mins%60).padStart(2,"0")+"m";}
 function formatTime(v){const value=v.started_at||v.registered_at||v.wh_in_at;if(!value)return"Jam masuk belum tersedia";return"Masuk "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit"}).format(new Date(value));}
 const clientPalette={"kimberly clark":"#006ECD","henkel":"#EF151E","modena":"#111111"};
-const statusPalette={registered:"#006ECD",wh_in:"#006ECD",queue:"#D6A000",started:"#F97316",completed:"#16A34A"};
+const statusPalette=Object.keys(window.TRCM.contracts.statuses).reduce((map,key)=>{map[key]=window.TRCM.contracts.statuses[key].liveViewColor;return map;},{});
 function clientColor(name){return clientPalette[String(name||"").trim().toLowerCase()]||"#6B7280";}
 function renderCounters(rows,prefix){
- const definitions=[["registered","Terdaftar"],["queue","Parkir"],["started","Proses"],["completed","Selesai"]];
+ const definitions=[["registered",labels.registered],["queue",labels.queue],["started",labels.started],["completed",labels.completed]];
  return '<div class="counters">'+definitions.map(([status,label])=>'<div class="counter" data-status="'+status+'"><div class="counter-label"><span class="counter-dot"></span>'+label+'</div><div class="counter-value">'+rows.filter(v=>statusOf(v)===status||(status==="registered"&&statusOf(v)==="wh_in")).length+'</div></div>').join("")+'</div>';
 }
 function renderTruckCard(v,color){
@@ -226,9 +230,9 @@ function render(){
  panels.hidden=false;pageState.hidden=true;
  document.getElementById("updated-at").textContent="Pembaruan terakhir: "+new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date());
 }
-async function request(path,options){const response=await fetch(SUPABASE_URL+path,Object.assign({headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}},options||{}));let data=null;try{data=await response.json();}catch{}if(response.status===401){sessionStorage.removeItem("trcm_session");location.replace("../index.html");return null;}if(!response.ok)throw new Error(data&&(data.message||data.details||data.hint)||"Permintaan data Live View gagal.");return data;}
+async function request(path,options){const settings={errorFields:["message","details","hint"],errorMessage:"Permintaan data Live View gagal.",loginUrl:"../index.html"};if(window.TRCM.visit.handles(path))return window.TRCM.visit.request(path,options,settings);if(window.TRCM.masterData.handles(path))return window.TRCM.masterData.request(path,options,settings);return window.TRCM.api.request(path,options,settings);}
 async function loadVisits(){try{const select="id,plate_number,driver_name,activity_type,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,shipment_number,destination_city,vendor,card_id,client_id,gate_id,line_number_id,cards(card_number),clients(name),gates(gate_number),line_numbers(line_number)";const data=await request("/rest/v1/visits?select="+encodeURIComponent(select)+"&wh_out_at=is.null&order=created_at.asc");if(!Array.isArray(data))throw new Error("Respons data Live View tidak valid.");visits=data;try{const clientData=await request("/rest/v1/clients?select=id,name&order=name.asc");if(Array.isArray(clientData))clients=clientData;}catch(clientError){console.warn("Daftar klien Live View tidak dapat dimuat; menampilkan klien dari data armada aktif.",clientError);clients=[];}render();}catch(error){console.error("TRCM Live View:",error);if(!panels.hidden){connection.classList.remove("is-live");connectionLabel.textContent="Data tertunda · mencoba lagi";}else{pageState.innerHTML='<i class="bi bi-exclamation-triangle"></i>Data Live View gagal dimuat. Periksa koneksi atau akses Viewer, lalu muat ulang halaman.';pageState.setAttribute("role","alert");}}}
-async function checkPermission(){if(!session||!session.access_token||!session.user){location.replace("../index.html");return false;}const rows=await request("/rest/v1/rpc/get_my_permissions",{method:"POST",headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:"{}"});if(!Array.isArray(rows)||!rows.some(r=>r.resource_key==="live_view"&&r.permission_key==="view")){pageState.innerHTML='<i class="bi bi-shield-lock"></i>Akses Live View tidak tersedia untuk akun ini.';pageState.setAttribute("role","alert");return false;}return true;}
+async function checkPermission(){if(!session||!session.access_token||!session.user){location.replace("../index.html");return false;}const rows=await request("/rest/v1/rpc/get_my_permissions",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});if(!Array.isArray(rows)||!rows.some(r=>r.resource_key==="live_view"&&r.permission_key==="view")){pageState.innerHTML='<i class="bi bi-shield-lock"></i>Akses Live View tidak tersedia untuk akun ini.';pageState.setAttribute("role","alert");return false;}return true;}
 function updateClock(){const now=new Date();document.getElementById("clock-time").textContent=new Intl.DateTimeFormat("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);document.getElementById("clock-date").textContent=new Intl.DateTimeFormat("id-ID",{weekday:"long",day:"2-digit",month:"long",year:"numeric"}).format(now);}
 function connectRealtime(){const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";script.async=true;script.onload=function(){if(!window.supabase||!window.supabase.createClient)return;realtimeClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);realtimeClient.realtime.setAuth(session.access_token);realtimeClient.channel("trcm-live-view").on("postgres_changes",{event:"*",schema:"public",table:"visits"},function(){if(realtimeTimer)clearTimeout(realtimeTimer);realtimeTimer=setTimeout(loadVisits,400);}).subscribe(function(status){const live=status==="SUBSCRIBED";connection.classList.toggle("is-live",live);connectionLabel.textContent=live?"Realtime aktif":"Realtime "+String(status||"tidak tersedia").toLowerCase();});};script.onerror=function(){connectionLabel.textContent="Refresh berkala aktif";};document.head.appendChild(script);}
 fullscreenButton.addEventListener("click",async function(){try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();}else{await document.exitFullscreen();}}catch(error){console.error("TRCM Live Dashboard fullscreen:",error);}});

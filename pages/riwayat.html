@@ -187,50 +187,19 @@ function clearEditAlert() {
 }
 
 async function patchVisit(visitId, payload) {
-  const response = await fetch(SUPABASE_URL + "/rest/v1/visits?id=eq." + encodeURIComponent(visitId), {
-    method: "PATCH",
-    headers: {
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: "Bearer " + trcmSession.access_token,
-      "Content-Type": "application/json",
-      Prefer: "return=representation"
-    },
-    body: JSON.stringify(payload)
+  return window.TRCM.visit.update(visitId, payload, {
+    errorFields: ["message", "details", "hint"],
+    errorMessage: "Data kunjungan gagal diperbarui.",
+    loginUrl: "../index.html"
   });
-  const text = await response.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-  if (response.status === 401) {
-    sessionStorage.removeItem("trcm_session");
-    window.location.replace("../index.html");
-    return null;
-  }
-  if (!response.ok) {
-    throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Data kunjungan gagal diperbarui.");
-  }
-  return data;
 }
 
 async function deleteVisit(visitId) {
-  const response = await fetch(SUPABASE_URL + "/rest/v1/visits?id=eq." + encodeURIComponent(visitId), {
-    method: "DELETE",
-    headers: {
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: "Bearer " + trcmSession.access_token,
-      Prefer: "return=minimal"
-    }
+  await window.TRCM.visit.remove(visitId, {
+    errorFields: ["message", "details", "hint"],
+    errorMessage: "Data kunjungan gagal dihapus.",
+    loginUrl: "../index.html"
   });
-  const text = await response.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-  if (response.status === 401) {
-    sessionStorage.removeItem("trcm_session");
-    window.location.replace("../index.html");
-    return;
-  }
-  if (!response.ok) {
-    throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Data kunjungan gagal dihapus.");
-  }
 }
 
 function populateEditClients(selectedId) {
@@ -456,31 +425,18 @@ async function openVisitModal(visitId) {
       "photos(id,photo_type,file_location,created_at,uploaded_by,uploaded_by_user:users!photos_uploaded_by_fkey(username,full_name))"
     ].join(",");
 
-    const url = SUPABASE_URL +
+    const data = await window.TRCM.visit.request(
       "/rest/v1/visits?select=" + encodeURIComponent(select) +
       "&id=eq." + encodeURIComponent(visitId) +
-      "&limit=1";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + trcmSession.access_token
+      "&limit=1",
+      {},
+      {
+        errorFields: ["message"],
+        errorMessage: "Gagal mengambil detail visit.",
+        unauthorizedMessage: "Gagal mengambil detail visit.",
+        redirectOnUnauthorized: false
       }
-    });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = {};
-    }
-
-    if (!response.ok) {
-      throw new Error(data && data.message ? data.message : "Gagal mengambil detail visit.");
-    }
+    );
 
     if (!Array.isArray(data) || !data.length) {
       throw new Error("Visit tidak ditemukan.");
@@ -541,13 +497,11 @@ async function openVisitModal(visitId) {
 
     let selectedPlanShipmentHtml = '<div class="modal-loading">Memuat DO/Shipment yang dipilih...</div>';
     try {
-      const linkedItems = await fetch(SUPABASE_URL + "/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {
-        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + trcmSession.access_token }
-      });
-      const linkedText = await linkedItems.text();
-      let linkedRows = [];
-      try { linkedRows = linkedText ? JSON.parse(linkedText) : []; } catch { linkedRows = []; }
-      if (!linkedItems.ok) throw new Error("DO/Shipment tidak dapat dimuat.");
+      const linkedRows = await window.TRCM.plan.request("/rest/v1/visit_plan_items?select=plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(trip_number,vendor,destination))&visit_id=eq." + encodeURIComponent(visit.id), {}, {
+        errorFields: [],
+        errorMessage: "DO/Shipment tidak dapat dimuat.",
+        loginUrl: "../index.html"
+      }) || [];
       if (Array.isArray(linkedRows) && linkedRows.length) {
         const references = new Map();
         const registrationVendor = String(visit.vendor || "").trim();
@@ -610,53 +564,7 @@ async function openVisitModal(visitId) {
 
     const photos = Array.isArray(visit.photos) ? visit.photos : [];
     async function createSignedPhotoUrl(fileLocation) {
-      if (!fileLocation) return null;
-
-      const objectPath = String(fileLocation)
-        .replace(/^\/+/g, "")
-        .replace(/^trcm-visit-photos\//, "");
-
-      if (!objectPath) return null;
-
-      const response = await fetch(
-        SUPABASE_URL + "/storage/v1/object/sign/trcm-visit-photos/" +
-        objectPath.split("/").map(encodeURIComponent).join("/"),
-        {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + trcmSession.access_token,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ expiresIn: 3600 })
-        }
-      );
-
-      const responseText = await response.text();
-      let data = null;
-      try { data = responseText ? JSON.parse(responseText) : null; } catch {}
-
-      if (!response.ok) {
-        console.error("Gagal membuat signed URL foto:", response.status, data);
-        return null;
-      }
-
-      const signedPath = data && (data.signedURL || data.signedUrl);
-      if (!signedPath) return null;
-
-      if (signedPath.startsWith("http://") || signedPath.startsWith("https://")) {
-        return signedPath;
-      }
-
-      const normalizedSignedPath = signedPath.startsWith("/")
-        ? signedPath
-        : "/" + signedPath;
-
-      return SUPABASE_URL + (
-        normalizedSignedPath.startsWith("/storage/v1/")
-          ? normalizedSignedPath
-          : "/storage/v1" + normalizedSignedPath
-      );
+      return window.TRCM.photo.createSignedUrl(fileLocation, 3600);
     }
     const photoResults = await Promise.all(photos.map(async function (photo) {
       return { photo: photo, url: await createSignedPhotoUrl(photo.file_location) };
@@ -813,39 +721,18 @@ async function loadVisits() {
       "gates(gate_number)"
     ].join(",");
 
-    const url =
-      SUPABASE_URL +
-      "/rest/v1/visits?select=" +
-      encodeURIComponent(select) +
-      "&order=created_at.desc";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + trcmSession.access_token
+    const data = await window.TRCM.visit.request(
+      "/rest/v1/visits?select=" + encodeURIComponent(select) + "&order=created_at.desc",
+      {},
+      {
+        errorFields: ["message"],
+        errorMessage: "Gagal mengambil data dashboard.",
+        invalidResponseMessage: "Respons data dashboard tidak valid.",
+        requireJson: true,
+        loginUrl: "../index.html"
       }
-    });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = {};
-    }
-
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      return;
-    }
-
-    if (!response.ok) {
-      const message = data && data.message ? data.message : "Gagal mengambil data dashboard.";
-      throw new Error(message);
-    }
+    );
+    if (data === null) return;
 
     if (!Array.isArray(data)) {
       throw new Error("Respons data dashboard tidak valid.");
@@ -1046,20 +933,18 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
   const params = new URLSearchParams({select:select, and:"(wh_in_at.gte." + startIso + ",wh_in_at.lt." + end.toISOString() + ")", order:"wh_in_at.asc"});
   const allRows = [], pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
-    const response = await fetch(SUPABASE_URL + "/rest/v1/visits?" + params.toString(), {
-      method:"GET",
-      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token,
-        Range:offset + "-" + (offset + pageSize - 1),"Range-Unit":"items"}
+    const data = await window.TRCM.visit.request("/rest/v1/visits?" + params.toString(), {
+      method: "GET",
+      headers: {
+        Range: offset + "-" + (offset + pageSize - 1),
+        "Range-Unit": "items"
+      }
+    }, {
+      errorFields: ["message", "details", "hint"],
+      errorMessage: "Data ekspor gagal diambil.",
+      unauthorizedMessage: "Sesi berakhir. Silakan masuk kembali.",
+      loginUrl: "../index.html"
     });
-    const responseText = await response.text();
-    let data = null;
-    try { data = responseText ? JSON.parse(responseText) : null; } catch { data = null; }
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      throw new Error("Sesi berakhir. Silakan masuk kembali.");
-    }
-    if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) || "Data ekspor gagal diambil.");
     if (!Array.isArray(data)) throw new Error("Respons data ekspor tidak valid.");
     allRows.push.apply(allRows,data);
     if (data.length < pageSize) break;
@@ -1073,20 +958,14 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
   for (let offset = 0; offset < filteredRows.length; offset += 100) {
     const visitIds = filteredRows.slice(offset, offset + 100).map(function (visit) { return visit.id; }).filter(Boolean);
     if (!visitIds.length) continue;
-    const linkedUrl = SUPABASE_URL + "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(vendor,destination))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
-    const linkedResponse = await fetch(linkedUrl, {
-      method:"GET",
-      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token}
+    const linkedPath = "/rest/v1/visit_plan_items?select=visit_id,snapshot_do_number,snapshot_shipment_number,snapshot_vendor,snapshot_destination,snapshot_activity_type,import_plan_items(do_number,shipment_number,import_plans(activity_type),import_plan_trips(vendor,destination))&visit_id=in.(" + visitIds.map(encodeURIComponent).join(",") + ")";
+    const linkedRows = await window.TRCM.plan.request(linkedPath, {}, {
+      errorFields: [],
+      errorMessage: "Data DO/Shipment terkait kunjungan gagal diambil.",
+      unauthorizedMessage: "Sesi berakhir. Silakan masuk kembali.",
+      loginUrl: "../index.html"
     });
-    const linkedText = await linkedResponse.text();
-    let linkedRows = null;
-    try { linkedRows = linkedText ? JSON.parse(linkedText) : []; } catch { linkedRows = null; }
-    if (linkedResponse.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      throw new Error("Sesi berakhir. Silakan masuk kembali.");
-    }
-    if (!linkedResponse.ok || !Array.isArray(linkedRows)) {
+    if (!Array.isArray(linkedRows)) {
       throw new Error("Data DO/Shipment terkait kunjungan gagal diambil.");
     }
     linkedRows.forEach(function (row) {

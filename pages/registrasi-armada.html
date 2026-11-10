@@ -221,30 +221,33 @@ window.trcmComponentsReady.then(async function () {
   function clearAlert() { alertBox.className = "registration-alert d-none"; alertBox.textContent = ""; }
 
   async function getJson(path) {
-    const response = await fetch(SUPABASE_URL + path, {headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + session.access_token}});
-    const text = await response.text();
-    let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-    if (response.status === 401) { sessionStorage.removeItem("trcm_session"); window.location.replace("../index.html"); return null; }
-    if (!response.ok) throw new Error(data && (data.message || data.hint) ? (data.message || data.hint) : "Gagal mengambil data master.");
-    return data;
+    const settings = {
+      errorFields: ["message", "hint"],
+      errorMessage: "Gagal mengambil data master.",
+      loginUrl: "../index.html"
+    };
+    if (window.TRCM.visit.handles(path)) return window.TRCM.visit.request(path, {}, settings);
+    if (window.TRCM.masterData.handles(path)) return window.TRCM.masterData.request(path, {}, settings);
+    return window.TRCM.api.request(path, {}, settings);
   }
 
   async function postJson(path, payload) {
-    const response = await fetch(SUPABASE_URL + path, {
+    const options = {
       method: "POST",
       headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + session.access_token,
         "Content-Type": "application/json",
         Prefer: "return=representation"
       },
       body: JSON.stringify(payload)
-    });
-    const text = await response.text();
-    let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-    if (response.status === 401) { sessionStorage.removeItem("trcm_session"); window.location.replace("../index.html"); return null; }
-    if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Data gagal disimpan.");
-    return data;
+    };
+    const settings = {
+      errorFields: ["message", "details", "hint"],
+      errorMessage: "Data gagal disimpan.",
+      loginUrl: "../index.html"
+    };
+    if (window.TRCM.visit.handles(path)) return window.TRCM.visit.request(path, options, settings);
+    if (window.TRCM.masterData.handles(path)) return window.TRCM.masterData.request(path, options, settings);
+    return window.TRCM.api.request(path, options, settings);
   }
 
   function populateClients(rows) {
@@ -593,22 +596,17 @@ window.trcmComponentsReady.then(async function () {
         for (const photoFile of whInPhotoFiles) {
           try {
             const objectPath = saved.id + "/registration-" + Date.now() + "-" + crypto.randomUUID() + "-" + photoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-            const uploadResponse = await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath.split("/").map(encodeURIComponent).join("/"), {
-              method: "POST",
-              headers: {
-                apikey: SUPABASE_PUBLISHABLE_KEY,
-                Authorization: "Bearer " + session.access_token,
-                "Content-Type": photoFile.type,
-                "x-upsert": "false"
-              },
-              body: photoFile
-            });
+            const uploadResponse = await window.TRCM.photo.upload(objectPath, photoFile, photoFile.type);
             if (!uploadResponse.ok) throw new Error("Foto gagal diunggah.");
-            await postJson("/rest/v1/photos", {
+            await window.TRCM.photo.createRecord({
               visit_id: saved.id,
               photo_type: "registration",
               file_location: objectPath,
               uploaded_by: session.user.id
+            }, {
+              errorFields: ["message", "details", "hint"],
+              errorMessage: "Data gagal disimpan.",
+              loginUrl: "../index.html"
             });
           } catch (photoError) {
             console.warn("Foto WH In opsional:", photoFile.name, photoError);

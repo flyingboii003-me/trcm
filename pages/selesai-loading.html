@@ -212,30 +212,16 @@ window.trcmComponentsReady.then(async function () {
   let selectedVisit = null;
   let selectedPhotoFiles = [];
 
-  async function request(path, options) {
-    const response = await fetch(SUPABASE_URL + path, Object.assign({
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + session.access_token
-      }
-    }, options || {}));
-
-    const text = await response.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(data && (data.message || data.details || data.hint) ? (data.message || data.details || data.hint) : "Permintaan ke database gagal.");
-    }
-
-    return data;
-  }
+  const request = function (path, options) {
+    const settings = {
+      errorFields: ["message", "details", "hint"],
+      errorMessage: "Permintaan ke database gagal."
+    };
+    if (window.TRCM.visit.handles(path)) return window.TRCM.visit.request(path, options, settings);
+    if (window.TRCM.plan.handles(path)) return window.TRCM.plan.request(path, options, settings);
+    if (window.TRCM.photo.handles(path)) return window.TRCM.photo.request(path, options, settings);
+    return window.TRCM.api.request(path, options, settings);
+  };
 
   function resetLoadingPhoto() {
     selectedPhotoFiles = [];
@@ -309,16 +295,7 @@ window.trcmComponentsReady.then(async function () {
   async function uploadLoadingPhoto(visitId, file) {
     const blob = await compressPhoto(file);
     const objectPath = visitId + "/" + crypto.randomUUID() + ".webp";
-    const response = await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + session.access_token,
-        "Content-Type": "image/webp",
-        "x-upsert": "false"
-      },
-      body: blob
-    });
+    const response = await window.TRCM.photo.upload(objectPath, blob, "image/webp");
     if (!response.ok) {
       const text = await response.text();
       let detail = null;
@@ -330,13 +307,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function deleteLoadingPhoto(objectPath) {
     if (!objectPath) return;
-    await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath.split("/").map(encodeURIComponent).join("/"), {
-      method: "DELETE",
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + session.access_token
-      }
-    });
+    await window.TRCM.photo.remove(objectPath);
   }
 
   function formatActivity(activityType) {
@@ -552,20 +523,11 @@ window.trcmComponentsReady.then(async function () {
       for (const file of selectedPhotoFiles) {
         const objectPath = await uploadLoadingPhoto(selectedVisit.id, file);
         uploadedPhotoPaths.push(objectPath);
-        const rows = await request("/rest/v1/photos", {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + session.access_token,
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify({
-            visit_id: selectedVisit.id,
-            photo_type: "loading_completion",
-            file_location: objectPath,
-            uploaded_by: session.user.id
-          })
+        const rows = await window.TRCM.photo.createRecord({
+          visit_id: selectedVisit.id,
+          photo_type: "loading_completion",
+          file_location: objectPath,
+          uploaded_by: session.user.id
         });
         if (Array.isArray(rows) && rows[0] && rows[0].id) photoRecordIds.push(rows[0].id);
       }
@@ -574,8 +536,6 @@ window.trcmComponentsReady.then(async function () {
       const result = await request("/rest/v1/rpc/finish_loading_visit", {
         method: "POST",
         headers: {
-          apikey: SUPABASE_PUBLISHABLE_KEY,
-          Authorization: "Bearer " + session.access_token,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -602,7 +562,7 @@ window.trcmComponentsReady.then(async function () {
       console.error("TRCM Selesai Loading save:", error);
       for (const photoRecordId of photoRecordIds) {
         try {
-          await request("/rest/v1/photos?id=eq." + encodeURIComponent(photoRecordId), { method: "DELETE" });
+          await window.TRCM.photo.deleteRecord(photoRecordId);
         } catch {}
       }
       for (const uploadedPhotoPath of uploadedPhotoPaths) {
