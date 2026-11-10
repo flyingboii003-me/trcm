@@ -4,8 +4,15 @@
   window.TRCM = window.TRCM || {};
   window.TRCM.photo = window.TRCM.photo || {};
 
+  const contract = window.TRCM.contracts && window.TRCM.contracts.services.photo;
+  if (!contract) throw new Error("TRCM service contract belum dimuat.");
+  const resources = new Set(contract.resources);
+  const bucket = contract.storageBucket;
+
   function handles(path) {
-    return typeof path === "string" && /^\/rest\/v1\/photos(?:\?|$)/.test(path);
+    if (typeof path !== "string") return false;
+    const match = path.match(/^\/rest\/v1\/([a-z_]+)(?:\?|$)/);
+    return Boolean(match && resources.has(match[1]));
   }
 
   function getAuthHeaders(extra) {
@@ -19,7 +26,7 @@
   function storagePath(operation, objectPath) {
     const encodedPath = String(objectPath || "").split("/").map(encodeURIComponent).join("/");
     const action = operation ? operation + "/" : "";
-    return "/storage/v1/object/" + action + "trcm-visit-photos/" + encodedPath;
+    return "/storage/v1/object/" + action + bucket + "/" + encodedPath;
   }
 
   function request(path, options, settings) {
@@ -67,7 +74,7 @@
     if (!fileLocation) return null;
     const objectPath = String(fileLocation)
       .replace(/^\/+/, "")
-      .replace(/^trcm-visit-photos\//, "");
+      .replace(new RegExp("^" + bucket + "\\/"), "");
     if (!objectPath) return null;
 
     const response = await fetch(
