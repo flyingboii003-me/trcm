@@ -596,22 +596,17 @@ window.trcmComponentsReady.then(async function () {
         for (const photoFile of whInPhotoFiles) {
           try {
             const objectPath = saved.id + "/registration-" + Date.now() + "-" + crypto.randomUUID() + "-" + photoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-            const uploadResponse = await fetch(SUPABASE_URL + "/storage/v1/object/trcm-visit-photos/" + objectPath.split("/").map(encodeURIComponent).join("/"), {
-              method: "POST",
-              headers: {
-                apikey: SUPABASE_PUBLISHABLE_KEY,
-                Authorization: "Bearer " + session.access_token,
-                "Content-Type": photoFile.type,
-                "x-upsert": "false"
-              },
-              body: photoFile
-            });
+            const uploadResponse = await window.TRCM.photo.upload(objectPath, photoFile, photoFile.type);
             if (!uploadResponse.ok) throw new Error("Foto gagal diunggah.");
-            await postJson("/rest/v1/photos", {
+            await window.TRCM.photo.createRecord({
               visit_id: saved.id,
               photo_type: "registration",
               file_location: objectPath,
               uploaded_by: session.user.id
+            }, {
+              errorFields: ["message", "details", "hint"],
+              errorMessage: "Data gagal disimpan.",
+              loginUrl: "../index.html"
             });
           } catch (photoError) {
             console.warn("Foto WH In opsional:", photoFile.name, photoError);
