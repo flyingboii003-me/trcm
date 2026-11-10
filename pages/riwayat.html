@@ -967,20 +967,18 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
   const params = new URLSearchParams({select:select, and:"(wh_in_at.gte." + startIso + ",wh_in_at.lt." + end.toISOString() + ")", order:"wh_in_at.asc"});
   const allRows = [], pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
-    const response = await fetch(SUPABASE_URL + "/rest/v1/visits?" + params.toString(), {
-      method:"GET",
-      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer " + trcmSession.access_token,
-        Range:offset + "-" + (offset + pageSize - 1),"Range-Unit":"items"}
+    const data = await window.TRCM.visit.request("/rest/v1/visits?" + params.toString(), {
+      method: "GET",
+      headers: {
+        Range: offset + "-" + (offset + pageSize - 1),
+        "Range-Unit": "items"
+      }
+    }, {
+      errorFields: ["message", "details", "hint"],
+      errorMessage: "Data ekspor gagal diambil.",
+      unauthorizedMessage: "Sesi berakhir. Silakan masuk kembali.",
+      loginUrl: "../index.html"
     });
-    const responseText = await response.text();
-    let data = null;
-    try { data = responseText ? JSON.parse(responseText) : null; } catch { data = null; }
-    if (response.status === 401) {
-      sessionStorage.removeItem("trcm_session");
-      window.location.replace("../index.html");
-      throw new Error("Sesi berakhir. Silakan masuk kembali.");
-    }
-    if (!response.ok) throw new Error(data && (data.message || data.details || data.hint) || "Data ekspor gagal diambil.");
     if (!Array.isArray(data)) throw new Error("Respons data ekspor tidak valid.");
     allRows.push.apply(allRows,data);
     if (data.length < pageSize) break;
@@ -998,6 +996,7 @@ async function fetchExportVisits(startDate, endDate, selectedClient) {
     const linkedRows = await window.TRCM.plan.request(linkedPath, {}, {
       errorFields: [],
       errorMessage: "Data DO/Shipment terkait kunjungan gagal diambil.",
+      unauthorizedMessage: "Sesi berakhir. Silakan masuk kembali.",
       loginUrl: "../index.html"
     });
     if (!Array.isArray(linkedRows)) {
