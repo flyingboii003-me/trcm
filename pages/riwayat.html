@@ -579,53 +579,7 @@ async function openVisitModal(visitId) {
 
     const photos = Array.isArray(visit.photos) ? visit.photos : [];
     async function createSignedPhotoUrl(fileLocation) {
-      if (!fileLocation) return null;
-
-      const objectPath = String(fileLocation)
-        .replace(/^\/+/g, "")
-        .replace(/^trcm-visit-photos\//, "");
-
-      if (!objectPath) return null;
-
-      const response = await fetch(
-        SUPABASE_URL + "/storage/v1/object/sign/trcm-visit-photos/" +
-        objectPath.split("/").map(encodeURIComponent).join("/"),
-        {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: "Bearer " + trcmSession.access_token,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ expiresIn: 3600 })
-        }
-      );
-
-      const responseText = await response.text();
-      let data = null;
-      try { data = responseText ? JSON.parse(responseText) : null; } catch {}
-
-      if (!response.ok) {
-        console.error("Gagal membuat signed URL foto:", response.status, data);
-        return null;
-      }
-
-      const signedPath = data && (data.signedURL || data.signedUrl);
-      if (!signedPath) return null;
-
-      if (signedPath.startsWith("http://") || signedPath.startsWith("https://")) {
-        return signedPath;
-      }
-
-      const normalizedSignedPath = signedPath.startsWith("/")
-        ? signedPath
-        : "/" + signedPath;
-
-      return SUPABASE_URL + (
-        normalizedSignedPath.startsWith("/storage/v1/")
-          ? normalizedSignedPath
-          : "/storage/v1" + normalizedSignedPath
-      );
+      return window.TRCM.photo.createSignedUrl(fileLocation, 3600);
     }
     const photoResults = await Promise.all(photos.map(async function (photo) {
       return { photo: photo, url: await createSignedPhotoUrl(photo.file_location) };
