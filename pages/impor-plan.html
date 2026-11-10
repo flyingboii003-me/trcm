@@ -258,11 +258,12 @@
       return;
     }
     try{
-      const response=await fetch(SUPABASE_URL+"/rest/v1/clients?select=id,name&order=name.asc",{
-        headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}
+      const rows=await window.TRCM.masterData.list("clients","select=id,name&order=name.asc",{
+        errorFields:[],
+        errorMessage:"Daftar klien tidak dapat dimuat.",
+        loginUrl:"../index.html"
       });
-      const rows=await response.json();
-      if(!response.ok||!Array.isArray(rows))throw new Error("Daftar klien tidak dapat dimuat.");
+      if(!Array.isArray(rows))throw new Error("Daftar klien tidak dapat dimuat.");
       select.innerHTML='<option value="">Pilih klien</option>'+rows.map(client=>'<option value="'+textSafe(client.id)+'">'+textSafe(client.name)+'</option>').join("");
       select.disabled=rows.length===0;
       $("plan-client-hint").textContent=rows.length?"Pilih klien yang sesuai dengan data Excel.":"Belum ada klien pada Master Data.";
