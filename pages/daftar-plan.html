@@ -397,7 +397,7 @@
   function statusBadge(status){const s=String(status||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="active"?"bi-check-circle-fill":"bi-x-circle-fill")+'"></i>'+esc(statusLabels[s]||s||"Tidak diketahui")+'</span>';}
   function activityBadge(type){const s=String(type||"").toLowerCase();return '<span class="list-badge '+esc(s)+'"><i class="bi '+(s==="inbound"?"bi-box-arrow-in-down":"bi-box-arrow-up")+'"></i>'+esc(activityLabels[s]||s||"—")+'</span>';}
   function countItems(plan){return Array.isArray(plan.import_plan_items)?plan.import_plan_items.length:Number(plan.row_count)||0;}
-  function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+state.session.access_token},options&&options.headers||{});return window.TRCM.plan.request(path, config, {
+  function countTrips(plan){return Array.isArray(plan.import_plan_trips)?plan.import_plan_trips.length:0;}  async function request(path,options){const config=Object.assign({},options||{});config.headers=Object.assign({},options&&options.headers||{});return window.TRCM.plan.request(path, config, {
       errorFields: ["message", "details", "hint"],
       errorMessage: "Permintaan database gagal."
     });}
