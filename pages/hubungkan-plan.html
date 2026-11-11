@@ -215,7 +215,7 @@
       }).join("");
       const result=await Swal.fire({
         title:"Hubungkan DO / Shipment",
-        html:'<div class="text-start"><p class="small text-secondary mb-3">Armada <strong>'+esc(visit.plate_number||"—")+'</strong> · '+esc(activityLabels[visit.activity_type]||visit.activity_type)+'</p><label class="form-label fw-bold small" for="hub-plan-items-select">Pilih satu atau beberapa dokumen</label><select id="hub-plan-items-select" class="form-select hub-select" multiple>'+options+'</select><p class="small text-secondary mt-2 mb-0">Hanya Plan aktif dengan klien dan aktivitas yang sama yang ditampilkan. Gunakan Ctrl atau Command untuk memilih beberapa dokumen.</p></div>',
+        html:'<div class="text-start"><p class="small text-secondary mb-3">Armada <strong>'+esc(visit.plate_number||"—")+'</strong> · '+esc(activityLabels[visit.activity_type]||visit.activity_type)+'</p><label class="form-label fw-bold small" for="hub-plan-items-select">Pilih satu atau beberapa dokumen</label><select id="hub-plan-items-select" class="form-select hub-select" multiple>'+options+'</select></div>',
         showCancelButton:true,confirmButtonText:"Hubungkan",cancelButtonText:"Batal",confirmButtonColor:"#006ECD",focusConfirm:false,
         preConfirm:()=>{const select=document.getElementById("hub-plan-items-select");const ids=Array.from(select.selectedOptions).map(option=>option.value);if(!ids.length){Swal.showValidationMessage("Pilih minimal satu DO / Shipment.");return false;}return ids;}
       });
