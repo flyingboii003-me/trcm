@@ -69,7 +69,6 @@
         <section class="hub-card">
           <div class="hub-card-head">
             <div><h2 class="hub-card-title">Daftar armada belum WH Out</h2></div>
-            <span class="hub-note" id="hub-total">Memuat data…</span>
           </div>
           <div class="hub-card-body">
             <div class="row g-3 mb-3">
@@ -148,7 +147,6 @@
     state.page=Math.min(state.page,pages);
     const start=(state.page-1)*state.pageSize;
     const visible=rows.slice(start,start+state.pageSize);
-    $("hub-total").textContent=total?total+" armada":"";
     $("hub-filter-summary").textContent=total===state.visits.length?"Seluruh armada yang belum WH Out.":total+" dari "+state.visits.length+" armada sesuai filter.";
     if(!visible.length){
       $("hub-table-body").innerHTML='<tr><td colspan="6"><div class="hub-empty"><i class="bi bi-truck"></i><strong>Tidak ada armada ditemukan</strong><p class="mb-0 mt-1">Ubah kata pencarian atau filter yang digunakan.</p></div></td></tr>';
@@ -197,7 +195,6 @@
       applyFilters();
     }catch(error){
       console.error("TRCM Hubungkan Plan:",error);
-      $("hub-total").textContent="—";
       $("hub-table-body").innerHTML='<tr><td colspan="6" class="text-center text-danger py-4">'+esc(error.message||"Data gagal dimuat.")+'</td></tr>';
     }finally{state.loading=false;}
   }
