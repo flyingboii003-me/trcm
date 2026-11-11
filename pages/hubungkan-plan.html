@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hubungkan DO atau Shipment ke armada TRCM">
+  <title>Hubungkan Plan — TRCM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/trcm.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <style>
+    .hub-page{--hub-line:var(--border);--hub-muted:var(--text-muted)}
+    .hub-kicker{display:block;margin-bottom:.45rem;color:var(--cj-blue);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .hub-card{overflow:hidden;border:1px solid var(--hub-line);border-radius:var(--radius-xl);background:var(--card-bg,#fff);box-shadow:var(--shadow-sm)}
+    .hub-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.2rem 1.4rem;border-bottom:1px solid var(--hub-line)}
+    .hub-card-body{padding:1.25rem 1.4rem}
+    .hub-card-title{margin:0 0 .25rem;font-size:1rem;font-weight:800}
+    .hub-card-subtitle,.hub-note{margin:0;color:var(--hub-muted);font-size:.78rem;line-height:1.55}
+    .hub-filter-label{display:block;margin-bottom:.4rem;font-size:.76rem;font-weight:800}
+    .hub-filter{min-height:42px;border:1px solid var(--hub-line);border-radius:var(--radius-md);font-size:.84rem}
+    .hub-table-wrap{overflow:auto;border:1px solid var(--hub-line);border-radius:var(--radius-lg)}
+    .hub-table{min-width:980px;margin:0;font-size:.82rem}
+    .hub-table thead th{padding:.85rem 1rem;background:var(--surface-2,#F6F8FC);color:var(--text-muted);font-size:.69rem;font-weight:800;white-space:nowrap;border-bottom:1px solid var(--hub-line)}
+    .hub-table tbody td{padding:.85rem 1rem;vertical-align:middle;border-color:var(--hub-line)}
+    .hub-table tbody tr:hover td{background:rgba(0,110,205,.025)}
+    .hub-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700}
+    .hub-status{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:50rem;background:var(--surface-2,#F6F8FC);color:var(--text-muted);font-size:.7rem;font-weight:800;white-space:nowrap}
+    .hub-status.started{background:rgba(255,151,0,.12);color:var(--accent-text)}
+    .hub-status.completed{background:rgba(0,110,205,.1);color:var(--primary-text)}
+    .hub-doc-list{display:flex;flex-wrap:wrap;gap:.35rem;min-width:190px}
+    .hub-doc{display:inline-flex;align-items:center;gap:.35rem;max-width:100%;padding:.3rem .5rem;border:1px solid var(--hub-line);border-radius:var(--radius-md);background:var(--surface-2,#F6F8FC);font-size:.72rem;overflow-wrap:anywhere}
+    .hub-doc button{display:inline-grid;width:25px;height:25px;place-items:center;padding:0;border:0;border-radius:6px;background:transparent;color:var(--danger-text)}
+    .hub-doc button:hover{background:rgba(239,21,30,.1)}
+    .hub-empty{padding:2.75rem 1rem;text-align:center;color:var(--hub-muted)}
+    .hub-empty i{display:block;margin-bottom:.65rem;font-size:1.7rem}
+    .hub-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--hub-line)}
+    .hub-page-controls{display:flex;align-items:center;gap:.35rem}
+    .hub-page-button{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--hub-line);border-radius:var(--radius-md);background:var(--card-bg,#fff);color:var(--text-main);font-size:.78rem;font-weight:700}
+    .hub-page-button.active{border-color:var(--cj-blue);background:var(--cj-blue);color:#fff}
+    .hub-page-button:disabled{opacity:.45}
+    .hub-callout{display:flex;align-items:flex-start;gap:.7rem;padding:.9rem 1rem;border:1px solid rgba(0,110,205,.22);border-radius:var(--radius-lg);background:rgba(0,110,205,.06);color:var(--text-main);font-size:.8rem;line-height:1.55}
+    .hub-callout i{margin-top:.1rem;color:var(--cj-blue)}
+    .hub-select{min-height:170px}
+    @media(max-width:767.98px){.hub-card-head,.hub-card-body{padding:1rem}.hub-page-header-actions{width:100%}.hub-page-header-actions .btn{flex:1;min-height:44px}}
+  </style>
+</head>
+<body class="trcm-app" data-page-resource="daftar_plan">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper hub-page">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <span class="hub-kicker">Administrasi · Rencana operasional</span>
+            <h1 class="page-title">Hubungkan Plan</h1>
+            <p class="page-subtitle">Hubungkan atau putuskan DO / Shipment pada armada yang belum WH Out.</p>
+          </div>
+          <div class="d-flex gap-2 flex-wrap hub-page-header-actions">
+            <button class="btn btn-outline-secondary" type="button" id="hub-refresh"><i class="bi bi-arrow-clockwise me-1"></i>Perbarui</button>
+          </div>
+        </div>
+
+        <div class="hub-callout mb-4"><i class="bi bi-info-circle-fill"></i><div>Pengelolaan hubungan DO / Shipment tidak mengubah status armada dan tidak menjalankan proses Loading. Armada yang sudah WH Out tidak ditampilkan.</div></div>
+
+        <section class="hub-card">
+          <div class="hub-card-head">
+            <div><h2 class="hub-card-title">Daftar armada belum WH Out</h2><p class="hub-card-subtitle">Termasuk armada Terdaftar, Parkir, Sedang proses, dan Selesai Loading.</p></div>
+            <span class="hub-note" id="hub-total">Memuat data…</span>
+          </div>
+          <div class="hub-card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-lg-7 col-md-6">
+                <label class="hub-filter-label" for="hub-search">Cari armada atau dokumen</label>
+                <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span><input class="form-control hub-filter" id="hub-search" type="search" placeholder="Plat nomor, driver, klien, DO, atau Shipment"></div>
+              </div>
+              <div class="col-lg-3 col-md-3">
+                <label class="hub-filter-label" for="hub-activity">Aktivitas</label>
+                <select class="form-select hub-filter" id="hub-activity"><option value="">Semua aktivitas</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select>
+              </div>
+              <div class="col-lg-2 col-md-3">
+                <label class="hub-filter-label" for="hub-status-filter">Status</label>
+                <select class="form-select hub-filter" id="hub-status-filter"><option value="">Semua status</option><option value="wh_in">Terdaftar</option><option value="registered">Terdaftar</option><option value="queue">Parkir</option><option value="started">Sedang proses</option><option value="completed">Selesai Loading</option></select>
+              </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <p class="hub-note mb-0" id="hub-filter-summary">Menampilkan seluruh armada yang belum WH Out.</p>
+              <button class="btn btn-sm btn-light border" id="hub-clear-filters" type="button"><i class="bi bi-x-circle me-1"></i>Hapus filter</button>
+            </div>
+            <div class="hub-table-wrap">
+              <table class="table hub-table align-middle">
+                <thead><tr><th>Armada</th><th>Klien</th><th>Aktivitas</th><th>Status</th><th>DO / Shipment terhubung</th><th>Aksi</th></tr></thead>
+                <tbody id="hub-table-body"><tr><td colspan="6" class="text-center py-4">Memuat armada…</td></tr></tbody>
+              </table>
+            </div>
+            <div class="hub-pagination">
+              <span class="hub-note" id="hub-page-info">—</span>
+              <div class="hub-page-controls"><button class="hub-page-button" id="hub-prev" type="button" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><div class="hub-page-controls" id="hub-pages"></div><button class="hub-page-button" id="hub-next" type="button" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+(function(){
+  "use strict";
+  const $=id=>document.getElementById(id);
+  const state={visits:[],filtered:[],linkedIds:new Set(),page:1,pageSize:15,canUpdate:false,loading:false};
+  const statusLabels={wh_in:"Terdaftar",registered:"Terdaftar",queue:"Parkir",started:"Sedang proses",completed:"Selesai Loading"};
+  const activityLabels={inbound:"Inbound",outbound:"Outbound"};
+
+  function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+  function toast(message,icon){const kind=icon||"info";const titles={success:"Berhasil",error:"Terjadi kesalahan",warning:"Perlu diperiksa",info:"Informasi"};return Swal.fire({icon:kind,title:titles[kind]||"Informasi",text:String(message||""),confirmButtonText:"Mengerti",confirmButtonColor:"#006ECD"});}
+  function docLabel(link){
+    const parts=[];
+    if(link.snapshot_do_number)parts.push("DO "+link.snapshot_do_number);
+    if(link.snapshot_shipment_number)parts.push("Shipment "+link.snapshot_shipment_number);
+    return parts.join(" · ")||"Dokumen Plan lama";
+  }
+  function statusBadge(status){
+    const key=String(status||"").toLowerCase();
+    const icon=key==="started"?"bi-arrow-repeat":key==="completed"?"bi-check-circle-fill":key==="queue"?"bi-p-square":"bi-hourglass-split";
+    return '<span class="hub-status '+esc(key)+'"><i class="bi '+icon+'"></i>'+esc(statusLabels[key]||key||"—")+'</span>';
+  }
+  function getClient(visit){
+    const client=Array.isArray(visit.clients)?visit.clients[0]:visit.clients;
+    return client&&client.name||"—";
+  }
+  function matches(visit,term){
+    if(!term)return true;
+    const linked=Array.isArray(visit.visit_plan_items)?visit.visit_plan_items:[];
+    const values=[visit.plate_number,visit.container_num,visit.driver_name,getClient(visit),visit.shipment_number,...linked.map(docLabel)];
+    return values.some(value=>String(value||"").toLocaleLowerCase("id-ID").includes(term));
+  }
+  function render(){
+    const rows=state.filtered;
+    const total=rows.length,pages=Math.max(1,Math.ceil(total/state.pageSize));
+    state.page=Math.min(state.page,pages);
+    const start=(state.page-1)*state.pageSize;
+    const visible=rows.slice(start,start+state.pageSize);
+    $("hub-total").textContent=total+" armada";
+    $("hub-filter-summary").textContent=total===state.visits.length?"Seluruh armada yang belum WH Out.":total+" dari "+state.visits.length+" armada sesuai filter.";
+    if(!visible.length){
+      $("hub-table-body").innerHTML='<tr><td colspan="6"><div class="hub-empty"><i class="bi bi-truck"></i><strong>Tidak ada armada ditemukan</strong><p class="mb-0 mt-1">Ubah kata pencarian atau filter yang digunakan.</p></div></td></tr>';
+    }else{
+      $("hub-table-body").innerHTML=visible.map(visit=>{
+        const links=Array.isArray(visit.visit_plan_items)?visit.visit_plan_items:[];
+        const documents=links.length?'<div class="hub-doc-list">'+links.map(link=>'<span class="hub-doc"><span>'+esc(docLabel(link))+'</span>'+(state.canUpdate?'<button type="button" data-unlink="'+esc(link.id)+'" data-visit="'+esc(visit.id)+'" aria-label="Putuskan '+esc(docLabel(link))+'" title="Putuskan hubungan"><i class="bi bi-x-lg"></i></button>':'')+'</span>').join("")+'</div>':'<span class="hub-note">Belum ada DO / Shipment</span>';
+        const action=state.canUpdate?'<button class="btn btn-sm btn-primary" type="button" data-link="'+esc(visit.id)+'"><i class="bi bi-link-45deg me-1"></i>Hubungkan</button>':'<span class="hub-note">Hanya lihat</span>';
+        return '<tr><td><div class="hub-mono">'+esc(visit.plate_number||"—")+'</div><div class="hub-note">'+esc(visit.driver_name||"Driver belum diisi")+(visit.container_num?" · "+esc(visit.container_num):"")+'</div></td><td>'+esc(getClient(visit))+'</td><td>'+esc(activityLabels[visit.activity_type]||visit.activity_type||"—")+'</td><td>'+statusBadge(visit.process_status)+'</td><td>'+documents+'</td><td>'+action+'</td></tr>';
+      }).join("");
+    }
+    $("hub-page-info").textContent=total?"Menampilkan "+(start+1)+"–"+Math.min(start+state.pageSize,total)+" dari "+total+" armada":"0 armada";
+    $("hub-prev").disabled=state.page<=1;$("hub-next").disabled=state.page>=pages;
+    const pageNumbers=[];
+    for(let n=Math.max(1,state.page-2);n<=Math.min(pages,state.page+2);n++)pageNumbers.push(n);
+    $("hub-pages").innerHTML=pageNumbers.map(n=>'<button class="hub-page-button '+(n===state.page?"active":"")+'" type="button" data-page="'+n+'">'+n+'</button>').join("");
+  }
+  function applyFilters(){
+    const term=$("hub-search").value.trim().toLocaleLowerCase("id-ID");
+    const activity=$("hub-activity").value,status=$("hub-status-filter").value;
+    state.filtered=state.visits.filter(visit=>matches(visit,term)&&(!activity||visit.activity_type===activity)&&(!status||visit.process_status===status));
+    state.page=1;render();
+  }
+  async function loadData(){
+    if(state.loading)return;
+    state.loading=true;
+    $("hub-table-body").innerHTML='<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Memuat armada…</td></tr>';
+    try{
+      const [visits,links]=await Promise.all([
+        window.TRCM.visit.list("select=id,plate_number,container_num,activity_type,client_id,driver_name,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,clients(name),visit_plan_items(id,plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type)&wh_out_at=is.null&order=created_at.desc&limit=1000",{errorMessage:"Daftar armada gagal dimuat."}),
+        window.TRCM.plan.list("visit_plan_items","select=plan_item_id&plan_item_id=not.is.null",{errorMessage:"Relasi Plan gagal dimuat."})
+      ]);
+      if(!Array.isArray(visits)||!Array.isArray(links))throw new Error("Respons data armada atau relasi Plan tidak valid.");
+      state.visits=visits.filter(visit=>!visit.wh_out_at);
+      state.linkedIds=new Set(links.map(link=>link.plan_item_id).filter(Boolean));
+      applyFilters();
+    }catch(error){
+      console.error("TRCM Hubungkan Plan:",error);
+      $("hub-total").textContent="—";
+      $("hub-table-body").innerHTML='<tr><td colspan="6" class="text-center text-danger py-4">'+esc(error.message||"Data gagal dimuat.")+'</td></tr>';
+    }finally{state.loading=false;}
+  }
+  async function openLinkDialog(visitId){
+    const visit=state.visits.find(row=>row.id===visitId);
+    if(!visit||visit.wh_out_at){await toast("Armada tidak ditemukan atau sudah WH Out.","warning");return;}
+    try{
+      const items=await window.TRCM.plan.list("import_plan_items","select=id,do_number,shipment_number,manual_processed,created_at,import_plans!inner(id,client_id,activity_type,status,operational_date),import_plan_trips(trip_number,plate_number,vendor)&import_plans.client_id=eq."+encodeURIComponent(visit.client_id)+"&import_plans.activity_type=eq."+encodeURIComponent(visit.activity_type)+"&import_plans.status=eq.active&manual_processed=eq.false&order=created_at.desc&limit=1000",{errorMessage:"Daftar DO / Shipment gagal dimuat."});
+      if(!Array.isArray(items))throw new Error("Daftar DO / Shipment tidak valid.");
+      const available=items.filter(item=>!state.linkedIds.has(item.id));
+      if(!available.length){await toast("Tidak ada DO / Shipment aktif yang belum terhubung untuk klien dan aktivitas armada ini.","info");return;}
+      const options=available.map(item=>{
+        const plan=Array.isArray(item.import_plans)?item.import_plans[0]:item.import_plans;
+        const trip=Array.isArray(item.import_plan_trips)?item.import_plan_trips[0]:item.import_plan_trips;
+        const doc=[item.do_number?"DO "+item.do_number:"",item.shipment_number?"Shipment "+item.shipment_number:""].filter(Boolean).join(" · ");
+        const detail=[plan&&plan.operational_date||"",trip&&trip.plate_number||""].filter(Boolean).join(" · ");
+        return '<option value="'+esc(item.id)+'">'+esc(doc||"Dokumen tanpa nomor")+(detail?" — "+esc(detail):"")+'</option>';
+      }).join("");
+      const result=await Swal.fire({
+        title:"Hubungkan DO / Shipment",
+        html:'<div class="text-start"><p class="small text-secondary mb-3">Armada <strong>'+esc(visit.plate_number||"—")+'</strong> · '+esc(activityLabels[visit.activity_type]||visit.activity_type)+'</p><label class="form-label fw-bold small" for="hub-plan-items-select">Pilih satu atau beberapa dokumen</label><select id="hub-plan-items-select" class="form-select hub-select" multiple>'+options+'</select><p class="small text-secondary mt-2 mb-0">Hanya Plan aktif dengan klien dan aktivitas yang sama yang ditampilkan. Gunakan Ctrl atau Command untuk memilih beberapa dokumen.</p></div>',
+        showCancelButton:true,confirmButtonText:"Hubungkan",cancelButtonText:"Batal",confirmButtonColor:"#006ECD",focusConfirm:false,
+        preConfirm:()=>{const select=document.getElementById("hub-plan-items-select");const ids=Array.from(select.selectedOptions).map(option=>option.value);if(!ids.length){Swal.showValidationMessage("Pilih minimal satu DO / Shipment.");return false;}return ids;}
+      });
+      if(!result.isConfirmed)return;
+      await window.TRCM.plan.rpc("manual_link_plan_items",{p_visit_id:visit.id,p_plan_item_ids:result.value},{errorMessage:"DO / Shipment gagal dihubungkan."});
+      await toast(result.value.length+" DO / Shipment berhasil dihubungkan tanpa mengubah status armada.","success");
+      await loadData();
+    }catch(error){console.error("TRCM Hubungkan Plan link:",error);await toast(error.message||"DO / Shipment gagal dihubungkan.","error");}
+  }
+  async function unlink(linkId,visitId){
+    const visit=state.visits.find(row=>row.id===visitId);
+    if(!visit||visit.wh_out_at){await toast("Armada tidak ditemukan atau sudah WH Out.","warning");return;}
+    const link=(visit.visit_plan_items||[]).find(row=>row.id===linkId);
+    if(!link)return;
+    const result=await Swal.fire({icon:"warning",title:"Putuskan hubungan?",text:"Hubungan "+docLabel(link)+" dengan armada "+(visit.plate_number||"—")+" akan dihapus. Status armada tidak berubah.",showCancelButton:true,confirmButtonText:"Ya, putuskan",cancelButtonText:"Batal",confirmButtonColor:"#C8101A"});
+    if(!result.isConfirmed)return;
+    try{
+      await window.TRCM.plan.rpc("manual_unlink_plan_link",{p_visit_id:visitId,p_link_id:linkId},{errorMessage:"Hubungan DO / Shipment gagal diputuskan."});
+      await toast("Hubungan DO / Shipment berhasil diputuskan.","success");
+      await loadData();
+    }catch(error){console.error("TRCM Hubungkan Plan unlink:",error);await toast(error.message||"Hubungan gagal diputuskan.","error");}
+  }
+  async function init(){
+    if(!window.trcmPermissions||!window.trcmPermissions.canView("daftar_plan"))return;
+    state.canUpdate=window.trcmPermissions.can("daftar_plan","update");
+    $("hub-refresh").addEventListener("click",loadData);
+    $("hub-search").addEventListener("input",applyFilters);
+    $("hub-activity").addEventListener("change",applyFilters);
+    $("hub-status-filter").addEventListener("change",applyFilters);
+    $("hub-clear-filters").addEventListener("click",()=>{$("hub-search").value="";$("hub-activity").value="";$("hub-status-filter").value="";applyFilters();});
+    $("hub-prev").addEventListener("click",()=>{state.page=Math.max(1,state.page-1);render();});
+    $("hub-next").addEventListener("click",()=>{state.page++;render();});
+    $("hub-pages").addEventListener("click",event=>{const button=event.target.closest("[data-page]");if(button){state.page=Number(button.dataset.page);render();}});
+    $("hub-table-body").addEventListener("click",event=>{
+      const linkButton=event.target.closest("[data-link]"),unlinkButton=event.target.closest("[data-unlink]");
+      if(linkButton)openLinkDialog(linkButton.dataset.link);
+      if(unlinkButton)unlink(unlinkButton.dataset.unlink,unlinkButton.dataset.visit);
+    });
+    await loadData();
+  }
+  window.trcmComponentsReady.then(ready=>{if(ready)init();});
+})();
+</script>
+</body>
+</html>
