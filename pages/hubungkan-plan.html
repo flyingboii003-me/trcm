@@ -22,15 +22,25 @@
     .hub-card-subtitle,.hub-note{margin:0;color:var(--hub-muted);font-size:.78rem;line-height:1.55}
     .hub-filter-label{display:block;margin-bottom:.4rem;font-size:.76rem;font-weight:800}
     .hub-filter{min-height:42px;border:1px solid var(--hub-line);border-radius:var(--radius-md);font-size:.84rem}
-    .hub-page .trcm-table{min-width:1240px}
+    .hub-page .trcm-table{width:100%;min-width:1120px;table-layout:fixed}
+    .hub-page .trcm-table th,.hub-page .trcm-table td{white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:top}
+    .hub-page .trcm-table .hub-col-docs{width:24%}
+    .hub-page .trcm-table .hub-col-action{width:10%;white-space:nowrap}
+    .hub-page .trcm-table td.hub-col-action{vertical-align:middle}
+    .hub-page .trcm-table .hub-col-armada{width:15%}
+    .hub-page .trcm-table .hub-col-client{width:14%}
+    .hub-page .trcm-table .hub-col-vendor{width:13%}
+    .hub-page .trcm-table .hub-col-destination{width:12%}
+    .hub-page .trcm-table .hub-col-activity{width:12%}
     .hub-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700}
     .hub-status{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:50rem;background:var(--surface-2,#F6F8FC);color:var(--text-muted);font-size:.7rem;font-weight:800;white-space:nowrap}
     .hub-status.started{background:rgba(255,151,0,.12);color:var(--accent-text)}
     .hub-status.completed{background:rgba(0,110,205,.1);color:var(--primary-text)}
-    .hub-doc-list{display:flex;flex-wrap:wrap;gap:.35rem;min-width:190px}
-    .hub-doc{display:inline-flex;align-items:center;gap:.35rem;max-width:100%;padding:.3rem .5rem;border:1px solid var(--hub-line);border-radius:var(--radius-md);background:var(--surface-2,#F6F8FC);font-size:.72rem;overflow-wrap:anywhere}
-    .hub-doc button{display:inline-grid;width:25px;height:25px;place-items:center;padding:0;border:0;border-radius:6px;background:transparent;color:var(--danger-text)}
+    .hub-doc-list{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.35rem;min-width:0;width:100%}
+    .hub-doc{display:inline-flex;align-items:center;gap:.35rem;max-width:100%;min-width:0;padding:.3rem .5rem;border:1px solid var(--hub-line);border-radius:var(--radius-md);background:var(--surface-2,#F6F8FC);font-size:.72rem;overflow-wrap:anywhere;white-space:normal}
+    .hub-doc button{display:inline-grid;flex:0 0 25px;width:25px;height:25px;place-items:center;padding:0;border:0;border-radius:6px;background:transparent;color:var(--danger-text)}
     .hub-doc button:hover{background:rgba(239,21,30,.1)}
+    @media(max-width:767.98px){.hub-page .trcm-table{min-width:1040px}.hub-page .trcm-table th,.hub-page .trcm-table td{padding:.75rem .65rem}.hub-page .trcm-table .hub-col-action{width:112px}}
     .hub-empty{padding:2.75rem 1rem;text-align:center;color:var(--hub-muted)}
     .hub-empty i{display:block;margin-bottom:.65rem;font-size:1.7rem}
     .hub-callout{display:flex;align-items:flex-start;gap:.7rem;padding:.9rem 1rem;border:1px solid rgba(0,110,205,.22);border-radius:var(--radius-lg);background:rgba(0,110,205,.06);color:var(--text-main);font-size:.8rem;line-height:1.55}
@@ -82,8 +92,9 @@
             </div>
             <div class="table-responsive">
               <table class="table table-hover align-middle trcm-table mb-0">
-                <thead><tr><th>Armada</th><th>Klien</th><th>Vendor</th><th>Tujuan</th><th>Aktivitas</th><th>DO / Shipment terhubung</th><th class="action-column">Aksi</th></tr></thead>
-                <tbody id="hub-table-body"><tr><td colspan="6" class="table-state">Memuat armada…</td></tr></tbody>
+                <colgroup><col class="hub-col-armada"><col class="hub-col-client"><col class="hub-col-vendor"><col class="hub-col-destination"><col class="hub-col-activity"><col class="hub-col-docs"><col class="hub-col-action"></colgroup>
+                <thead><tr><th class="hub-col-armada">Armada</th><th class="hub-col-client">Klien</th><th class="hub-col-vendor">Vendor</th><th class="hub-col-destination">Tujuan</th><th class="hub-col-activity">Aktivitas</th><th class="hub-col-docs">DO / Shipment terhubung</th><th class="hub-col-action action-column">Aksi</th></tr></thead>
+                <tbody id="hub-table-body"><tr><td colspan="7" class="table-state">Memuat armada…</td></tr></tbody>
               </table>
             </div>
             <div class="pagination-wrap">
@@ -488,7 +499,7 @@
         const links=Array.isArray(visit.visit_plan_items)?visit.visit_plan_items:[];
         const documents=links.length?'<div class="hub-doc-list">'+links.map(link=>'<span class="hub-doc"><span>'+esc(docLabel(link))+'</span>'+(state.canUpdate?'<button type="button" data-unlink="'+esc(link.id)+'" data-visit="'+esc(visit.id)+'" aria-label="Putuskan '+esc(docLabel(link))+'" title="Putuskan hubungan"><i class="bi bi-x-lg"></i></button>':'')+'</span>').join("")+'</div>':'<span class="hub-note">Belum ada DO / Shipment</span>';
         const action=state.canUpdate?'<button class="btn btn-sm btn-primary" type="button" data-link="'+esc(visit.id)+'"><i class="bi bi-link-45deg me-1"></i>Hubungkan</button>':'<span class="hub-note">Hanya lihat</span>';
-        return '<tr><td><div class="hub-mono">'+esc(visit.plate_number||"—")+'</div><div class="hub-note">'+esc(visit.driver_name||"Driver belum diisi")+(visit.container_num?" · "+esc(visit.container_num):"")+'</div></td><td>'+esc(getClient(visit))+'</td><td>'+esc(visit.vendor||"—")+'</td><td>'+esc(visit.destination_city||"—")+'</td><td>'+esc(activityLabels[visit.activity_type]||visit.activity_type||"—")+'</td><td>'+documents+'</td><td>'+action+'</td></tr>';
+        return '<tr><td class="hub-col-armada"><div class="hub-mono">'+esc(visit.plate_number||"—")+'</div><div class="hub-note">'+esc(visit.driver_name||"Driver belum diisi")+(visit.container_num?" · "+esc(visit.container_num):"")+'</div></td><td class="hub-col-client">'+esc(getClient(visit))+'</td><td class="hub-col-vendor">'+esc(visit.vendor||"—")+'</td><td class="hub-col-destination">'+esc(visit.destination_city||"—")+'</td><td class="hub-col-activity">'+esc(activityLabels[visit.activity_type]||visit.activity_type||"—")+'</td><td class="hub-col-docs">'+documents+'</td><td class="hub-col-action">'+action+'</td></tr>';
       }).join("");
     }
     $("hub-page-info").textContent=total?"Menampilkan "+(start+1)+"–"+Math.min(start+state.pageSize,total)+" dari "+total+" armada":"Tidak ada armada untuk ditampilkan";
