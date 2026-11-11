@@ -24,7 +24,8 @@
 
   const navigationGroups = [
     { key: "kunjungan-armada", children: ["registrasi-armada", "wh-in", "antri-parkir", "wh-out"] },
-    { key: "checker", children: ["mulai-loading", "selesai-loading"] }
+    { key: "checker", children: ["mulai-loading", "selesai-loading"] },
+    { key: "manajemen-plan", children: ["daftar-plan", "impor-plan"] }
   ];
 
   const statuses = {
