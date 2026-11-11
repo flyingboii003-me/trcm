@@ -67,11 +67,11 @@
             </div></div></div>
             <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
               <div class="stat-card-top"><span class="stat-icon"><i class="bi bi-arrow-repeat"></i></span><span class="stat-trend">LIVE</span></div>
-              <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note" id="stat-process-note">Kunjungan hari ini</div>
+              <div class="stat-label">Sedang proses</div><div class="stat-value stat-value-with-unit" id="stat-process">—</div><div class="stat-note" id="stat-process-note">Proses muat / bongkar</div>
             </div></div></div>
             <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
               <div class="stat-card-top"><span class="stat-icon stat-icon-green"><i class="bi bi-check2-circle"></i></span><span class="stat-trend">SELESAI</span></div>
-              <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note" id="stat-done-note">Selesai Checker hari ini</div>
+              <div class="stat-label">Selesai</div><div class="stat-value stat-value-with-unit" id="stat-done">—</div><div class="stat-note" id="stat-done-note">Proses selesai hari ini</div>
             </div></div></div>
             <div class="col-12 col-sm-6 col-xl-3"><div class="card stat-card h-100"><div class="card-body">
               <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><i class="bi bi-stopwatch"></i></span><span class="stat-trend">RATA-RATA</span></div>
@@ -82,7 +82,7 @@
 
         <section class="card content-card" aria-labelledby="operational-monitoring-title">
           <div class="card-header content-card-header">
-            <div><h2 class="card-title" id="operational-monitoring-title">Monitoring operasional</h2></div>
+            <div><h2 class="card-title" id="operational-monitoring-title">Monitoring proses operasional</h2></div>
           </div>
           <div class="card-body pt-0">
             <div class="monitoring-grid" id="operational-monitoring">
@@ -254,10 +254,12 @@ window.trcmComponentsReady.then(function () {
   function renderStats(todayKey) {
     const todayVisits = visits.filter(function (visit) { return isTodayVisit(visit, todayKey); });
     const waiting = todayVisits.filter(function (visit) {
-      return visit.process_status === "wh_in" || visit.process_status === "registered";
+      return visit.process_status === "wh_in" || visit.process_status === "registered" ||
+        visit.process_status === "queue" || visit.process_status === "parked";
     }).length;
     const processing = todayVisits.filter(function (visit) {
-      return visit.process_status === "queue" || visit.process_status === "parked" || visit.process_status === "started" || visit.process_status === "start_loading" || visit.process_status === "processing";
+      return visit.process_status === "started" || visit.process_status === "start_loading" ||
+        visit.process_status === "processing";
     }).length;
     const done = todayVisits.filter(function (visit) {
       return visit.process_status === "completed" || visit.process_status === "done_loading";
@@ -276,9 +278,9 @@ window.trcmComponentsReady.then(function () {
     document.getElementById("stat-process").textContent = processing + " Armada";
     document.getElementById("stat-done").textContent = done + " Armada";
     document.getElementById("stat-average").textContent = average === null ? "—" : formatDuration(average);
-    document.getElementById("stat-waiting-note").textContent = "Terdaftar dan belum mulai proses";
-    document.getElementById("stat-process-note").textContent = "Parkir atau proses Checker";
-    document.getElementById("stat-done-note").textContent = "Selesai Checker hari ini";
+    document.getElementById("stat-waiting-note").textContent = "Terdaftar, sudah WH In, atau parkir";
+    document.getElementById("stat-process-note").textContent = "Sedang muat / bongkar";
+    document.getElementById("stat-done-note").textContent = "Proses selesai hari ini";
     document.getElementById("stat-average-note").textContent = durations.length + " visit dengan WH Out hari ini";
   }
 
@@ -306,8 +308,8 @@ window.trcmComponentsReady.then(function () {
         '<div class="monitoring-stat-list">' +
           '<div class="monitoring-stat monitoring-stat--waiting"><span class="monitoring-stat-label">Menunggu</span><strong class="monitoring-stat-value">' + waiting + ' Armada</strong><span class="monitoring-stat-foot">Terdaftar</span></div>' +
           '<div class="monitoring-stat monitoring-stat--parking"><span class="monitoring-stat-label">Parkir</span><strong class="monitoring-stat-value">' + parking + ' Armada</strong><span class="monitoring-stat-foot">Antri / Parkir</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--processing"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + ' Armada</strong><span class="monitoring-stat-foot">Checker berjalan</span></div>' +
-          '<div class="monitoring-stat monitoring-stat--completed"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + ' Armada</strong><span class="monitoring-stat-foot">Checker selesai</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--processing"><span class="monitoring-stat-label">Sedang proses</span><strong class="monitoring-stat-value">' + processing + ' Armada</strong><span class="monitoring-stat-foot">Proses muat / bongkar</span></div>' +
+          '<div class="monitoring-stat monitoring-stat--completed"><span class="monitoring-stat-label">Selesai</span><strong class="monitoring-stat-value">' + completed + ' Armada</strong><span class="monitoring-stat-foot">Proses selesai</span></div>' +
         '</div>' +
         '<div class="monitoring-panel-foot"><span>Sudah WH Out</span><strong>' + left + ' Armada</strong></div>' +
       '</section>';
