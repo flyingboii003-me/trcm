@@ -30,7 +30,6 @@
     .list-table thead th{padding:.85rem 1rem;background:#F5F7FA;color:#55627A;font-size:.69rem;font-weight:800;letter-spacing:.035em;white-space:nowrap;border-bottom:1px solid var(--list-line)}
     .list-table tbody td{padding:.9rem 1rem;vertical-align:middle;border-color:#E8EDF3}
     .list-table tbody tr:hover td{background:rgba(0,110,205,.025)}
-    .list-plan-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;font-weight:700;color:var(--cj-blue)}
     .list-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:50rem;font-size:.7rem;font-weight:800;white-space:nowrap}
     .list-badge.active{background:#E7F7EE;color:#17663B}
     .list-badge.cancelled{background:#FDEBEC;color:#B4232A}
@@ -339,7 +338,7 @@
           </div>
           <div class="list-card-body">
             <div class="row g-3 mb-4">
-              <div class="col-lg-6 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien, ID Plan, atau tanggal"></div></div>
+              <div class="col-lg-6 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien atau tanggal"></div></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-activity">Jenis aktivitas</label><select class="form-select list-filter" id="filter-activity"><option value="">Semua jenis</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-from">Tanggal operasional dari</label><input class="form-control list-filter" id="filter-from" type="date"></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-to">Sampai tanggal</label><input class="form-control list-filter" id="filter-to" type="date"></div>
@@ -474,7 +473,7 @@
     const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,from=$("filter-from").value,to=$("filter-to").value;
     state.filtered=state.plans.filter(p=>{
       const client=p.clients&&p.clients.name||"";
-      const hay=[client,p.id,p.operational_date,p.activity_type].join(" ").toLowerCase();
+      const hay=[client,p.operational_date,p.activity_type].join(" ").toLowerCase();
       return (!q||hay.includes(q))&&(!activity||p.activity_type===activity)&&(!from||p.operational_date>=from)&&(!to||p.operational_date<=to);
     });
     state.page=1;
@@ -497,7 +496,7 @@
       const progress=state.planProgress.get(p.id)||{completedTrucks:0,totalTrucks:0};
       const pendingTrucks=Math.max(progress.totalTrucks-progress.completedTrucks,0);
       const progressHtml='<div class="d-flex flex-column align-items-start gap-1"><span class="list-badge truck-completed"><i class="bi bi-check-circle-fill"></i>'+progress.completedTrucks+' Truk Selesai</span><span class="list-badge pending"><i class="bi bi-hourglass-split"></i>'+pendingTrucks+' Truk Belum Selesai</span></div>';
-      return '<tr><td><div class="fw-bold">'+esc(client)+'</div><div class="list-plan-id mt-1" title="'+esc(p.id)+'">'+esc(String(p.id||"").slice(0,6))+'…</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td>'+esc(countTrips(p)||"—")+'</td><td>'+progressHtml+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
+      return '<tr><td><div class="fw-bold">'+esc(client)+'</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td>'+esc(countTrips(p)||"—")+'</td><td>'+progressHtml+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
     }).join("");
     $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));
     $("plan-table-body").querySelectorAll("[data-plan-edit]").forEach(button=>button.addEventListener("click",()=>editPlan(button.dataset.planEdit)));
@@ -664,7 +663,7 @@
     const warning=p.status==="active"?" Plan Aktif akan dihapus sehingga tidak ada Plan aktif untuk cakupan ini sampai Plan pengganti dibuat.":"";
     const confirmation=await Swal.fire({
       icon:"warning",title:"Hapus Plan?",
-      html:"Hapus Plan <strong>"+esc(String(p.id).slice(0,6))+"…</strong> milik <strong>"+esc(client)+"</strong>?<br><br>Referensi DO/Shipment dan data trip ikut dihapus."+esc(warning)+"<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
+      html:"Hapus Plan milik <strong>"+esc(client)+"</strong>?<br><br>Referensi DO/Shipment dan data trip ikut dihapus."+esc(warning)+"<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
       showCancelButton:true,confirmButtonText:"Ya, hapus Plan",cancelButtonText:"Batal",
       confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true
     });
@@ -704,7 +703,7 @@
   async function openDetail(id){
     const p=state.plans.find(row=>row.id===id);if(!p)return;
     state.detailPlan=p;
-    $("plan-detail-title").textContent="Rincian Plan "+String(p.id).slice(0,6)+"…";
+    $("plan-detail-title").textContent="Rincian Plan";
     $("detail-subtitle").textContent=(p.clients&&p.clients.name||"Klien tidak tersedia")+" · "+dateLabel(p.operational_date)+" · "+(activityLabels[p.activity_type]||p.activity_type);
     $("detail-summary").innerHTML=[
       ["Status",statusLabels[p.status]||p.status],["Truk terkonfirmasi","Memuat…"],["Dibuat",dateTimeLabel(p.created_at)]
