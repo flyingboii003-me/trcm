@@ -16,6 +16,7 @@
     "master-data": { file: "master-data.html", title: "Master Data", resourceKey: "master_data" },
     "impor-plan": { file: "impor-plan.html", title: "Impor Plan", resourceKey: "import_plan_upload" },
     "daftar-plan": { file: "daftar-plan.html", title: "Daftar Plan", resourceKey: "daftar_plan" },
+    "hubungkan-plan": { file: "hubungkan-plan.html", title: "Hubungkan Plan", resourceKey: "daftar_plan" },
     "user-role": { file: "user-role.html", title: "User & Role", resourceKey: "user_role" },
     profil: { file: "profil.html", title: "Profil Pengguna", resourceKey: "" },
     "live-view": { file: "live-view.html", title: "Live View", resourceKey: "live_view" },
@@ -25,7 +26,7 @@
   const navigationGroups = [
     { key: "kunjungan-armada", children: ["registrasi-armada", "wh-in", "antri-parkir", "wh-out"] },
     { key: "checker", children: ["mulai-loading", "selesai-loading"] },
-    { key: "manajemen-plan", children: ["daftar-plan", "impor-plan"] }
+    { key: "manajemen-plan", children: ["daftar-plan", "impor-plan", "hubungkan-plan"] }
   ];
 
   const statuses = {
@@ -52,7 +53,7 @@
     },
     plan: {
       resources: ["import_plans", "import_plan_items", "import_plan_trips", "visit_plan_items"],
-      rpc: ["save_import_plan", "update_import_plan"]
+      rpc: ["save_import_plan", "update_import_plan", "manual_link_plan_items", "manual_unlink_plan_link"]
     },
     photo: {
       resources: ["photos"],
