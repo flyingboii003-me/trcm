@@ -82,7 +82,7 @@
             </div>
             <div class="table-responsive">
               <table class="table table-hover align-middle trcm-table mb-0">
-                <thead><tr><th>Armada</th><th>Klien</th><th>Vendor</th><th>Tujuan</th><th>Aktivitas</th><th>Status</th><th>DO / Shipment terhubung</th><th class="action-column">Aksi</th></tr></thead>
+                <thead><tr><th>Armada</th><th>Klien</th><th>Vendor</th><th>Tujuan</th><th>Aktivitas</th><th>DO / Shipment terhubung</th><th class="action-column">Aksi</th></tr></thead>
                 <tbody id="hub-table-body"><tr><td colspan="6" class="table-state">Memuat armada…</td></tr></tbody>
               </table>
             </div>
@@ -482,13 +482,13 @@
     const visible=rows.slice(start,start+state.pageSize);
     $("hub-filter-summary").textContent=total===state.visits.length?"Seluruh armada yang belum WH Out.":total+" dari "+state.visits.length+" armada sesuai filter.";
     if(!visible.length){
-      $("hub-table-body").innerHTML='<tr><td colspan="8"><div class="hub-empty"><i class="bi bi-truck"></i><strong>Tidak ada armada ditemukan</strong><p class="mb-0 mt-1">Ubah kata pencarian atau filter yang digunakan.</p></div></td></tr>';
+      $("hub-table-body").innerHTML='<tr><td colspan="7"><div class="hub-empty"><i class="bi bi-truck"></i><strong>Tidak ada armada ditemukan</strong><p class="mb-0 mt-1">Ubah kata pencarian atau filter yang digunakan.</p></div></td></tr>';
     }else{
       $("hub-table-body").innerHTML=visible.map(visit=>{
         const links=Array.isArray(visit.visit_plan_items)?visit.visit_plan_items:[];
         const documents=links.length?'<div class="hub-doc-list">'+links.map(link=>'<span class="hub-doc"><span>'+esc(docLabel(link))+'</span>'+(state.canUpdate?'<button type="button" data-unlink="'+esc(link.id)+'" data-visit="'+esc(visit.id)+'" aria-label="Putuskan '+esc(docLabel(link))+'" title="Putuskan hubungan"><i class="bi bi-x-lg"></i></button>':'')+'</span>').join("")+'</div>':'<span class="hub-note">Belum ada DO / Shipment</span>';
         const action=state.canUpdate?'<button class="btn btn-sm btn-primary" type="button" data-link="'+esc(visit.id)+'"><i class="bi bi-link-45deg me-1"></i>Hubungkan</button>':'<span class="hub-note">Hanya lihat</span>';
-        return '<tr><td><div class="hub-mono">'+esc(visit.plate_number||"—")+'</div><div class="hub-note">'+esc(visit.driver_name||"Driver belum diisi")+(visit.container_num?" · "+esc(visit.container_num):"")+'</div></td><td>'+esc(getClient(visit))+'</td><td>'+esc(visit.vendor||"—")+'</td><td>'+esc(visit.destination_city||"—")+'</td><td>'+esc(activityLabels[visit.activity_type]||visit.activity_type||"—")+'</td><td>'+statusBadge(visit.process_status)+'</td><td>'+documents+'</td><td>'+action+'</td></tr>';
+        return '<tr><td><div class="hub-mono">'+esc(visit.plate_number||"—")+'</div><div class="hub-note">'+esc(visit.driver_name||"Driver belum diisi")+(visit.container_num?" · "+esc(visit.container_num):"")+'</div></td><td>'+esc(getClient(visit))+'</td><td>'+esc(visit.vendor||"—")+'</td><td>'+esc(visit.destination_city||"—")+'</td><td>'+esc(activityLabels[visit.activity_type]||visit.activity_type||"—")+'</td><td>'+documents+'</td><td>'+action+'</td></tr>';
       }).join("");
     }
     $("hub-page-info").textContent=total?"Menampilkan "+(start+1)+"–"+Math.min(start+state.pageSize,total)+" dari "+total+" armada":"Tidak ada armada untuk ditampilkan";
@@ -520,7 +520,7 @@
   async function loadData(){
     if(state.loading)return;
     state.loading=true;
-    $("hub-table-body").innerHTML='<tr><td colspan="8" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Memuat armada…</td></tr>';
+    $("hub-table-body").innerHTML='<tr><td colspan="7" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Memuat armada…</td></tr>';
     try{
       const [visits,links]=await Promise.all([
         fetchAll(window.TRCM.visit.request,"/rest/v1/visits?select=id,plate_number,container_num,activity_type,client_id,driver_name,vendor,destination_city,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,clients(name),visit_plan_items(id,plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type)&wh_out_at=is.null&order=created_at.desc","Daftar armada gagal dimuat."),
@@ -531,7 +531,7 @@
       applyFilters();
     }catch(error){
       console.error("TRCM Hubungkan Plan:",error);
-      $("hub-table-body").innerHTML='<tr><td colspan="8" class="text-center text-danger py-4">'+esc(error.message||"Data gagal dimuat.")+'</td></tr>';
+      $("hub-table-body").innerHTML='<tr><td colspan="7" class="text-center text-danger py-4">'+esc(error.message||"Data gagal dimuat.")+'</td></tr>';
     }finally{state.loading=false;}
   }
   async function unlink(linkId,visitId){
