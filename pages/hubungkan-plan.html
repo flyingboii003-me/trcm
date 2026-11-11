@@ -66,11 +66,9 @@
           </div>
         </div>
 
-        <div class="hub-callout mb-4"><i class="bi bi-info-circle-fill"></i><div>Pengelolaan hubungan DO / Shipment tidak mengubah status armada dan tidak menjalankan proses Loading. Armada yang sudah WH Out tidak ditampilkan.</div></div>
-
         <section class="hub-card">
           <div class="hub-card-head">
-            <div><h2 class="hub-card-title">Daftar armada belum WH Out</h2><p class="hub-card-subtitle">Termasuk armada Terdaftar, Parkir, Sedang proses, dan Selesai Loading.</p></div>
+            <div><h2 class="hub-card-title">Daftar armada belum WH Out</h2></div>
             <span class="hub-note" id="hub-total">Memuat data…</span>
           </div>
           <div class="hub-card-body">
@@ -162,7 +160,7 @@
         return '<tr><td><div class="hub-mono">'+esc(visit.plate_number||"—")+'</div><div class="hub-note">'+esc(visit.driver_name||"Driver belum diisi")+(visit.container_num?" · "+esc(visit.container_num):"")+'</div></td><td>'+esc(getClient(visit))+'</td><td>'+esc(activityLabels[visit.activity_type]||visit.activity_type||"—")+'</td><td>'+statusBadge(visit.process_status)+'</td><td>'+documents+'</td><td>'+action+'</td></tr>';
       }).join("");
     }
-    $("hub-page-info").textContent=total?"Menampilkan "+(start+1)+"–"+Math.min(start+state.pageSize,total)+" dari "+total+" armada":"0 armada";
+    $("hub-page-info").textContent=total?"Menampilkan "+(start+1)+"–"+Math.min(start+state.pageSize,total)+" dari "+total+" armada":"";
     $("hub-prev").disabled=state.page<=1;$("hub-next").disabled=state.page>=pages;
     const pageNumbers=[];
     for(let n=Math.max(1,state.page-2);n<=Math.min(pages,state.page+2);n++)pageNumbers.push(n);
