@@ -174,16 +174,26 @@
     state.filtered=state.visits.filter(visit=>matches(visit,term)&&(!activity||visit.activity_type===activity)&&(!status||visit.process_status===status));
     state.page=1;render();
   }
+  async function fetchAll(request,path,errorMessage){
+    const rows=[];
+    let offset=0,batch=[];
+    do{
+      batch=await request(path,{headers:{Range:offset+"-"+(offset+999)}},{errorMessage:errorMessage});
+      if(!Array.isArray(batch))throw new Error(errorMessage);
+      rows.push(...batch);
+      offset+=batch.length;
+    }while(batch.length===1000);
+    return rows;
+  }
   async function loadData(){
     if(state.loading)return;
     state.loading=true;
     $("hub-table-body").innerHTML='<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Memuat armada…</td></tr>';
     try{
       const [visits,links]=await Promise.all([
-        window.TRCM.visit.list("select=id,plate_number,container_num,activity_type,client_id,driver_name,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,clients(name),visit_plan_items(id,plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type)&wh_out_at=is.null&order=created_at.desc&limit=1000",{errorMessage:"Daftar armada gagal dimuat."}),
-        window.TRCM.plan.list("visit_plan_items","select=plan_item_id&plan_item_id=not.is.null",{errorMessage:"Relasi Plan gagal dimuat."})
+        fetchAll(window.TRCM.visit.request,"/rest/v1/visits?select=id,plate_number,container_num,activity_type,client_id,driver_name,process_status,wh_in_at,registered_at,started_at,completed_at,wh_out_at,created_at,clients(name),visit_plan_items(id,plan_item_id,snapshot_do_number,snapshot_shipment_number,snapshot_trip_number,snapshot_vendor,snapshot_destination,snapshot_activity_type)&wh_out_at=is.null&order=created_at.desc","Daftar armada gagal dimuat."),
+        fetchAll(window.TRCM.plan.request,"/rest/v1/visit_plan_items?select=plan_item_id&plan_item_id=not.is.null","Relasi Plan gagal dimuat.")
       ]);
-      if(!Array.isArray(visits)||!Array.isArray(links))throw new Error("Respons data armada atau relasi Plan tidak valid.");
       state.visits=visits.filter(visit=>!visit.wh_out_at);
       state.linkedIds=new Set(links.map(link=>link.plan_item_id).filter(Boolean));
       applyFilters();
