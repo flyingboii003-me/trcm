@@ -14,6 +14,10 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
 .dashboard-section-note{margin:.35rem 0 0;color:var(--text-muted);font-size:.78rem}
+.dashboard-client-filter{display:flex;align-items:center;justify-content:flex-end;gap:.75rem;margin:-.75rem 0 1.5rem}
+.dashboard-client-filter label{margin:0;color:var(--text-muted);font-size:.8rem;font-weight:700;white-space:nowrap}
+.dashboard-client-filter select{width:min(100%,320px);min-height:42px;border:1px solid var(--border-input);border-radius:var(--radius-md);background:var(--surface);color:var(--text);font:inherit;font-size:.85rem}
+@media(max-width:575.98px){.dashboard-client-filter{align-items:stretch;flex-direction:column;gap:.4rem}.dashboard-client-filter select{width:100%}}
 .operational-chart{min-height:220px}
 .hourly-chart-scroll{max-width:100%;min-width:0}
 .monitoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
@@ -57,6 +61,13 @@
             <span class="page-header-kicker">TRCM CJ LOGISTICS</span>
             <h1 class="page-title">Dashboard Monitoring</h1>
           </div>
+        </div>
+
+        <div class="dashboard-client-filter">
+          <label for="dashboard-client-filter">Filter Klien</label>
+          <select id="dashboard-client-filter" class="form-select" aria-label="Pilih klien untuk memfilter data operasional">
+            <option value="all">Semua Klien</option>
+          </select>
         </div>
 
         <section aria-label="Ringkasan KPI hari ini">
@@ -143,8 +154,11 @@ window.trcmComponentsReady.then(function () {
   const resultCount = document.getElementById("activity-result-count");
   const monitoringTarget = document.getElementById("operational-monitoring");
   const chartTarget = document.getElementById("hourly-activity-chart");
+  const clientFilter = document.getElementById("dashboard-client-filter");
   const session = getTrcmSession();
+  let allVisits = [];
   let visits = [];
+  let selectedClientId = "all";
   let hourlyChart = null;
 
   if (!session || !session.access_token || !session.user) {
@@ -249,6 +263,33 @@ window.trcmComponentsReady.then(function () {
 
   function countStatus(rows, group) {
     return rows.filter(function (visit) { return statusGroup(visit) === group; }).length;
+  }
+
+  function renderClientFilter(clients) {
+    const currentValue = selectedClientId;
+    clientFilter.innerHTML = '<option value="all">Semua Klien</option>' +
+      clients.map(function (client) {
+        return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(client.name || "Klien tanpa nama") + '</option>';
+      }).join("");
+    const hasCurrentClient = currentValue === "all" || clients.some(function (client) {
+      return String(client.id) === currentValue;
+    });
+    selectedClientId = hasCurrentClient ? currentValue : "all";
+    clientFilter.value = selectedClientId;
+  }
+
+  function applyClientFilter() {
+    visits = selectedClientId === "all"
+      ? allVisits.slice()
+      : allVisits.filter(function (visit) {
+          return String(visit.client_id || "") === selectedClientId;
+        });
+    const todayKey = localDateKey(new Date());
+    renderStats(todayKey);
+    renderMonitoring(todayKey);
+    renderHourlyChart(todayKey);
+    renderActivityTable(todayKey);
+    loadPlanOverview(todayKey);
   }
 
   function renderStats(todayKey) {
@@ -418,7 +459,10 @@ window.trcmComponentsReady.then(function () {
       planProgress.set(group.planId, current);
     });
 
-    const activePlans = plans.filter(function (plan) { return plan.status === "active"; });
+    const activePlans = plans.filter(function (plan) {
+      return plan.status === "active" &&
+        (selectedClientId === "all" || String(plan.client_id || "") === selectedClientId);
+    });
     const groups = {
       inbound: { today: 0, total: 0, outstanding: 0, completed: 0 },
       outbound: { today: 0, total: 0, outstanding: 0, completed: 0 }
@@ -480,7 +524,7 @@ window.trcmComponentsReady.then(function () {
         loginUrl: "../index.html"
       };
       const [plans, items, links, trips] = await Promise.all([
-        window.TRCM.plan.list("import_plans", "select=id,operational_date,activity_type,status&order=operational_date.desc", settings),
+        window.TRCM.plan.list("import_plans", "select=id,client_id,operational_date,activity_type,status&order=operational_date.desc", settings),
         window.TRCM.plan.list("import_plan_items", "select=id,plan_id,trip_id,do_number,shipment_number,manual_processed,import_plans!inner(id,activity_type,status)", settings),
         window.TRCM.plan.list("visit_plan_items", "select=plan_item_id", settings),
         window.TRCM.plan.list("import_plan_trips", "select=id,plan_id,plate_number", settings)
@@ -503,24 +547,26 @@ window.trcmComponentsReady.then(function () {
         "process_status", "wh_in_at", "registered_at", "started_at", "completed_at",
         "wh_out_at", "created_at", "clients(name)"
       ].join(",");
-      const data = await window.TRCM.visit.list(
-        "select=" + encodeURIComponent(select) + "&order=created_at.desc",
-        {
-          errorFields: ["message", "details", "hint"],
-          errorMessage: "Gagal mengambil data dashboard.",
-          loginUrl: "../index.html"
-        }
-      );
-      if (!Array.isArray(data)) {
-        throw new Error("Gagal mengambil data dashboard.");
+      const settings = {
+        errorFields: ["message", "details", "hint"],
+        errorMessage: "Gagal mengambil data dashboard.",
+        loginUrl: "../index.html"
+      };
+      const results = await Promise.all([
+        window.TRCM.visit.list(
+          "select=" + encodeURIComponent(select) + "&order=created_at.desc",
+          settings
+        ),
+        window.TRCM.masterData.list("clients", "select=id,name&order=name.asc", settings)
+      ]);
+      const data = results[0];
+      const clients = results[1];
+      if (!Array.isArray(data) || !Array.isArray(clients)) {
+        throw new Error("Data visit atau daftar klien tidak valid.");
       }
-      visits = data;
-      const todayKey = localDateKey(new Date());
-      renderStats(todayKey);
-      renderMonitoring(todayKey);
-      renderHourlyChart(todayKey);
-      renderActivityTable(todayKey);
-      loadPlanOverview(todayKey);
+      allVisits = data;
+      renderClientFilter(clients);
+      applyClientFilter();
     } catch (error) {
       console.error("TRCM dashboard:", error);
       monitoringTarget.innerHTML = '<div class="dashboard-empty text-danger">Monitoring gagal dimuat. Periksa koneksi lalu coba perbarui data.</div>';
@@ -529,6 +575,11 @@ window.trcmComponentsReady.then(function () {
       resultCount.textContent = "Data gagal dimuat";
     }
   }
+
+  clientFilter.addEventListener("change", function () {
+    selectedClientId = clientFilter.value || "all";
+    applyClientFilter();
+  });
 
   window.trcmRegisterRefresh(loadDashboard);
   loadDashboard();
