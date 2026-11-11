@@ -22,11 +22,7 @@
     .hub-card-subtitle,.hub-note{margin:0;color:var(--hub-muted);font-size:.78rem;line-height:1.55}
     .hub-filter-label{display:block;margin-bottom:.4rem;font-size:.76rem;font-weight:800}
     .hub-filter{min-height:42px;border:1px solid var(--hub-line);border-radius:var(--radius-md);font-size:.84rem}
-    .hub-table-wrap{overflow:auto;border:1px solid var(--hub-line);border-radius:var(--radius-lg)}
-    .hub-table{min-width:980px;margin:0;font-size:.82rem}
-    .hub-table thead th{padding:.85rem 1rem;background:var(--surface-2,#F6F8FC);color:var(--text-muted);font-size:.69rem;font-weight:800;white-space:nowrap;border-bottom:1px solid var(--hub-line)}
-    .hub-table tbody td{padding:.85rem 1rem;vertical-align:middle;border-color:var(--hub-line)}
-    .hub-table tbody tr:hover td{background:rgba(0,110,205,.025)}
+    .hub-page .trcm-table{min-width:980px}
     .hub-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700}
     .hub-status{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:50rem;background:var(--surface-2,#F6F8FC);color:var(--text-muted);font-size:.7rem;font-weight:800;white-space:nowrap}
     .hub-status.started{background:rgba(255,151,0,.12);color:var(--accent-text)}
@@ -37,11 +33,6 @@
     .hub-doc button:hover{background:rgba(239,21,30,.1)}
     .hub-empty{padding:2.75rem 1rem;text-align:center;color:var(--hub-muted)}
     .hub-empty i{display:block;margin-bottom:.65rem;font-size:1.7rem}
-    .hub-pagination{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1rem;margin-top:.5rem;border-top:1px solid var(--hub-line)}
-    .hub-page-controls{display:flex;align-items:center;gap:.35rem}
-    .hub-page-button{min-width:36px;height:36px;padding:.35rem .6rem;border:1px solid var(--hub-line);border-radius:var(--radius-md);background:var(--card-bg,#fff);color:var(--text-main);font-size:.78rem;font-weight:700}
-    .hub-page-button.active{border-color:var(--cj-blue);background:var(--cj-blue);color:#fff}
-    .hub-page-button:disabled{opacity:.45}
     .hub-callout{display:flex;align-items:flex-start;gap:.7rem;padding:.9rem 1rem;border:1px solid rgba(0,110,205,.22);border-radius:var(--radius-lg);background:rgba(0,110,205,.06);color:var(--text-main);font-size:.8rem;line-height:1.55}
     .hub-callout i{margin-top:.1rem;color:var(--cj-blue)}
     .hub-select{min-height:170px}
@@ -89,15 +80,17 @@
               <p class="hub-note mb-0" id="hub-filter-summary">Menampilkan seluruh armada yang belum WH Out.</p>
               <button class="btn btn-sm btn-light border" id="hub-clear-filters" type="button"><i class="bi bi-x-circle me-1"></i>Hapus filter</button>
             </div>
-            <div class="hub-table-wrap">
-              <table class="table hub-table align-middle">
-                <thead><tr><th>Armada</th><th>Klien</th><th>Aktivitas</th><th>Status</th><th>DO / Shipment terhubung</th><th>Aksi</th></tr></thead>
-                <tbody id="hub-table-body"><tr><td colspan="6" class="text-center py-4">Memuat armada…</td></tr></tbody>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle trcm-table mb-0">
+                <thead><tr><th>Armada</th><th>Klien</th><th>Aktivitas</th><th>Status</th><th>DO / Shipment terhubung</th><th class="action-column">Aksi</th></tr></thead>
+                <tbody id="hub-table-body"><tr><td colspan="6" class="table-state">Memuat armada…</td></tr></tbody>
               </table>
             </div>
-            <div class="hub-pagination">
-              <span class="hub-note" id="hub-page-info">—</span>
-              <div class="hub-page-controls"><button class="hub-page-button" id="hub-prev" type="button" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></button><div class="hub-page-controls" id="hub-pages"></div><button class="hub-page-button" id="hub-next" type="button" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></button></div>
+            <div class="pagination-wrap">
+              <div class="pagination-summary" id="hub-page-info"></div>
+              <nav aria-label="Paginasi daftar armada">
+                <ul class="pagination pagination-spark mb-0" id="hub-pages"></ul>
+              </nav>
             </div>
           </div>
         </section>
@@ -484,11 +477,14 @@
         return '<tr><td><div class="hub-mono">'+esc(visit.plate_number||"—")+'</div><div class="hub-note">'+esc(visit.driver_name||"Driver belum diisi")+(visit.container_num?" · "+esc(visit.container_num):"")+'</div></td><td>'+esc(getClient(visit))+'</td><td>'+esc(activityLabels[visit.activity_type]||visit.activity_type||"—")+'</td><td>'+statusBadge(visit.process_status)+'</td><td>'+documents+'</td><td>'+action+'</td></tr>';
       }).join("");
     }
-    $("hub-page-info").textContent=total?"Menampilkan "+(start+1)+"–"+Math.min(start+state.pageSize,total)+" dari "+total+" armada":"";
-    $("hub-prev").disabled=state.page<=1;$("hub-next").disabled=state.page>=pages;
-    const pageNumbers=[];
-    for(let n=Math.max(1,state.page-2);n<=Math.min(pages,state.page+2);n++)pageNumbers.push(n);
-    $("hub-pages").innerHTML=pageNumbers.map(n=>'<button class="hub-page-button '+(n===state.page?"active":"")+'" type="button" data-page="'+n+'">'+n+'</button>').join("");
+    $("hub-page-info").textContent=total?"Menampilkan "+(start+1)+"–"+Math.min(start+state.pageSize,total)+" dari "+total+" armada":"Tidak ada armada untuk ditampilkan";
+    const pageItems=[];
+    pageItems.push('<li class="page-item '+(state.page<=1?"disabled":"")+'"><a class="page-link" href="#" data-page="'+(state.page-1)+'" aria-label="Halaman sebelumnya"><i class="bi bi-chevron-left"></i></a></li>');
+    for(let n=Math.max(1,state.page-2);n<=Math.min(pages,state.page+2);n++){
+      pageItems.push('<li class="page-item '+(n===state.page?"active":"")+'"><a class="page-link" href="#" data-page="'+n+'"'+(n===state.page?' aria-current="page"':"")+'>'+n+'</a></li>');
+    }
+    pageItems.push('<li class="page-item '+(state.page>=pages?"disabled":"")+'"><a class="page-link" href="#" data-page="'+(state.page+1)+'" aria-label="Halaman berikutnya"><i class="bi bi-chevron-right"></i></a></li>');
+    $("hub-pages").innerHTML=pageItems.join("");
   }
   function applyFilters(){
     const term=$("hub-search").value.trim().toLocaleLowerCase("id-ID");
@@ -552,9 +548,16 @@
     $("hub-activity").addEventListener("change",applyFilters);
     $("hub-status-filter").addEventListener("change",applyFilters);
     $("hub-clear-filters").addEventListener("click",()=>{$("hub-search").value="";$("hub-activity").value="";$("hub-status-filter").value="";applyFilters();});
-    $("hub-prev").addEventListener("click",()=>{state.page=Math.max(1,state.page-1);render();});
-    $("hub-next").addEventListener("click",()=>{state.page++;render();});
-    $("hub-pages").addEventListener("click",event=>{const button=event.target.closest("[data-page]");if(button){state.page=Number(button.dataset.page);render();}});
+    $("hub-pages").addEventListener("click",event=>{
+      const link=event.target.closest("a[data-page]");
+      if(!link||link.closest(".page-item").classList.contains("disabled"))return;
+      event.preventDefault();
+      const nextPage=Number(link.dataset.page);
+      if(Number.isInteger(nextPage)&&nextPage>=1&&nextPage<=Math.max(1,Math.ceil(state.filtered.length/state.pageSize))){
+        state.page=nextPage;
+        render();
+      }
+    });
     $("hub-table-body").addEventListener("click",event=>{
       const linkButton=event.target.closest("[data-link]"),unlinkButton=event.target.closest("[data-unlink]");
       if(linkButton)openLinkDialog(linkButton.dataset.link);
