@@ -105,7 +105,7 @@ create or replace function public.manual_link_plan_items(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, private, pg_temp
+set search_path = ''
 as $$
 declare
   v_visit public.visits%rowtype;
@@ -182,7 +182,7 @@ create or replace function public.manual_unlink_plan_link(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, private, pg_temp
+set search_path = ''
 as $$
 declare
   v_deleted_id uuid;
