@@ -49,7 +49,7 @@
     @media(max-width:767.98px){.hub-card-head,.hub-card-body{padding:1rem}.hub-page-header-actions{width:100%}.hub-page-header-actions .btn{flex:1;min-height:44px}}
   </style>
 </head>
-<body class="trcm-app" data-page-resource="daftar_plan">
+<body class="trcm-app" data-page-resource="hubungkan_plan">
 <div class="app-layout">
   <div id="sidebar-container"></div>
   <div class="main-wrapper">
@@ -373,8 +373,8 @@
     }catch(error){console.error("TRCM Hubungkan Plan unlink:",error);await toast(error.message||"Hubungan gagal diputuskan.","error");}
   }
   async function init(){
-    if(!window.trcmPermissions||!window.trcmPermissions.canView("daftar_plan"))return;
-    state.canUpdate=window.trcmPermissions.can("daftar_plan","update");
+    if(!window.trcmPermissions||!window.trcmPermissions.canView("hubungkan_plan"))return;
+    state.canUpdate=window.trcmPermissions.can("hubungkan_plan","update");
     $("hub-refresh").addEventListener("click",loadData);
 
     planPicker.bind();
