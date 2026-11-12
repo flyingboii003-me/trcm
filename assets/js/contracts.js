@@ -53,7 +53,7 @@
     },
     plan: {
       resources: ["import_plans", "import_plan_items", "import_plan_trips", "visit_plan_items"],
-      rpc: ["save_import_plan", "update_import_plan", "manual_link_plan_items", "manual_unlink_plan_link"]
+      rpc: ["save_import_plan", "update_import_plan", "manual_link_plan_items", "manual_unlink_plan_link", "get_plan_importers"]
     },
     photo: {
       resources: ["photos"],
