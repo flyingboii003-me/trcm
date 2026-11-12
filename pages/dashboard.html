@@ -14,10 +14,15 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
 .dashboard-section-note{margin:.35rem 0 0;color:var(--text-muted);font-size:.78rem}
-.dashboard-client-filter{display:flex;align-items:center;justify-content:flex-end;gap:.75rem;margin:-.75rem 0 1.5rem}
-.dashboard-client-filter label{margin:0;color:var(--text-muted);font-size:.8rem;font-weight:700;white-space:nowrap}
-.dashboard-client-filter select{width:min(100%,320px);min-height:42px;border:1px solid var(--border-input);border-radius:var(--radius-md);background:var(--surface);color:var(--text);font:inherit;font-size:.85rem}
-@media(max-width:575.98px){.dashboard-client-filter{align-items:stretch;flex-direction:column;gap:.4rem}.dashboard-client-filter select{width:100%}}
+.dashboard-client-filter{display:flex;align-items:center;justify-content:space-between;gap:1.25rem;margin:-.75rem 0 1.5rem;padding:1rem 1.25rem;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm)}
+.dashboard-client-filter-copy{display:flex;align-items:center;gap:.75rem;min-width:0}
+.dashboard-client-filter-icon{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;border-radius:var(--radius-md);background:rgba(0,110,205,.09);color:var(--cj-blue);font-size:1rem}
+.dashboard-client-filter-label{display:block;margin:0;color:var(--text-main);font-size:.85rem;font-weight:700}
+.dashboard-client-filter-hint{display:block;margin:.15rem 0 0;color:var(--text-muted);font-size:.72rem;line-height:1.4}
+.dashboard-client-filter-control{width:min(100%,340px);flex:0 1 340px}
+.dashboard-client-filter select{width:100%;min-height:44px;border:1px solid var(--border);border-radius:var(--radius-lg);background-color:var(--card-bg);color:var(--text-main);font:inherit;font-size:.85rem;font-weight:600}
+.dashboard-client-filter select:focus{border-color:var(--cj-blue);box-shadow:0 0 0 3px rgba(0,110,205,.14);outline:0}
+@media(max-width:575.98px){.dashboard-client-filter{align-items:stretch;flex-direction:column;gap:.75rem;padding:.9rem;margin:-.35rem 0 1.25rem}.dashboard-client-filter-copy{align-items:flex-start}.dashboard-client-filter-control{width:100%;max-width:none;flex:1 1 auto}}
 .operational-chart{min-height:220px}
 .hourly-chart-scroll{max-width:100%;min-width:0}
 .monitoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
@@ -63,12 +68,20 @@
           </div>
         </div>
 
-        <div class="dashboard-client-filter">
-          <label for="dashboard-client-filter">Filter Klien</label>
-          <select id="dashboard-client-filter" class="form-select" aria-label="Pilih klien untuk memfilter data operasional">
-            <option value="all">Semua Klien</option>
-          </select>
-        </div>
+        <section class="dashboard-client-filter" aria-label="Filter data dashboard berdasarkan klien">
+          <div class="dashboard-client-filter-copy">
+            <span class="dashboard-client-filter-icon" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+            <div>
+              <label class="dashboard-client-filter-label" for="dashboard-client-filter">Filter Klien</label>
+              <span class="dashboard-client-filter-hint">Tampilkan data operasional berdasarkan klien</span>
+            </div>
+          </div>
+          <div class="dashboard-client-filter-control">
+            <select id="dashboard-client-filter" class="form-select" aria-label="Pilih klien untuk memfilter data operasional">
+              <option value="all">Semua Klien</option>
+            </select>
+          </div>
+        </section>
 
         <section aria-label="Ringkasan KPI hari ini">
           <div class="row g-3 mb-4">
