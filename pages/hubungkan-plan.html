@@ -192,10 +192,21 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../assets/js/config.js"></script>
 <script src="../assets/js/components.js"></script>
+<script src="../assets/js/pages/hubungkan-plan/utils.js"></script>
 <script>
 (function(){
   "use strict";
   const $=id=>document.getElementById(id);
+  const {
+    localDateInputValue,
+    formatPlanDate,
+    formatRegisteredDate,
+    escapeHtml: esc,
+    getPlanShipmentGroups,
+    docLabel,
+    getClient,
+    matches
+  } = window.TRCM.hubungkanPlan.utils;
   const state={visits:[],filtered:[],linkedIds:new Set(),page:1,pageSize:15,canUpdate:false,loading:false,selectedVisit:null,availablePlans:[],availablePlanItems:[],processedPlanItemIds:new Set(),selectedPlanItemIds:new Set(),planLoadSequence:0,savingLink:false};
   const statusLabels={wh_in:"Terdaftar",registered:"Terdaftar",queue:"Parkir",started:"Sedang proses",completed:"Selesai Loading"};
   const activityLabels={inbound:"Inbound",outbound:"Outbound"};
@@ -214,22 +225,6 @@
   const clearPlanSelection=$("hub-clear-plan-selection");
   const saveLinkButton=$("hub-save-link");
 
-  function localDateInputValue(value){
-    const date=value?new Date(value):new Date();
-    if(Number.isNaN(date.getTime()))return "";
-    return [date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-");
-  }
-  function formatPlanDate(value){
-    if(!value)return "Tanggal tidak tersedia";
-    const parts=value.split("-");
-    return parts.length===3?parts[2]+"/"+parts[1]+"/"+parts[0]:value;
-  }
-  function formatRegisteredDate(value){
-    if(!value)return "—";
-    const date=new Date(value);
-    if(Number.isNaN(date.getTime()))return "—";
-    return new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Jakarta"}).format(date);
-  }
   function refreshPlanDropdown(){
     const options=Array.from(planSelect.options).filter(option=>Boolean(option.value));
     const selected=options.filter(option=>option.selected);
@@ -255,22 +250,6 @@
     state.selectedPlanItemIds=new Set();
     planShipmentList.innerHTML='<div class="border rounded-3 p-3 text-muted small">'+esc(message)+'</div>';
     updatePlanShipmentCount();
-  }
-  function getPlanShipmentGroups(items){
-    const groups=new Map();
-    items.forEach(item=>{
-      const doNumber=String(item.do_number||"").trim();
-      const shipmentNumber=String(item.shipment_number||"").trim();
-      const activityLabel=item.activity_type==="inbound"?"Inbound":"Outbound";
-      const rawKey=doNumber?"do:"+doNumber:shipmentNumber?"shipment:"+shipmentNumber:"item:"+item.id;
-      const key=String(item.plan_id+":"+rawKey).trim().toLowerCase();
-      const label=[activityLabel,doNumber?"DO "+doNumber:"",shipmentNumber?"Shipment "+shipmentNumber:""].filter(Boolean).join(" · ")||("Baris "+item.row_number);
-      if(!groups.has(key))groups.set(key,{key,label,items:[],trip:item.trip||null});
-      const group=groups.get(key);
-      group.items.push(item);
-      if(!group.trip&&item.trip)group.trip=item.trip;
-    });
-    return Array.from(groups.values());
   }
   function updatePlanShipmentCount(){
     const selectedGroups=getPlanShipmentGroups(state.availablePlanItems).filter(group=>group.items.some(item=>state.selectedPlanItemIds.has(item.id))).length;
@@ -462,28 +441,11 @@
     }
   }
 
-  function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
   function toast(message,icon){const kind=icon||"info";const titles={success:"Berhasil",error:"Terjadi kesalahan",warning:"Perlu diperiksa",info:"Informasi"};return Swal.fire({icon:kind,title:titles[kind]||"Informasi",text:String(message||""),confirmButtonText:"Mengerti",confirmButtonColor:"#006ECD"});}
-  function docLabel(link){
-    const parts=[];
-    if(link.snapshot_do_number)parts.push("DO "+link.snapshot_do_number);
-    if(link.snapshot_shipment_number)parts.push("Shipment "+link.snapshot_shipment_number);
-    return parts.join(" · ")||"Dokumen Plan lama";
-  }
   function statusBadge(status){
     const key=String(status||"").toLowerCase();
     const icon=key==="started"?"bi-arrow-repeat":key==="completed"?"bi-check-circle-fill":key==="queue"?"bi-p-square":"bi-hourglass-split";
     return '<span class="hub-status '+esc(key)+'"><i class="bi '+icon+'"></i>'+esc(statusLabels[key]||key||"—")+'</span>';
-  }
-  function getClient(visit){
-    const client=Array.isArray(visit.clients)?visit.clients[0]:visit.clients;
-    return client&&client.name||"—";
-  }
-  function matches(visit,term){
-    if(!term)return true;
-    const linked=Array.isArray(visit.visit_plan_items)?visit.visit_plan_items:[];
-    const values=[visit.plate_number,visit.container_num,visit.driver_name,visit.vendor,visit.destination_city,getClient(visit),visit.shipment_number,...linked.map(docLabel)];
-    return values.some(value=>String(value||"").toLocaleLowerCase("id-ID").includes(term));
   }
   function render(){
     const rows=state.filtered;
