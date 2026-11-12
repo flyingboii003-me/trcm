@@ -338,7 +338,7 @@
           </div>
           <div class="list-card-body">
             <div class="row g-3 mb-4">
-              <div class="col-lg-6 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien atau tanggal"></div></div>
+              <div class="col-lg-6 col-md-6"><label class="list-filter-label" for="plan-search">Cari Plan</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search"></i></span><input id="plan-search" class="form-control list-filter" type="search" placeholder="Klien, pengimpor, atau tanggal"></div></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-activity">Jenis aktivitas</label><select class="form-select list-filter" id="filter-activity"><option value="">Semua jenis</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-from">Tanggal operasional dari</label><input class="form-control list-filter" id="filter-from" type="date"></div>
               <div class="col-lg-2 col-md-6"><label class="list-filter-label" for="filter-to">Sampai tanggal</label><input class="form-control list-filter" id="filter-to" type="date"></div>
@@ -349,7 +349,7 @@
             </div>
             <div class="user-role-table-wrap">
               <table class="table trcm-table align-middle">
-                <thead><tr><th>Klien</th><th>Tanggal operasional</th><th>Jenis</th><th>Truk</th><th>Status Truk</th><th>Diimpor pada</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>Klien</th><th>Diimpor oleh</th><th>Jenis</th><th>Truk</th><th>Status Truk</th><th>Diimpor pada</th><th>Aksi</th></tr></thead>
                 <tbody id="plan-table-body"><tr><td class="table-state" colspan="7">Memuat daftar Plan...</td></tr></tbody>
               </table>
             </div>
@@ -473,7 +473,8 @@
     const q=$("plan-search").value.trim().toLowerCase(),activity=$("filter-activity").value,from=$("filter-from").value,to=$("filter-to").value;
     state.filtered=state.plans.filter(p=>{
       const client=p.clients&&p.clients.name||"";
-      const hay=[client,p.operational_date,p.activity_type].join(" ").toLowerCase();
+      const creator=p.creator&&((p.creator.full_name||"")+" "+(p.creator.username||""))||"";
+      const hay=[client,creator,p.operational_date,p.activity_type].join(" ").toLowerCase();
       return (!q||hay.includes(q))&&(!activity||p.activity_type===activity)&&(!from||p.operational_date>=from)&&(!to||p.operational_date<=to);
     });
     state.page=1;
@@ -496,7 +497,7 @@
       const progress=state.planProgress.get(p.id)||{completedTrucks:0,totalTrucks:0};
       const pendingTrucks=Math.max(progress.totalTrucks-progress.completedTrucks,0);
       const progressHtml='<div class="d-flex flex-column align-items-start gap-1"><span class="list-badge truck-completed"><i class="bi bi-check-circle-fill"></i>'+progress.completedTrucks+' Truk Selesai</span><span class="list-badge pending"><i class="bi bi-hourglass-split"></i>'+pendingTrucks+' Truk Belum Selesai</span></div>';
-      return '<tr><td><div class="fw-bold">'+esc(client)+'</div></td><td><span class="fw-semibold">'+esc(dateLabel(p.operational_date))+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td>'+esc(countTrips(p)||"—")+'</td><td>'+progressHtml+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
+      return '<tr><td><div class="fw-bold">'+esc(client)+'</div></td><td><span class="fw-semibold">'+esc(p.creator&&(p.creator.full_name||p.creator.username)||"Tidak diketahui")+'</span></td><td>'+activityBadge(p.activity_type)+'</td><td>'+esc(countTrips(p)||"—")+'</td><td>'+progressHtml+'</td><td><span class="small">'+esc(dateTimeLabel(p.created_at))+'</span></td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" type="button" data-plan-detail="'+esc(p.id)+'"><i class="bi bi-eye me-1"></i>Rincian</button>'+(state.canUpdate&&p.status==="active"?'<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-plan-edit="'+esc(p.id)+'"><i class="bi bi-pencil-square me-1"></i>Ubah</button>':'')+(state.canDelete?'<button class="btn btn-sm btn-outline-danger ms-1" type="button" data-plan-delete="'+esc(p.id)+'"><i class="bi bi-trash me-1"></i>Hapus</button>':'')+'</td></tr>';
     }).join("");
     $("plan-table-body").querySelectorAll("[data-plan-detail]").forEach(button=>button.addEventListener("click",()=>openDetail(button.dataset.planDetail)));
     $("plan-table-body").querySelectorAll("[data-plan-edit]").forEach(button=>button.addEventListener("click",()=>editPlan(button.dataset.planEdit)));
@@ -507,7 +508,7 @@
     const button=$("refresh-plans");button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memuat…';
     $("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
     try{
-      const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id,plate_number)";
+      const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,created_by,clients(name),creator:users!import_plans_created_by_fkey(username,full_name),import_plan_items(id),import_plan_trips(id,plate_number)";
       const [data,items,linkedItems]=await Promise.all([
         request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc"),
         request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,do_number,shipment_number,manual_processed"),
