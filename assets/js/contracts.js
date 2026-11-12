@@ -16,7 +16,7 @@
     "master-data": { file: "master-data.html", title: "Master Data", resourceKey: "master_data" },
     "impor-plan": { file: "impor-plan.html", title: "Impor Plan", resourceKey: "import_plan_upload" },
     "daftar-plan": { file: "daftar-plan.html", title: "Daftar Plan", resourceKey: "daftar_plan" },
-    "hubungkan-plan": { file: "hubungkan-plan.html", title: "Hubungkan Plan", resourceKey: "daftar_plan" },
+    "hubungkan-plan": { file: "hubungkan-plan.html", title: "Hubungkan Plan", resourceKey: "hubungkan_plan" },
     "user-role": { file: "user-role.html", title: "User & Role", resourceKey: "user_role" },
     profil: { file: "profil.html", title: "Profil Pengguna", resourceKey: "" },
     "live-view": { file: "live-view.html", title: "Live View", resourceKey: "live_view" },
