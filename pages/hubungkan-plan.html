@@ -241,7 +241,7 @@
     },
     helpers:{escapeHtml:esc,getPlanShipmentGroups,formatPlanDate},
     activityLabels,
-    planService:window.TRCM.plan,
+    getPlanService:()=>window.TRCM.plan,
     getSelectedVisit:()=>state.selectedVisit,
     getLinkedIds:()=>state.linkedIds
   });
