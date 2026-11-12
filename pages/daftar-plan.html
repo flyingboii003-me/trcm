@@ -517,7 +517,11 @@
       if(!Array.isArray(data)||!Array.isArray(items)||!Array.isArray(linkedItems))throw new Error("Respons daftar Plan atau referensi DO / Shipment tidak valid.");
       const planIds=data.map(plan=>plan.id).filter(Boolean);
       const importers=planIds.length
-        ? await request("/rest/v1/plan_importers?select=plan_id,username,full_name&plan_id=in.("+planIds.map(encodeURIComponent).join(",")+")")
+        ? await request("/rest/v1/rpc/get_plan_importers",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({p_plan_ids:planIds})
+          })
         : [];
       if(!Array.isArray(importers))throw new Error("Metadata importer Plan gagal dimuat.");
       const importerByPlan=new Map(importers.map(importer=>[importer.plan_id,{username:importer.username,full_name:importer.full_name}]));
