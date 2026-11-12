@@ -559,7 +559,7 @@
     }catch(error){toast(error.message||"Status DO / Shipment gagal dimuat.","error");return;}
     const statusGroups=itemStatusGroups(p,statusItems,linkedStatusIds);
     const statusEditor=statusGroups.length
-      ? "<section class='trcm-edit-plan-status-section text-start'><h3 class='fs-6 fw-bold mb-1'>Status DO / Shipment</h3><p class='small text-secondary mb-2'>Perubahan status manual hanya tersedia di modal Ubah. Status yang sudah terhubung ke proses loading aktual tidak dapat diubah.</p><div class='trcm-edit-plan-status-table-wrap'><table class='table table-sm align-middle trcm-edit-plan-status-table mb-0'><thead><tr><th>"+(p.activity_type==="outbound"?"Shipment":"DO / Transport task")+"</th><th>Jumlah baris</th><th>Ubah status proses</th></tr></thead><tbody>"+statusGroups.map((group,index)=>"<tr><td>"+esc(group.label)+"</td><td>"+group.items.length+"</td><td>"+(group.linked?"<span class='badge text-bg-success'>Sudah diproses (aktual)</span>":"<select class='form-select form-select-sm trcm-edit-plan-status-select' data-manual-status='"+index+"' data-status-key='"+esc(group.key)+"'><option value='false' "+(!group.processed?"selected":"")+">Belum diproses</option><option value='true' "+(group.processed?"selected":"")+">Sudah diproses</option></select>")+"</td></tr>").join("")+"</tbody></table></div></section>"
+      ? "<section class='trcm-edit-plan-status-section text-start'><h3 class='fs-6 fw-bold mb-1'>Status DO / Shipment</h3><p class='small text-secondary mb-2'>Status yang sudah terhubung ke proses loading aktual tidak dapat diubah.</p><div class='trcm-edit-plan-status-table-wrap'><table class='table table-sm align-middle trcm-edit-plan-status-table mb-0'><thead><tr><th>"+(p.activity_type==="outbound"?"Shipment":"DO / Transport task")+"</th><th>Jumlah baris</th><th>Ubah status proses</th></tr></thead><tbody>"+statusGroups.map((group,index)=>"<tr><td>"+esc(group.label)+"</td><td>"+group.items.length+"</td><td>"+(group.linked?"<span class='badge text-bg-success'>Sudah diproses (aktual)</span>":"<select class='form-select form-select-sm trcm-edit-plan-status-select' data-manual-status='"+index+"' data-status-key='"+esc(group.key)+"'><option value='false' "+(!group.processed?"selected":"")+">Belum diproses</option><option value='true' "+(group.processed?"selected":"")+">Sudah diproses</option></select>")+"</td></tr>").join("")+"</tbody></table></div></section>"
       : "";
     const fields=p.activity_type==="inbound"?[["do_number","DO / Transport task"]]:[["shipment_number","Shipment"],["vendor","Vendor"],["plate_number","Plat nomor"],["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"]];
     const tableHead=fields.map(([,label])=>"<th>"+esc(label)+"</th>").join("");
@@ -571,7 +571,7 @@
       customClass:{popup:"trcm-edit-plan-popup"},
       html:"<div class='text-start small text-secondary mb-3'>Semua shipment/DO ditampilkan di bawah. Edit kolom yang diperlukan dan tanggal operasional sebelum menyimpan.</div>"+
         "<div class='trcm-edit-plan-date-row text-start mb-3'><div><label class='form-label fw-semibold' for='edit-operational-date'>Tanggal operasional</label><input id='edit-operational-date' class='form-control' type='date' value='"+esc(workingDate||p.operational_date||"")+"' required></div></div><div class='trcm-edit-plan-table-wrap'><table class='table table-sm table-striped align-middle trcm-edit-plan-table mb-0'><thead><tr>"+tableHead+(p.activity_type==="outbound"?"<th class='text-center' style='width:48px'>Aksi</th>":"")+"</tr></thead><tbody>"+tableRows+"</tbody></table></div>"+
-        "<div class='small text-secondary text-start mt-2'>Perubahan akan memperbarui Plan ini secara langsung tanpa membuat versi baru.</div>"+statusEditor,
+        ""+statusEditor,
       showCancelButton:true,confirmButtonText:"Simpan perubahan",cancelButtonText:"Batal",
       confirmButtonColor:"#0d6efd",reverseButtons:true,focusCancel:true,
       didOpen:()=>{
@@ -661,10 +661,10 @@
     if(!state.canDelete)return;
     const p=state.plans.find(row=>row.id===id);if(!p)return;
     const client=p.clients&&p.clients.name||"Klien tidak tersedia";
-    const warning=p.status==="active"?" Plan Aktif akan dihapus sehingga tidak ada Plan aktif untuk cakupan ini sampai Plan pengganti dibuat.":"";
+    const uploadDate=dateLabel(String(p.created_at||"").slice(0,10));
     const confirmation=await Swal.fire({
       icon:"warning",title:"Hapus Plan?",
-      html:"Hapus Plan milik <strong>"+esc(client)+"</strong>?<br><br>Referensi DO/Shipment dan data trip ikut dihapus."+esc(warning)+"<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
+      html:"Hapus Plan <strong>"+esc(client)+" - "+esc(uploadDate)+"</strong>?<br><br>Hanya plan yang dipilih akan dihapus. Shipment / DO yang sudah tercatat sebagai proses akan tetap tersimpan di armada yang terkait.<br><strong>Tindakan ini tidak dapat dibatalkan.</strong>",
       showCancelButton:true,confirmButtonText:"Ya, hapus Plan",cancelButtonText:"Batal",
       confirmButtonColor:"#dc3545",reverseButtons:true,focusCancel:true
     });
