@@ -43,6 +43,7 @@ Role tambahan dapat dibuat melalui halaman User & Role dan tidak dibatasi pada d
 - Live View
 - Riwayat
 - User & Role
+- Hubungkan Plan
 
 ## User profile
 
@@ -71,6 +72,7 @@ Resource/action permissions are the authorization source for application feature
 - User & Role Edge Function endpoints require `user_role.create`, `user_role.update`, or `user_role.delete` according to HTTP method.
 - History edit and delete are independently controlled by `history.update` and `history.delete`.
 - Plan edit and delete are independently controlled by `daftar_plan.update` and `daftar_plan.delete`.
+- Manual Plan linking and unlinking are independently controlled by `hubungkan_plan.update`; page access uses `hubungkan_plan.view`.
 
 Role-name checks remain only for explicit system safeguards or business invariants, not as a second feature authorization layer. Examples include protecting the built-in `admin` role from modification/deletion in the User & Role screen and the Gate Security shipment-identifier lock before WH Out.
 
