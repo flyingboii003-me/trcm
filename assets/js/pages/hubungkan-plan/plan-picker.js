@@ -6,7 +6,7 @@
     const elements = options.elements;
     const helpers = options.helpers;
     const activityLabels = options.activityLabels;
-    const planService = options.planService;
+    const getPlanService = options.getPlanService;
     const getSelectedVisit = options.getSelectedVisit;
     const getLinkedIds = options.getLinkedIds;
     const {
@@ -22,6 +22,14 @@
       clearPlanSelection
     } = elements;
     const { escapeHtml: esc, getPlanShipmentGroups, formatPlanDate } = helpers;
+
+    function requestPlan(path, requestOptions, settings) {
+      const service = typeof getPlanService === "function" ? getPlanService() : null;
+      if (!service || typeof service.request !== "function") {
+        throw new Error("Plan Service belum siap. Silakan coba kembali.");
+      }
+      return service.request(path, requestOptions, settings);
+    }
 
     function refreshPlanDropdown() {
       const options = Array.from(planSelect.options).filter(option => Boolean(option.value));
@@ -129,7 +137,7 @@
           "&operational_date=gte." + encodeURIComponent(dateFrom) +
           "&operational_date=lte." + encodeURIComponent(dateTo) +
           "&status=eq.active&order=operational_date.asc,created_at.desc";
-        const plans = await planService.request("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,row_count,import_plan_trips(count)&" + filters, {}, { errorMessage: "Daftar Plan gagal dimuat." });
+        const plans = await requestPlan("/rest/v1/import_plans?select=id,client_id,operational_date,activity_type,status,row_count,import_plan_trips(count)&" + filters, {}, { errorMessage: "Daftar Plan gagal dimuat." });
         if (sequence !== state.planLoadSequence) return;
         if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
         state.availablePlans = plans;
@@ -171,8 +179,8 @@
       try {
         const results = await Promise.all(plans.map(async plan => {
           const [items, trips] = await Promise.all([
-            planService.request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,manual_processed&plan_id=eq." + encodeURIComponent(plan.id) + "&order=row_number.asc", {}, { errorMessage: "Detail DO/Shipment gagal dimuat." }),
-            planService.request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc", {}, { errorMessage: "Detail armada Plan gagal dimuat." })
+            requestPlan("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,manual_processed&plan_id=eq." + encodeURIComponent(plan.id) + "&order=row_number.asc", {}, { errorMessage: "Detail DO/Shipment gagal dimuat." }),
+            requestPlan("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc", {}, { errorMessage: "Detail armada Plan gagal dimuat." })
           ]);
           if (!Array.isArray(items) || !Array.isArray(trips)) throw new Error("Rincian DO/Shipment Plan tidak valid.");
           const tripById = new Map(trips.map(trip => [trip.id, trip]));
