@@ -508,13 +508,24 @@
     const button=$("refresh-plans");button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memuat…';
     $("plan-table-body").innerHTML='<tr><td colspan="7"><div class="list-empty"><span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar Plan…</div></td></tr>';
     try{
-      const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,created_by,clients(name),creator:users!import_plans_created_by_fkey(username,full_name),import_plan_items(id),import_plan_trips(id,plate_number)";
+      const select="id,client_id,operational_date,activity_type,status,row_count,created_at,activated_at,clients(name),import_plan_items(id),import_plan_trips(id,plate_number)";
       const [data,items,linkedItems]=await Promise.all([
         request("/rest/v1/import_plans?select="+encodeURIComponent(select)+"&order=operational_date.desc,created_at.desc"),
         request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,do_number,shipment_number,manual_processed"),
         request("/rest/v1/visit_plan_items?select=plan_item_id,visits(completed_at)")
       ]);
       if(!Array.isArray(data)||!Array.isArray(items)||!Array.isArray(linkedItems))throw new Error("Respons daftar Plan atau referensi DO / Shipment tidak valid.");
+      const planIds=data.map(plan=>plan.id).filter(Boolean);
+      const importers=planIds.length
+        ? await request("/rest/v1/rpc/get_plan_importers",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({p_plan_ids:planIds})
+          })
+        : [];
+      if(!Array.isArray(importers))throw new Error("Metadata importer Plan gagal dimuat.");
+      const importerByPlan=new Map(importers.map(importer=>[importer.plan_id,{username:importer.username,full_name:importer.full_name}]));
+      data.forEach(plan=>{plan.creator=importerByPlan.get(plan.id)||null;});
       const linkedIds=new Set(linkedItems.map(item=>item.plan_item_id).filter(Boolean));
       const completedItemIds=new Set(linkedItems.filter(link=>!!visitCompletedAt(link)).map(link=>link.plan_item_id).filter(Boolean));
       updateTruckProgress(data,items,completedItemIds);
