@@ -54,7 +54,6 @@
 
   const categoryOrder = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"];
   const list = document.getElementById("changelog-list");
-  const count = document.getElementById("changelog-release-count");
 
   function createElement(tag, className, text) {
     const element = document.createElement(tag);
@@ -113,7 +112,7 @@
   }
 
   function render() {
-    if (!list || !count) return;
+    if (!list) return;
     const currentVersionContent = document.getElementById("changelog-current-version-content");
     if (currentVersionContent) {
       currentVersionContent.replaceChildren();
@@ -123,7 +122,6 @@
     releases.forEach(function (release) {
       list.appendChild(renderRelease(release));
     });
-    count.textContent = releases.length + " versi sebelumnya";
   }
 
   function initialize() {
