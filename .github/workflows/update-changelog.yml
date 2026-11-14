@@ -95,9 +95,9 @@ jobs:
 
               if (objectEnd < 0) throw new Error("Objek currentRelease tidak tertutup dengan benar.");
               const literal = contents.slice(objectStart, objectEnd + 1);
-              const version = literal.match(/\bversion\s*:\s*["'](\d+\.\d+\.\d+)["']/);
-              const date = literal.match(/\bdate\s*:\s*["'](\d{4}-\d{2}-\d{2})["']/);
-              const pr = literal.match(/\bpr\s*:\s*(\d+)/);
+              const version = literal.match(/["']?version["']?\s*:\s*["'](\d+\.\d+\.\d+)["']/);
+              const date = literal.match(/["']?date["']?\s*:\s*["'](\d{4}-\d{2}-\d{2})["']/);
+              const pr = literal.match(/["']?pr["']?\s*:\s*(\d+)/);
 
               if (!version || !date || !pr) throw new Error("Metadata currentRelease tidak lengkap.");
               return {
@@ -161,7 +161,7 @@ jobs:
               });
 
               const current = extractCurrentReleaseLiteral(source);
-              const duplicatePattern = new RegExp("\\bpr\\s*:\\s*" + pullRequest.number + "\\b");
+              const duplicatePattern = new RegExp("[\"']?pr[\"']?\\s*:\\s*" + pullRequest.number + "\\b");
               if (duplicatePattern.test(source)) {
                 core.info("PR #" + pullRequest.number + " sudah tercatat; lewati agar tidak duplikat.");
                 continue;
