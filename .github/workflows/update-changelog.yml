@@ -97,14 +97,11 @@ jobs:
               const literal = contents.slice(objectStart, objectEnd + 1);
               const version = literal.match(/["']?version["']?\s*:\s*["'](\d+\.\d+\.\d+)["']/);
               const date = literal.match(/["']?date["']?\s*:\s*["'](\d{4}-\d{2}-\d{2})["']/);
-              const pr = literal.match(/["']?pr["']?\s*:\s*(\d+)/);
-
-              if (!version || !date || !pr) throw new Error("Metadata currentRelease tidak lengkap.");
+              if (!version || !date) throw new Error("Metadata currentRelease tidak lengkap.");
               return {
                 literal,
                 version: version[1],
                 date: date[1],
-                pr: Number(pr[1]),
                 declarationStart,
                 objectEnd
               };
@@ -161,9 +158,14 @@ jobs:
               });
 
               const current = extractCurrentReleaseLiteral(source);
-              const duplicatePattern = new RegExp("[\"']?pr[\"']?\\s*:\\s*" + pullRequest.number + "\\b");
+              const mergeCommitSha = pullRequest.merge_commit_sha;
+              if (!mergeCommitSha) {
+                throw new Error("SHA merge PR #" + pullRequest.number + " tidak tersedia.");
+              }
+
+              const duplicatePattern = new RegExp("[\\"']?commit[\\"']?\\\\s*:\\\\s*[\\"']" + mergeCommitSha + "[\\"']");
               if (duplicatePattern.test(source)) {
-                core.info("PR #" + pullRequest.number + " sudah tercatat; lewati agar tidak duplikat.");
+                core.info("Merge commit PR #" + pullRequest.number + " sudah tercatat; lewati agar tidak duplikat.");
                 continue;
               }
 
@@ -182,7 +184,7 @@ jobs:
               const nextRelease = {
                 version,
                 date,
-                pr: pullRequest.number,
+                commit: mergeCommitSha,
                 categories
               };
 
