@@ -3,6 +3,14 @@
 .changelog-page-header{align-items:flex-end;margin-bottom:1.5rem}
 .changelog-page-header .page-title{margin-bottom:.4rem}
 .changelog-page-header .page-subtitle{max-width:620px;line-height:1.65}
+.changelog-current-version{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:2rem;padding:1.25rem 1.4rem;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--card-bg);box-shadow:var(--shadow-sm)}
+.changelog-current-version-copy h2{margin:.2rem 0 .35rem;font-size:1.05rem;font-weight:800;color:var(--text-main)}
+.changelog-current-version-copy p{margin:0;color:var(--text-muted);font-size:.78rem;line-height:1.6}
+.changelog-current-version-detail{display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;flex:0 0 auto}
+.changelog-current-version-number{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.65rem;line-height:1.2;font-weight:800;font-variant-numeric:tabular-nums;color:var(--cj-blue)}
+.changelog-current-version-meta{color:var(--text-muted);font-size:.72rem;white-space:nowrap}
+.changelog-current-version-meta a{color:var(--cj-blue);font-weight:700;text-decoration:none}
+.changelog-current-version-meta a:hover{text-decoration:underline}
 
 .changelog-release-heading,.changelog-release-title-wrap{display:flex;align-items:center;min-width:0}
 .changelog-release-heading{justify-content:space-between;gap:1rem}
