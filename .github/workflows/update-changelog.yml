@@ -163,7 +163,7 @@ jobs:
                 throw new Error("SHA merge PR #" + pullRequest.number + " tidak tersedia.");
               }
 
-              const duplicatePattern = new RegExp("[\\"']?commit[\\"']?\\\\s*:\\\\s*[\\"']" + mergeCommitSha + "[\\"']");
+              const duplicatePattern = new RegExp("[\\"']?commit[\\"']?\\s*:\\s*[\\"']" + mergeCommitSha + "[\\"']");
               if (duplicatePattern.test(source)) {
                 core.info("Merge commit PR #" + pullRequest.number + " sudah tercatat; lewati agar tidak duplikat.");
                 continue;
