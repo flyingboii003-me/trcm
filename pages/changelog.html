@@ -19,12 +19,11 @@
     <div class="main-wrapper">
       <div id="topbar-container"></div>
       <main class="content-wrapper">
-        <div class="container-fluid px-0 changelog-page">
+        <div class="container-fluid px-0 changelog-page" id="changelog-top">
           <header class="page-header changelog-page-header">
             <div>
               <span class="page-header-kicker">PUSAT INFORMASI TRCM</span>
               <h1 class="page-title">Changelog</h1>
-              <p class="page-subtitle">Catatan perubahan fitur, penyempurnaan, dan perbaikan TRCM.</p>
             </div>
             <a class="btn btn-outline-primary changelog-format-link" href="https://keepachangelog.com/en/1.1.0/" target="_blank" rel="noopener noreferrer">
               <i class="bi bi-journal-text" aria-hidden="true"></i>
@@ -32,28 +31,6 @@
               <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
             </a>
           </header>
-
-          <section class="changelog-intro" aria-label="Informasi changelog">
-            <div class="changelog-intro-icon" aria-hidden="true"><i class="bi bi-clock-history"></i></div>
-            <div class="changelog-intro-copy">
-              <h2>Perkembangan TRCM</h2>
-              <p>Setiap versi merangkum perubahan penting berdasarkan riwayat Pull Request yang telah digabungkan ke <code>main</code>. Versi mengikuti aturan penomoran TRCM dengan format tiga angka.</p>
-            </div>
-          </section>
-
-          <section class="changelog-unreleased" id="unreleased" aria-labelledby="unreleased-title">
-            <div class="changelog-release-heading">
-              <div class="changelog-release-title-wrap">
-                <span class="changelog-release-marker changelog-release-marker--unreleased" aria-hidden="true"></span>
-                <div>
-                  <h2 id="unreleased-title">Unreleased</h2>
-                  <p>Perubahan yang sudah digabungkan dan menunggu penetapan versi rilis.</p>
-                </div>
-              </div>
-              <span class="changelog-status">Dalam pengembangan</span>
-            </div>
-            <p class="changelog-unreleased-empty"><i class="bi bi-info-circle" aria-hidden="true"></i> Belum ada perubahan untuk versi berikutnya.</p>
-          </section>
 
           <section class="changelog-history" aria-labelledby="changelog-history-title">
             <div class="changelog-history-heading">
@@ -70,7 +47,7 @@
 
           <footer class="changelog-footer">
             <span>TRCM · Truck Registration &amp; Control Management</span>
-            <a href="#unreleased">Kembali ke atas <i class="bi bi-arrow-up" aria-hidden="true"></i></a>
+            <a href="#changelog-top">Kembali ke atas <i class="bi bi-arrow-up" aria-hidden="true"></i></a>
           </footer>
         </div>
       </main>
