@@ -1,5 +1,10 @@
 const USERNAME_LOGIN_URL=SUPABASE_URL+"/functions/v1/username-login";
 
+const appVersionElement=document.getElementById("app-version");
+if(appVersionElement&&typeof window.TRCM_VERSION==="string"&&/^\d+\.\d+\.\d+$/.test(window.TRCM_VERSION)){
+  appVersionElement.textContent="v"+window.TRCM_VERSION;
+}
+
 const loginForm=document.getElementById("loginForm");
 const usernameInput=document.getElementById("username");
 const passwordInput=document.getElementById("password");

@@ -20,7 +20,8 @@
     "user-role": { file: "user-role.html", title: "User & Role", resourceKey: "user_role" },
     profil: { file: "profil.html", title: "Profil Pengguna", resourceKey: "" },
     "live-view": { file: "live-view.html", title: "Live View", resourceKey: "live_view" },
-    checker: { file: "checker.html", title: "Checker", resourceKey: "" }
+    checker: { file: "checker.html", title: "Checker", resourceKey: "" },
+    changelog: { file: "changelog.html", title: "Changelog", resourceKey: "" }
   };
 
   const navigationGroups = [

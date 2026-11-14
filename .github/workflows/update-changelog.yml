@@ -1,0 +1,237 @@
+name: Update Riwayat Versi
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  update-changelog:
+    name: Perbarui Riwayat Versi dari Pull Request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ambil catatan PR dan perbarui riwayat versi
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const filePath = "assets/js/pages/changelog.js";
+            const allowedCategories = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"];
+
+            if (!fs.existsSync(filePath)) {
+              core.info("Halaman Riwayat Versi belum tersedia. Tidak ada yang diperbarui.");
+              return;
+            }
+
+            const { data: associatedPullRequests } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha
+            });
+
+            const mergedPullRequests = associatedPullRequests
+              .filter((pullRequest) => pullRequest.merged_at && pullRequest.base?.ref === "main")
+              .sort((a, b) => new Date(a.merged_at) - new Date(b.merged_at));
+
+            if (mergedPullRequests.length === 0) {
+              core.info("Commit ini tidak terkait dengan Pull Request yang di-merge ke main.");
+              return;
+            }
+
+            let source = fs.readFileSync(filePath, "utf8");
+            let changed = false;
+
+            function extractCurrentReleaseLiteral(contents) {
+              const declarationStart = contents.indexOf("  const currentRelease = ");
+              if (declarationStart < 0) throw new Error("Deklarasi currentRelease tidak ditemukan.");
+
+              const objectStart = contents.indexOf("{", declarationStart);
+              if (objectStart < 0) throw new Error("Objek currentRelease tidak ditemukan.");
+
+              let depth = 0;
+              let quote = null;
+              let escaped = false;
+              let objectEnd = -1;
+
+              for (let index = objectStart; index < contents.length; index += 1) {
+                const character = contents[index];
+
+                if (quote) {
+                  if (escaped) {
+                    escaped = false;
+                  } else if (character === "\\") {
+                    escaped = true;
+                  } else if (character === quote) {
+                    quote = null;
+                  }
+                  continue;
+                }
+
+                if (character === '"' || character === "'" || character === "`") {
+                  quote = character;
+                  continue;
+                }
+
+                if (character === "{") depth += 1;
+                if (character === "}") {
+                  depth -= 1;
+                  if (depth === 0) {
+                    objectEnd = index;
+                    break;
+                  }
+                }
+              }
+
+              if (objectEnd < 0) throw new Error("Objek currentRelease tidak tertutup dengan benar.");
+              const literal = contents.slice(objectStart, objectEnd + 1);
+              const version = literal.match(/["']?version["']?\s*:\s*["'](\d+\.\d+\.\d+)["']/);
+              const date = literal.match(/["']?date["']?\s*:\s*["'](\d{4}-\d{2}-\d{2})["']/);
+              const pr = literal.match(/["']?pr["']?\s*:\s*(\d+)/);
+
+              if (!version || !date || !pr) throw new Error("Metadata currentRelease tidak lengkap.");
+              return {
+                literal,
+                version: version[1],
+                date: date[1],
+                pr: Number(pr[1]),
+                declarationStart,
+                objectEnd
+              };
+            }
+
+            function parseChangelogSection(body, pullRequestNumber) {
+              const header = /^##\s+Changelog\s*$/im;
+              const match = header.exec(body || "");
+              if (!match) {
+                throw new Error("PR #" + pullRequestNumber + " belum memiliki bagian '## Changelog'. Tambahkan catatan perubahan manual pada deskripsi PR.");
+              }
+
+              const sectionStart = match.index + match[0].length;
+              const remaining = (body || "").slice(sectionStart);
+              const nextSection = remaining.search(/^##\s+/m);
+              const section = remaining.slice(0, nextSection < 0 ? remaining.length : nextSection);
+              const categories = {};
+              const headingPattern = /^###\s+(Added|Changed|Deprecated|Removed|Fixed|Security)\s*$/gim;
+              const headings = [...section.matchAll(headingPattern)];
+
+              for (let index = 0; index < headings.length; index += 1) {
+                const heading = headings[index];
+                const category = heading[1];
+                const start = heading.index + heading[0].length;
+                const end = index + 1 < headings.length ? headings[index + 1].index : section.length;
+                const content = section.slice(start, end);
+                const entries = content.split(/\r?\n/).map((line) => line.match(/^\s*[-*]\s+(.+?)\s*$/)?.[1]).filter(Boolean);
+
+                if (entries.length > 0) categories[category] = entries;
+              }
+
+              const totalEntries = Object.values(categories).reduce((sum, entries) => sum + entries.length, 0);
+              if (totalEntries === 0) {
+                throw new Error("PR #" + pullRequestNumber + " belum memiliki butir catatan di bawah kategori Changelog.");
+              }
+
+              return Object.fromEntries(allowedCategories
+                .filter((category) => categories[category]?.length)
+                .map((category) => [category, categories[category]]));
+            }
+
+            function nextVersion(currentVersion, commitCount) {
+              const [major, minor, patch] = currentVersion.split(".").map(Number);
+              return commitCount >= 20
+                ? major + "." + (minor + 1) + ".0"
+                : major + "." + minor + "." + (patch + 1);
+            }
+
+            for (const associatedPullRequest of mergedPullRequests) {
+              const { data: pullRequest } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: associatedPullRequest.number
+              });
+
+              const current = extractCurrentReleaseLiteral(source);
+              const duplicatePattern = new RegExp("[\"']?pr[\"']?\\s*:\\s*" + pullRequest.number + "\\b");
+              if (duplicatePattern.test(source)) {
+                core.info("PR #" + pullRequest.number + " sudah tercatat; lewati agar tidak duplikat.");
+                continue;
+              }
+
+              const categories = parseChangelogSection(pullRequest.body || "", pullRequest.number);
+              const commitCount = pullRequest.commits;
+              if (!Number.isInteger(commitCount) || commitCount < 1) {
+                throw new Error("Jumlah commit PR #" + pullRequest.number + " tidak valid.");
+              }
+
+              if (!pullRequest.merged_at) {
+                throw new Error("Waktu merge PR #" + pullRequest.number + " tidak tersedia.");
+              }
+
+              const version = nextVersion(current.version, commitCount);
+              const date = pullRequest.merged_at.slice(0, 10);
+              const nextRelease = {
+                version,
+                date,
+                pr: pullRequest.number,
+                categories
+              };
+
+              const declarationEnd = source.indexOf(";", current.objectEnd) + 1;
+              if (declarationEnd <= current.objectEnd) throw new Error("Akhir deklarasi currentRelease tidak ditemukan.");
+
+              source = source.slice(0, current.declarationStart)
+                + "  const currentRelease = " + JSON.stringify(nextRelease) + ";"
+                + source.slice(declarationEnd);
+
+              const releasesMarker = "  const releases = [";
+              const releasesStart = source.indexOf(releasesMarker);
+              if (releasesStart < 0) throw new Error("Daftar releases tidak ditemukan.");
+
+              const insertionPoint = releasesStart + releasesMarker.length;
+              source = source.slice(0, insertionPoint)
+                + "\n    " + current.literal + ","
+                + source.slice(insertionPoint);
+
+              changed = true;
+              core.info("PR #" + pullRequest.number + " dicatat sebagai v" + version + " (" + commitCount + " commit).");
+            }
+
+            if (changed) {
+              const latestRelease = extractCurrentReleaseLiteral(source);
+              const versionSource = [
+                "(function () {",
+                '  "use strict";',
+                '  window.TRCM_VERSION = "' + latestRelease.version + '";',
+                "})();",
+                ""
+              ].join("\n");
+
+              fs.writeFileSync(filePath, source);
+              fs.writeFileSync("assets/js/version.js", versionSource);
+              core.setOutput("updated", "true");
+            } else {
+              core.setOutput("updated", "false");
+            }
+
+      - name: Commit dan push perubahan
+        run: |
+          if git diff --quiet -- assets/js/pages/changelog.js assets/js/version.js; then
+            echo "Tidak ada pembaruan Riwayat Versi."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/js/pages/changelog.js assets/js/version.js
+          git commit -m "chore(changelog): update release history"
+          git push origin HEAD:main
