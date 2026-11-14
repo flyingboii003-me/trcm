@@ -111,8 +111,40 @@
     return article;
   }
 
+  function renderCurrentReleaseMeta() {
+    const versionElement = document.getElementById("changelog-current-version-number");
+    const metaElement = document.getElementById("changelog-current-version-meta");
+    const contentElement = document.getElementById("changelog-current-version-content");
+
+    if (versionElement) versionElement.textContent = "v" + currentRelease.version;
+    if (contentElement) contentElement.setAttribute("aria-label", "Changelog versi " + currentRelease.version);
+    if (!metaElement) return;
+
+    const date = createElement("time", "", "");
+    date.dateTime = currentRelease.date;
+    date.textContent = new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC"
+    }).format(new Date(currentRelease.date + "T00:00:00Z"));
+
+    const prLink = createElement("a", "");
+    prLink.href = "https://github.com/flyingboii003-me/trcm/pull/" + currentRelease.pr;
+    prLink.target = "_blank";
+    prLink.rel = "noopener noreferrer";
+    prLink.append(
+      createElement("span", "", "PR #" + currentRelease.pr),
+      createElement("i", "bi bi-box-arrow-up-right")
+    );
+
+    metaElement.replaceChildren(date, document.createTextNode(" · "), prLink);
+  }
+
   function render() {
     if (!list) return;
+    renderCurrentReleaseMeta();
+
     const currentVersionContent = document.getElementById("changelog-current-version-content");
     if (currentVersionContent) {
       currentVersionContent.replaceChildren();
