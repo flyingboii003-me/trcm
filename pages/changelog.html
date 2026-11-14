@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Riwayat perubahan dan versi TRCM.">
+  <title>Changelog — TRCM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/trcm.css">
+  <link rel="stylesheet" href="../assets/css/changelog.css">
+</head>
+<body class="trcm-app" data-page-resource="">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+    <div class="main-wrapper">
+      <div id="topbar-container"></div>
+      <main class="content-wrapper">
+        <div class="container-fluid px-0 changelog-page" id="changelog-top">
+          <header class="page-header changelog-page-header">
+            <div>
+              <span class="page-header-kicker">PUSAT INFORMASI TRCM</span>
+              <h1 class="page-title">Changelog</h1>
+            </div>
+          </header>
+
+          <section class="changelog-current-version" aria-labelledby="changelog-current-version-title">
+            <div class="changelog-current-version-header">
+              <div class="changelog-current-version-copy">
+                <span class="page-header-kicker">PERKEMBANGAN TRCM</span>
+                <h2 id="changelog-current-version-title">Versi Terkini</h2>
+                <p>Versi aplikasi berdasarkan Pull Request terakhir yang berhasil digabungkan.</p>
+              </div>
+              <div class="changelog-current-version-detail">
+                <strong class="changelog-current-version-number">v1.14.3</strong>
+                <span class="changelog-current-version-meta">12 November 2026 · <a href="https://github.com/flyingboii003-me/trcm/pull/42" target="_blank" rel="noopener noreferrer">PR #42 <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a></span>
+              </div>
+            </div>
+            <div class="changelog-current-version-changelog" id="changelog-current-version-content" aria-label="Changelog versi 1.14.3"></div>
+          </section>
+
+          <section class="changelog-history" aria-labelledby="changelog-history-title">
+            <div class="changelog-history-heading">
+              <div>
+                <span class="page-header-kicker">RIWAYAT RILIS</span>
+                <h2 id="changelog-history-title">Versi sebelumnya</h2>
+              </div>
+              <span class="changelog-release-count" id="changelog-release-count">Memuat riwayat...</span>
+            </div>
+            <div class="changelog-timeline" id="changelog-list" aria-live="polite">
+              <div class="changelog-loading"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Memuat riwayat changelog...</div>
+            </div>
+          </section>
+
+          <footer class="changelog-footer">
+            <span>TRCM · Truck Registration &amp; Control Management</span>
+            <a href="#changelog-top">Kembali ke atas <i class="bi bi-arrow-up" aria-hidden="true"></i></a>
+          </footer>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/pages/changelog.js"></script>
+</body>
+</html>
