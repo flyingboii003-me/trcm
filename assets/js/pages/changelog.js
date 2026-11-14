@@ -27,7 +27,7 @@
     { version:"1.6.4", date:"2026-10-19", pr:21, categories:{ Fixed:["Tata letak konfirmasi Impor Plan diperbaiki untuk penggunaan di perangkat mobile."] } },
     { version:"1.6.3", date:"2026-10-19", pr:20, categories:{ Added:["Field dokumen pada Fleet Template dilengkapi agar data template dapat digunakan lebih lengkap."] } },
     { version:"1.6.2", date:"2026-10-19", pr:19, categories:{ Changed:["Registrasi Armada dan konfirmasi WH In dipisahkan agar setiap tahap memiliki alur yang lebih jelas.","Checklist pemeriksaan ditambahkan pada proses konfirmasi."] } },
-    { version:"1.6.1", date:"2026-10-16", pr:18, categories:{ Changed:["Pemilih Klien ditambahkan pada proses impor Plan.","Field foto loading yang tidak digunakan dihapus dari alur terkait."], Removed:["Field foto loading yang tidak lagi diperlukan dihilangkan dari form impor Plan."] } },
+    { version:"1.6.1", date:"2026-10-16", pr:18, categories:{ Added:["Pemilih Klien ditambahkan pada proses impor Plan."], Removed:["Field foto loading yang tidak lagi diperlukan dihilangkan dari form impor Plan."] } },
     { version:"1.6.0", date:"2026-10-16", pr:17, categories:{ Added:["Integrasi fitur profil, role, dan workflow operasional disatukan ke aplikasi TRCM."] } },
     { version:"1.5.4", date:"2026-10-16", pr:16, categories:{ Removed:["Perbandingan dengan hari sebelumnya di Status Armada dihapus agar ringkasan hanya menampilkan informasi yang relevan."] } },
     { version:"1.5.3", date:"2026-10-12", pr:15, categories:{ Added:["Workflow Checker untuk WH In dilengkapi dengan pemeriksaan kelayakan Checker, unggah foto, dan permission yang sesuai."] } },
