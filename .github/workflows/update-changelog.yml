@@ -70,7 +70,7 @@ jobs:
                 if (quote) {
                   if (escaped) {
                     escaped = false;
-                  } else if (character === "\\\\") {
+                  } else if (character === "\\") {
                     escaped = true;
                   } else if (character === quote) {
                     quote = null;
@@ -95,9 +95,9 @@ jobs:
 
               if (objectEnd < 0) throw new Error("Objek currentRelease tidak tertutup dengan benar.");
               const literal = contents.slice(objectStart, objectEnd + 1);
-              const version = literal.match(/\\bversion\\s*:\\s*["'](\\d+\\.\\d+\\.\\d+)["']/);
-              const date = literal.match(/\\bdate\\s*:\\s*["'](\\d{4}-\\d{2}-\\d{2})["']/);
-              const pr = literal.match(/\\bpr\\s*:\\s*(\\d+)/);
+              const version = literal.match(/\bversion\s*:\s*["'](\d+\.\d+\.\d+)["']/);
+              const date = literal.match(/\bdate\s*:\s*["'](\d{4}-\d{2}-\d{2})["']/);
+              const pr = literal.match(/\bpr\s*:\s*(\d+)/);
 
               if (!version || !date || !pr) throw new Error("Metadata currentRelease tidak lengkap.");
               return {
@@ -111,7 +111,7 @@ jobs:
             }
 
             function parseChangelogSection(body, pullRequestNumber) {
-              const header = /^##\\s+Changelog\\s*$/im;
+              const header = /^##\s+Changelog\s*$/im;
               const match = header.exec(body || "");
               if (!match) {
                 throw new Error("PR #" + pullRequestNumber + " belum memiliki bagian '## Changelog'. Tambahkan catatan perubahan manual pada deskripsi PR.");
@@ -119,10 +119,10 @@ jobs:
 
               const sectionStart = match.index + match[0].length;
               const remaining = (body || "").slice(sectionStart);
-              const nextSection = remaining.search(/^##\\s+/m);
+              const nextSection = remaining.search(/^##\s+/m);
               const section = remaining.slice(0, nextSection < 0 ? remaining.length : nextSection);
               const categories = {};
-              const headingPattern = /^###\\s+(Added|Changed|Deprecated|Removed|Fixed|Security)\\s*$/gim;
+              const headingPattern = /^###\s+(Added|Changed|Deprecated|Removed|Fixed|Security)\s*$/gim;
               const headings = [...section.matchAll(headingPattern)];
 
               for (let index = 0; index < headings.length; index += 1) {
@@ -131,7 +131,7 @@ jobs:
                 const start = heading.index + heading[0].length;
                 const end = index + 1 < headings.length ? headings[index + 1].index : section.length;
                 const content = section.slice(start, end);
-                const entries = content.split(/\\r?\\n/).map((line) => line.match(/^\\s*[-*]\\s+(.+?)\\s*$/)?.[1]).filter(Boolean);
+                const entries = content.split(/\r?\n/).map((line) => line.match(/^\s*[-*]\s+(.+?)\s*$/)?.[1]).filter(Boolean);
 
                 if (entries.length > 0) categories[category] = entries;
               }
