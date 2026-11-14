@@ -133,9 +133,11 @@
     prLink.href = "https://github.com/flyingboii003-me/trcm/pull/" + currentRelease.pr;
     prLink.target = "_blank";
     prLink.rel = "noopener noreferrer";
+    const prIcon = createElement("i", "bi bi-box-arrow-up-right");
+    prIcon.setAttribute("aria-hidden", "true");
     prLink.append(
       createElement("span", "", "PR #" + currentRelease.pr),
-      createElement("i", "bi bi-box-arrow-up-right")
+      prIcon
     );
 
     metaElement.replaceChildren(date, document.createTextNode(" · "), prLink);
