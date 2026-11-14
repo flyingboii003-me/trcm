@@ -2,6 +2,11 @@
   "use strict";
 
   const releases = [
+    { version:"1.14.3", date:"2026-11-12", pr:42, categories:{
+      Added:["Permission data `plan_data` menjadi satu akses baca untuk header, item, trip, dan metadata importer Plan."],
+      Changed:["Pembacaan data Plan disatukan menggunakan permission `plan_data.view` agar akses lintas komponen Plan mengikuti aturan yang konsisten."],
+      Security:["Kebijakan RLS diperbarui dan metadata pembuat Plan disediakan melalui RPC terbatas yang hanya mengembalikan informasi tampilan bagi pengguna berwenang."]
+    } },
     { version:"1.14.2", date:"2026-11-12", pr:41, categories:{ Added:["Dokumentasi standar authorization dan RLS serta audit akses baca untuk membantu peninjauan kebijakan keamanan TRCM."] } },
     { version:"1.14.1", date:"2026-11-12", pr:40, categories:{ Fixed:["Informasi pembuat Plan kini dapat dibaca oleh pengguna yang memiliki izin melihat Plan atau Riwayat, tanpa membuka seluruh data pengguna."] } },
     { version:"1.14.0", date:"2026-11-12", pr:39, categories:{
