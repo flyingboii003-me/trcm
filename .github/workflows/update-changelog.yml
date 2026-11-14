@@ -199,7 +199,7 @@ jobs:
 
               const insertionPoint = releasesStart + releasesMarker.length;
               source = source.slice(0, insertionPoint)
-                + "\\n    " + current.literal + ","
+                + "\n    " + current.literal + ","
                 + source.slice(insertionPoint);
 
               changed = true;
