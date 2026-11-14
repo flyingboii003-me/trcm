@@ -1,13 +1,14 @@
 (function () {
   "use strict";
 
-  const currentRelease = { version:"1.14.3", date:"2026-11-12", categories:{
+  const currentRelease = {"version":"1.15.0","date":"2026-11-14","commit":"d5902446098afc7f1611c3fe51c9f838cdb28334","categories":{"Added":["Menambahkan halaman Riwayat Versi yang menampilkan versi aktif dan riwayat rilis TRCM dengan kategori perubahan terstruktur.","Menambahkan workflow GitHub Actions untuk memperbarui Riwayat Versi dan versi aplikasi setelah Pull Request digabungkan ke main, berdasarkan catatan changelog dan jumlah commit.","Menampilkan nomor versi aplikasi secara dinamis pada halaman login.","Menambahkan favicon dan ikon aplikasi untuk berbagai ukuran perangkat."],"Changed":["Mengubah penamaan halaman dan navigasi dari Changelog menjadi Riwayat Versi.","Menampilkan metadata versi aktif dan tanggal rilis dari data yang dikelola di halaman Riwayat Versi.","Menghapus tautan Pull Request dari setiap entri versi agar daftar riwayat lebih ringkas.","Memperbarui kontrak halaman dan pemuatan aset halaman agar sesuai dengan penambahan Riwayat Versi."]}};
+
+  const releases = [
+    { version:"1.14.3", date:"2026-11-12", categories:{
     Added:["Permission data `plan_data` menjadi satu akses baca untuk header, item, trip, dan metadata importer Plan."],
     Changed:["Pembacaan data Plan disatukan menggunakan permission `plan_data.view` agar akses lintas komponen Plan mengikuti aturan yang konsisten."],
     Security:["Kebijakan RLS diperbarui dan metadata pembuat Plan disediakan melalui RPC terbatas yang hanya mengembalikan informasi tampilan bagi pengguna berwenang."]
-  } };
-
-  const releases = [
+  } },
     { version:"1.14.2", date:"2026-11-12", categories:{ Added:["Dokumentasi standar authorization dan RLS serta audit akses baca untuk membantu peninjauan kebijakan keamanan TRCM."] } },
     { version:"1.14.1", date:"2026-11-12", categories:{ Fixed:["Informasi pembuat Plan kini dapat dibaca oleh pengguna yang memiliki izin melihat Plan atau Riwayat, tanpa membuka seluruh data pengguna."] } },
     { version:"1.14.0", date:"2026-11-12", categories:{
