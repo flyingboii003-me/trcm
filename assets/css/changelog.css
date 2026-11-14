@@ -3,23 +3,11 @@
 .changelog-page-header{align-items:flex-end;margin-bottom:1.5rem}
 .changelog-page-header .page-title{margin-bottom:.4rem}
 .changelog-page-header .page-subtitle{max-width:620px;line-height:1.65}
-.changelog-format-link{min-height:42px;gap:.55rem;border-radius:var(--radius-lg);font-size:.8rem;font-weight:700;white-space:nowrap}
-
-
-
-
-
-
 
 .changelog-release-heading,.changelog-release-title-wrap{display:flex;align-items:center;min-width:0}
 .changelog-release-heading{justify-content:space-between;gap:1rem}
 .changelog-release-title-wrap{gap:.8rem}
 .changelog-release-marker{width:10px;height:10px;flex:0 0 10px;border-radius:50%;background:var(--cj-blue);box-shadow:0 0 0 4px rgba(0,110,205,.1)}
-
-
-
-
-
 
 .changelog-history-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1rem}
 .changelog-history-heading h2{margin:0;font-size:1.2rem}
@@ -48,11 +36,6 @@
 .changelog-page :is(a,button):focus-visible{outline:2px solid var(--cj-blue);outline-offset:3px}
 @media(max-width:767.98px){
   .changelog-page-header{align-items:stretch;flex-direction:column;gap:.9rem;margin-bottom:1.25rem}
-  .changelog-format-link{align-self:flex-start}
-  
-  
-  
-  
   .changelog-history-heading{align-items:flex-start;flex-direction:column;gap:.55rem}
   .changelog-release{padding:1rem;border-radius:14px}
   .changelog-release-top{align-items:flex-start;gap:.6rem}
