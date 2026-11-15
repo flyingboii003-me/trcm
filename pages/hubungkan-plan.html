@@ -171,6 +171,13 @@
               <label class="form-check-label" for="hub-show-all-activity-plans">Tampilkan semua Plan (Inbound &amp; Outbound)</label>
             </div>
             <div class="small text-muted mt-3" id="hub-plan-selection-context" aria-live="polite">Pilih rentang tanggal untuk melihat Plan dan Shipment yang tersedia.</div>
+            <div class="mt-3">
+              <label class="visually-hidden" for="hub-plan-shipment-search">Cari DO atau Shipment</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input class="form-control" id="hub-plan-shipment-search" type="search" placeholder="Cari nomor DO, Shipment, atau Trip..." autocomplete="off">
+              </div>
+            </div>
             <div class="mt-3" id="hub-plan-shipment-list">
               <div class="border rounded-3 p-3 text-muted small">Pilih rentang tanggal untuk melihat Plan dan Shipment yang tersedia.</div>
             </div>
@@ -227,6 +234,7 @@
   const planDropdownLabel=$("hub-plan-dropdown-label");
   const planDropdownMenu=$("hub-plan-dropdown-menu");
   const planShipmentList=$("hub-plan-shipment-list");
+  const planShipmentSearchInput=$("hub-plan-shipment-search");
   const planSelectionContext=$("hub-plan-selection-context");
   const planShipmentCount=$("hub-plan-shipment-count");
   const clearPlanSelection=$("hub-clear-plan-selection");
@@ -242,6 +250,7 @@
       planDropdownLabel,
       planDropdownMenu,
       planShipmentList,
+      planShipmentSearchInput,
       planSelectionContext,
       planShipmentCount,
       clearPlanSelection
@@ -268,6 +277,7 @@
     $("hub-link-activity").textContent=activityLabels[visit.activity_type]||visit.activity_type||"—";
     planDateFromInput.value=operationalDate;
     planDateToInput.value=operationalDate;
+    planShipmentSearchInput.value="";
     planPicker.resetForVisit();
     hubModal.show();
     planPicker.loadPlansForSelectedVisit();
