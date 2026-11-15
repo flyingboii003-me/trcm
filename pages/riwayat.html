@@ -42,7 +42,7 @@
 
     <main class="content-wrapper"><div class="container-fluid px-0">
   <div class="page-header"><div><h1 class="page-title">Riwayat</h1><p class="page-subtitle">Lihat, cari, dan ekspor seluruh pendaftaran armada yang tercatat di TRCM.</p></div><div class="d-flex flex-wrap align-items-center gap-2"><button class="btn btn-date-picker" id="export-button" type="button" data-bs-toggle="modal" data-bs-target="#export-settings-modal"><i class="bi bi-file-earmark-spreadsheet"></i><span>Ekspor Excel</span></button></div></div>
-  <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2><p id="result-count" class="page-subtitle">Memuat data...</p></div></div>
+  <section class="card content-card"><div class="card-header"><div><h2 class="card-title">Pendaftaran truk</h2></div></div>
     <div class="card-body p-0"><div id="table-toolbar-container"></div>
     <div class="table-responsive"><table class="table table-hover align-middle trcm-table mb-0"><thead><tr><th>Kartu</th><th>Plat nomor</th><th>Tujuan</th><th>Tipe Aktivitas</th><th>Vendor</th><th>Status</th><th>Tanggal</th><th class="action-column">Aksi</th></tr></thead><tbody id="truck-table"><tr><td colspan="8" class="table-state">Memuat data truk...</td></tr></tbody></table></div>
     <div class="pagination-wrap">
@@ -155,7 +155,7 @@ if (!trcmSession || !trcmSession.access_token || !trcmSession.user) {
 
 
 const truckTable = document.getElementById("truck-table");
-const resultCount = document.getElementById("result-count");
+
 const editModalElement = document.getElementById("visit-edit-modal");
 const editModal = new bootstrap.Modal(editModalElement);
 const editForm = document.getElementById("visit-edit-form");
@@ -612,7 +612,7 @@ function renderTable() {
   currentPage = Math.min(currentPage, totalPages);
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageRows = rows.slice(start, start + PAGE_SIZE);
-  resultCount.textContent = rows.length + " pendaftaran";
+  
   renderPagination(rows.length, totalPages);
 
   if (!pageRows.length) {
@@ -692,7 +692,7 @@ function renderStats() {}
 async function loadVisits() {
   truckTable.innerHTML =
     '<tr><td colspan="8" class="table-state">Memuat data truk...</td></tr>';
-  resultCount.textContent = "Memuat data...";
+  
   if (refreshButton) refreshButton.disabled = true;
 
   try {
@@ -747,7 +747,7 @@ async function loadVisits() {
     console.error("TRCM dashboard:", error);
     truckTable.innerHTML =
       '<tr><td colspan="8" class="table-state error-state">Data dashboard gagal dimuat. Silakan perbarui.</td></tr>';
-    resultCount.textContent = "Gagal memuat data";
+    
   } finally {
     if (refreshButton) refreshButton.disabled = false;
   }

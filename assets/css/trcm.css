@@ -1199,7 +1199,7 @@ button,input,select{font:inherit}
 
 
 /* Shipment/DO labels in Checker tables: wrap cleanly without clipping neighboring columns. */
-.trcm-app .loading-shipment-cell{min-width:150px;max-width:260px;white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
+.trcm-app .loading-shipment-cell{width:11%;min-width:112px;max-width:175px;white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
 .trcm-app .loading-shipment-list{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.3rem;min-width:0;max-width:100%}
 .trcm-app .loading-shipment-chip{display:inline-block;max-width:100%;min-width:0;padding:.22rem .45rem;border:1px solid rgba(0,110,205,.18);border-radius:7px;background:#eef5fb;color:#174d7a;font-size:.72rem;font-weight:700;line-height:1.4;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 .trcm-app .visit-shipment-section{min-width:0}
@@ -1232,7 +1232,7 @@ button,input,select{font:inherit}
   .trcm-app .modal-card-custom .modal-card-body{padding:.65rem .8rem}
   .trcm-app .modal-card-custom .modal-card-footer{padding:.55rem .8rem}
   .trcm-app .visit-shipment-table{min-width:390px}
-  .trcm-app .loading-shipment-cell{min-width:130px;max-width:200px}
+  .trcm-app .loading-shipment-cell{width:11%;min-width:112px;max-width:155px}
 }
 @media(max-height:560px){
   .trcm-app .modal-dialog-scrollable{height:calc(100dvh - .5rem);max-height:calc(100dvh - .5rem);margin:.25rem auto}

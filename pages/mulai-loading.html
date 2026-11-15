@@ -34,7 +34,7 @@
           <div class="card-header content-card-header">
             <div>
               <h2 class="card-title">Daftar truck</h2>
-              <p id="result-count" class="page-subtitle">Memuat data...</p>
+              
             </div>
           </div>
           <div class="card-body p-0">
@@ -151,6 +151,13 @@
               </div>
               <div class="form-text mt-2" id="plan-select-help">Pilih satu atau beberapa Plan. DO Inbound dan Shipment Outbound dapat dipilih bersamaan untuk satu truck.</div>
               <div class="small text-muted mt-3" id="plan-selection-context" aria-live="polite">Pilih rentang tanggal untuk melihat Plan dan shipment yang tersedia.</div>
+              <div class="mt-3">
+                <label class="visually-hidden" for="plan-shipment-search">Cari DO atau Shipment</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input class="form-control" id="plan-shipment-search" type="search" placeholder="Cari nomor DO, Shipment, atau Trip..." autocomplete="off">
+                </div>
+              </div>
               <div class="mt-3" id="plan-shipment-list">
                 <div class="border rounded-3 p-3 text-muted small">Pilih rentang tanggal untuk melihat Plan dan shipment yang tersedia.</div>
               </div>
@@ -222,7 +229,7 @@ window.trcmComponentsReady.then(async function () {
 
   const canStart = window.trcmPermissions.can("start_loading", "update");
   const table = document.getElementById("loading-table");
-  const resultCount = document.getElementById("result-count");
+  
   const searchCard = document.getElementById("search-card");
   const clientFilter = document.getElementById("client-filter");
   const refreshButton = document.getElementById("page-refresh-button");
@@ -240,6 +247,7 @@ window.trcmComponentsReady.then(async function () {
   const planDropdownLabel = document.getElementById("plan-dropdown-label");
   const planDropdownMenu = document.getElementById("plan-dropdown-menu");
   const planShipmentList = document.getElementById("plan-shipment-list");
+  const planShipmentSearchInput = document.getElementById("plan-shipment-search");
   const planSelectionContext = document.getElementById("plan-selection-context");
   const planShipmentCount = document.getElementById("plan-shipment-count");
   const clearPlanSelection = document.getElementById("clear-plan-selection");
@@ -346,7 +354,7 @@ window.trcmComponentsReady.then(async function () {
         (selectedClient === "all" || client === selectedClient);
     });
 
-    resultCount.textContent = filtered.length + " truck sudah WH In";
+    
 
     if (!filtered.length) {
       table.innerHTML = '<tr><td colspan="8" class="table-state">Belum ada truck yang sudah dikonfirmasi WH In.</td></tr>';
@@ -400,7 +408,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function loadVisits() {
     table.innerHTML = '<tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>';
-    resultCount.textContent = "Memuat data...";
+    
     refreshButton.disabled = true;
 
     try {
@@ -423,7 +431,7 @@ window.trcmComponentsReady.then(async function () {
     } catch (error) {
       console.error("TRCM Mulai Loading:", error);
       table.innerHTML = '<tr><td colspan="8" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
-      resultCount.textContent = "Gagal memuat data";
+      
       await Swal.fire({
         icon: "error",
         title: "Gagal memuat data",
@@ -488,38 +496,50 @@ window.trcmComponentsReady.then(async function () {
       return;
     }
 
-    const trips = new Map();
+    const needle = planShipmentSearchInput.value.trim().toLocaleLowerCase("id-ID");
+    const activitySections = new Map();
     getPlanShipmentGroups(availablePlanItems).forEach(function (group) {
+      const activity = group.items[0] && group.items[0].activity_type === "inbound" ? "inbound" : "outbound";
+      const activityLabel = formatDestination(activity);
       const trip = group.trip;
       const tripLabel = trip
         ? ["Trip " + (trip.trip_number || "—"), trip.plate_number || "Armada Plan", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ")
         : "Detail Plan";
+      const searchable = [activityLabel, group.label, tripLabel].join(" ").toLocaleLowerCase("id-ID");
+      if (needle && !searchable.includes(needle)) return;
+      if (!activitySections.has(activity)) activitySections.set(activity, new Map());
+      const trips = activitySections.get(activity);
       if (!trips.has(tripLabel)) trips.set(tripLabel, []);
       trips.get(tripLabel).push(group);
     });
 
-    planShipmentList.innerHTML = Array.from(trips.entries()).map(function (entry) {
-      const rows = entry[1].map(function (group, index) {
-        const groupId = "shipment-group-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
-        const alreadyProcessed = group.items.some(function (item) { return processedPlanItemIds.has(item.id); });
-        const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
-        const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
-        const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
-        const details = "";
-        const tripName = group.trip
-          ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
-          : "";
-        return '<label class="border rounded-3 p-3 mb-2 d-block plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + escapeHtml(groupId) + '"') + '>' +
-          '<div class="d-flex align-items-start gap-3">' +
-          (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
-          '<div class="flex-grow-1 min-w-0">' +
-          '<div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
-          '<span class="badge text-bg-light border">' + group.items.length + ' referensi</span>' +
-          (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
-          (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div>' +
-          '</div></div></label>';
+    if (!activitySections.size) {
+      planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Tidak ada DO atau Shipment yang cocok dengan pencarian.</div>';
+      updatePlanShipmentCount();
+      return;
+    }
+
+    planShipmentList.innerHTML = Array.from(activitySections.entries()).map(function (activityEntry) {
+      const tripSections = Array.from(activityEntry[1].entries()).map(function (entry) {
+        const rows = entry[1].map(function (group, index) {
+          const groupId = "shipment-group-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
+          const alreadyProcessed = group.items.some(function (item) { return processedPlanItemIds.has(item.id); });
+          const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
+          const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
+          const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
+          const tripName = group.trip
+            ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
+            : "";
+          return '<label class="border rounded-3 p-3 mb-2 d-block plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + escapeHtml(groupId) + '"') + '>' +
+            '<div class="d-flex align-items-start gap-3">' +
+            (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
+            '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
+            (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
+            (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div></div></div></label>';
+        }).join("");
+        return '<div class="mb-3"><div class="small text-muted mb-2">' + escapeHtml(entry[0].split(" · ")[0]) + '</div>' + rows + '</div>';
       }).join("");
-      return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</section>';
+      return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activityEntry[0] === "inbound" ? 'inbound' : 'outbound') + '">' + escapeHtml(formatDestination(activityEntry[0])) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
     }).join("");
 
     planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(function (checkbox) {
@@ -682,6 +702,7 @@ window.trcmComponentsReady.then(async function () {
     const visitOperationalDate = localDateInputValue(visit.wh_in_at || visit.registered_at);
     planDateFromInput.value = visitOperationalDate;
     planDateToInput.value = visitOperationalDate;
+    planShipmentSearchInput.value = "";
     planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
     planSelect.disabled = true;
     planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan rentang tanggal operasional armada.";
@@ -789,6 +810,7 @@ window.trcmComponentsReady.then(async function () {
 
   planDateFromInput.addEventListener("change", loadPlansForSelectedVisit);
   planDateToInput.addEventListener("change", loadPlansForSelectedVisit);
+  planShipmentSearchInput.addEventListener("input", renderPlanShipments);
   showAllActivityPlansInput.addEventListener("change", loadPlansForSelectedVisit);
   planSelect.addEventListener("change", function () {
     refreshPlanDropdown();
