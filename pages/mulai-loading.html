@@ -34,7 +34,7 @@
           <div class="card-header content-card-header">
             <div>
               <h2 class="card-title">Daftar truck</h2>
-              <p id="result-count" class="page-subtitle">Memuat data...</p>
+              
             </div>
           </div>
           <div class="card-body p-0">
@@ -229,7 +229,7 @@ window.trcmComponentsReady.then(async function () {
 
   const canStart = window.trcmPermissions.can("start_loading", "update");
   const table = document.getElementById("loading-table");
-  const resultCount = document.getElementById("result-count");
+  
   const searchCard = document.getElementById("search-card");
   const clientFilter = document.getElementById("client-filter");
   const refreshButton = document.getElementById("page-refresh-button");
@@ -354,7 +354,7 @@ window.trcmComponentsReady.then(async function () {
         (selectedClient === "all" || client === selectedClient);
     });
 
-    resultCount.textContent = filtered.length + " truck sudah WH In";
+    
 
     if (!filtered.length) {
       table.innerHTML = '<tr><td colspan="8" class="table-state">Belum ada truck yang sudah dikonfirmasi WH In.</td></tr>';
@@ -408,7 +408,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function loadVisits() {
     table.innerHTML = '<tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>';
-    resultCount.textContent = "Memuat data...";
+    
     refreshButton.disabled = true;
 
     try {
@@ -431,7 +431,7 @@ window.trcmComponentsReady.then(async function () {
     } catch (error) {
       console.error("TRCM Mulai Loading:", error);
       table.innerHTML = '<tr><td colspan="8" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
-      resultCount.textContent = "Gagal memuat data";
+      
       await Swal.fire({
         icon: "error",
         title: "Gagal memuat data",
