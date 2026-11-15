@@ -34,7 +34,7 @@
           <div class="card-header content-card-header">
             <div>
               <h2 class="card-title">Armada siap keluar</h2>
-              <p id="result-count" class="page-subtitle">Memuat data...</p>
+              
             </div>
           </div>
           <div class="card-body p-0">
@@ -98,7 +98,7 @@ window.trcmComponentsReady.then(async function () {
 
   const canWhOut = window.trcmPermissions.can("wh_out", "update");
   const table = document.getElementById("wh-out-table");
-  const resultCount = document.getElementById("result-count");
+  
   const searchCard = document.getElementById("search-card");
   const resetSearch = document.getElementById("reset-search");
   const refreshButton = document.getElementById("page-refresh-button");
@@ -133,7 +133,7 @@ window.trcmComponentsReady.then(async function () {
       return !needle || card.toLowerCase().includes(needle);
     });
 
-    resultCount.textContent = filtered.length + " armada siap keluar";
+    
 
     if (!filtered.length) {
       table.innerHTML = '<tr><td colspan="7" class="table-state">Belum ada armada yang siap WH Out.</td></tr>';
@@ -163,7 +163,7 @@ window.trcmComponentsReady.then(async function () {
 
   async function loadVisits() {
     table.innerHTML = '<tr><td colspan="7" class="table-state">Memuat data armada...</td></tr>';
-    resultCount.textContent = "Memuat data...";
+    
     refreshButton.disabled = true;
 
     try {
@@ -190,7 +190,7 @@ window.trcmComponentsReady.then(async function () {
     } catch (error) {
       console.error("TRCM WH Out:", error);
       table.innerHTML = '<tr><td colspan="7" class="table-state error-state">Data WH Out gagal dimuat. Silakan perbarui.</td></tr>';
-      resultCount.textContent = "Gagal memuat data";
+      
       await Swal.fire({
         icon: "error",
         title: "Gagal memuat WH Out",
