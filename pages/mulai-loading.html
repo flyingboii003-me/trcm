@@ -537,7 +537,7 @@ window.trcmComponentsReady.then(async function () {
             (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
             (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div></div></div></label>';
         }).join("");
-        return '<div class="mb-3"><div class="small text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</div>';
+        return '<div class="mb-3"><div class="small text-muted mb-2">' + escapeHtml(entry[0].split(" · ")[0]) + '</div>' + rows + '</div>';
       }).join("");
       return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activityEntry[0] === "inbound" ? 'inbound' : 'outbound') + '">' + escapeHtml(formatDestination(activityEntry[0])) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
     }).join("");
