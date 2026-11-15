@@ -539,7 +539,7 @@ window.trcmComponentsReady.then(async function () {
         }).join("");
         return '<div class="mb-3"><div class="small text-muted mb-2">' + escapeHtml(entry[0]) + '</div>' + rows + '</div>';
       }).join("");
-      return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="badge ' + (activityEntry[0] === "inbound" ? 'text-bg-info' : 'text-bg-primary') + '">' + escapeHtml(formatDestination(activityEntry[0])) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
+      return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activityEntry[0] === "inbound" ? 'inbound' : 'outbound') + '">' + escapeHtml(formatDestination(activityEntry[0])) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
     }).join("");
 
     planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(function (checkbox) {
