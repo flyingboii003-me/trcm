@@ -140,7 +140,7 @@
 
         <section class="card content-card dashboard-history-card" aria-labelledby="visit-activity-title">
           <div class="card-header content-card-header">
-            <div><h2 class="card-title" id="visit-activity-title">Daftar aktivitas visit</h2><p class="dashboard-section-note" id="activity-result-count">Memuat data visit...</p></div>
+            <div><h2 class="card-title" id="visit-activity-title">Daftar aktivitas visit</h2></div>
             <a class="btn btn-primary dashboard-history-link" href="riwayat.html"><span>Lihat Semua</span></a>
           </div>
           <div class="card-body p-0">
@@ -165,7 +165,7 @@ window.trcmComponentsReady.then(function () {
   "use strict";
 
   const tableBody = document.getElementById("visit-activity-table");
-  const resultCount = document.getElementById("activity-result-count");
+  
   const monitoringTarget = document.getElementById("operational-monitoring");
   const chartTarget = document.getElementById("hourly-activity-chart");
   const clientFilter = document.getElementById("dashboard-client-filter");
@@ -426,7 +426,7 @@ window.trcmComponentsReady.then(function () {
       .sort(function (a, b) {
         return new Date(lastActivity(b)).getTime() - new Date(lastActivity(a)).getTime();
       });
-    resultCount.textContent = rows.length + " visit hari ini";
+    
     if (!rows.length) {
       tableBody.innerHTML = '<tr><td colspan="7" class="table-state">Belum ada aktivitas visit hari ini.</td></tr>';
       return;
@@ -586,7 +586,7 @@ window.trcmComponentsReady.then(function () {
       monitoringTarget.innerHTML = '<div class="dashboard-empty text-danger">Monitoring gagal dimuat. Periksa koneksi lalu coba perbarui data.</div>';
       chartTarget.innerHTML = '<div class="dashboard-empty text-danger">Grafik aktivitas gagal dimuat.</div>';
       tableBody.innerHTML = '<tr><td colspan="6" class="table-state error-state">' + escapeHtml(error.message || "Data dashboard gagal dimuat.") + '</td></tr>';
-      resultCount.textContent = "Data gagal dimuat";
+      
     }
   }
 
