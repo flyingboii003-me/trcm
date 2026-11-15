@@ -56,7 +56,7 @@
           <div class="card-header content-card-header">
             <div>
               <h2 class="card-title">Armada menunggu proses</h2>
-              <p id="result-count" class="page-subtitle">Memuat data...</p>
+              
             </div>
           </div>
           <div class="card-body p-0">
@@ -112,7 +112,7 @@ window.trcmComponentsReady.then(async function () {
   if(!session||!session.access_token||!session.user){window.location.replace("../index.html");return;}
   const canQueueUpdate=window.trcmPermissions.can("queue_parking","update");
   const table=document.getElementById("queue-table");
-  const resultCount=document.getElementById("result-count");
+  
   const searchCard=document.getElementById("search-card");
   const clientFilter=document.getElementById("client-filter");
   const refreshButton=document.getElementById("page-refresh-button");
@@ -130,7 +130,7 @@ window.trcmComponentsReady.then(async function () {
   function renderTable(){
     const needle=searchCard.value.trim().toLowerCase(), selectedClient=clientFilter.value;
     const filtered=visits.filter(function(v){const card=v.cards&&v.cards.card_number?v.cards.card_number:"",client=v.clients&&v.clients.name?v.clients.name:"";return(!needle||card.toLowerCase().includes(needle))&&(selectedClient==="all"||client===selectedClient);});
-    resultCount.textContent=filtered.length+" armada terdaftar / antri / parkir";
+    
     if(!filtered.length){table.innerHTML='<tr><td colspan="7" class="table-state">Belum ada armada terdaftar atau yang menunggu antrean / parkir.</td></tr>';return;}
     table.innerHTML=filtered.map(function(v){
       const card=v.cards&&v.cards.card_number?v.cards.card_number:"—",client=v.clients&&v.clients.name?v.clients.name:"—";
@@ -147,12 +147,12 @@ window.trcmComponentsReady.then(async function () {
     }).join("");;
   }
   async function loadVisits(){
-    table.innerHTML='<tr><td colspan="7" class="table-state">Memuat data armada...</td></tr>';resultCount.textContent="Memuat data...";refreshButton.disabled=true;
+    table.innerHTML='<tr><td colspan="7" class="table-state">Memuat data armada...</td></tr>';refreshButton.disabled=true;
     try{
       const select=["id","plate_number","driver_name","vendor","activity_type","wh_in_at","registered_at","process_status","seal_number","notes","cards(card_number)","clients(name)"].join(",");
       const path="/rest/v1/visits?select="+encodeURIComponent(select)+"&process_status=in.(registered,wh_in,queue)&wh_out_at=is.null&order=wh_in_at.asc";
       const data=await request(path);if(!Array.isArray(data))throw new Error("Respons data Antri / Parkir tidak valid.");visits=data;const selected=clientFilter.value;const clients=Array.from(new Set(visits.map(v=>v.clients&&v.clients.name?v.clients.name:"").filter(Boolean))).sort((a,b)=>a.localeCompare(b));clientFilter.innerHTML='<option value="all">Semua Klien</option>'+clients.map(name=>'<option value="'+escapeHtml(name)+'">'+escapeHtml(name)+'</option>').join("");clientFilter.value=clients.includes(selected)?selected:"all";renderTable();
-    }catch(error){console.error("TRCM Antri / Parkir:",error);table.innerHTML='<tr><td colspan="7" class="table-state error-state">Data antrean gagal dimuat. Silakan perbarui.</td></tr>';resultCount.textContent="Gagal memuat data";await Swal.fire({icon:"error",title:"Gagal memuat antrean",text:error.message||"Data armada tidak dapat dimuat.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});}
+    }catch(error){console.error("TRCM Antri / Parkir:",error);table.innerHTML='<tr><td colspan="7" class="table-state error-state">Data antrean gagal dimuat. Silakan perbarui.</td></tr>';await Swal.fire({icon:"error",title:"Gagal memuat antrean",text:error.message||"Data armada tidak dapat dimuat.",confirmButtonText:"Tutup",confirmButtonColor:"#0066B3"});}
     finally{refreshButton.disabled=false;}
   }
   async function parkVisit(visit){
