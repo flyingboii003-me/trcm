@@ -111,7 +111,27 @@ jobs:
               const header = /^##\s+Changelog\s*$/im;
               const match = header.exec(body || "");
               if (!match) {
-                throw new Error("PR #" + pullRequestNumber + " belum memiliki bagian '## Changelog'. Tambahkan catatan perubahan manual pada deskripsi PR.");
+                // Backward compatibility for PRs created before the Changelog template existed.
+                const legacyHeader = /^##\\s+Perubahan\\s*$/im.exec(body || "");
+                if (!legacyHeader) {
+                  throw new Error("PR #" + pullRequestNumber + " tidak memiliki bagian '## Changelog' maupun '## Perubahan'. Tambahkan catatan perubahan pada deskripsi PR.");
+                }
+
+                const legacyStart = legacyHeader.index + legacyHeader[0].length;
+                const legacyBody = (body || "").slice(legacyStart);
+                const nextLegacySection = legacyBody.search(/^##\\s+/m);
+                const legacySection = legacyBody.slice(0, nextLegacySection < 0 ? legacyBody.length : nextLegacySection);
+                const legacyEntries = legacySection
+                  .split(/\\r?\\n/)
+                  .map((line) => line.match(/^\\s*[-*]\\s+(.+?)\\s*$/)?.[1])
+                  .filter(Boolean);
+
+                if (legacyEntries.length === 0) {
+                  throw new Error("PR #" + pullRequestNumber + " memiliki bagian '## Perubahan' tetapi tidak memiliki butir catatan.");
+                }
+
+                core.warning("PR #" + pullRequestNumber + " belum memakai format '## Changelog'; butir pada '## Perubahan' dicatat sebagai kategori Changed. Gunakan format Changelog terstruktur pada PR berikutnya.");
+                return { Changed: legacyEntries };
               }
 
               const sectionStart = match.index + match[0].length;
