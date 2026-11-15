@@ -18,6 +18,7 @@
       planDropdownLabel,
       planDropdownMenu,
       planShipmentList,
+      planShipmentSearchInput,
       planSelectionContext,
       planShipmentCount,
       clearPlanSelection
@@ -71,27 +72,42 @@
         resetPlanShipmentSelection("Plan ini belum memiliki detail DO atau Shipment.");
         return;
       }
-      const trips = new Map();
+      const needle = planShipmentSearchInput.value.trim().toLocaleLowerCase("id-ID");
+      const activitySections = new Map();
       getPlanShipmentGroups(state.availablePlanItems).forEach(group => {
+        const activity = group.items[0] && group.items[0].activity_type === "inbound" ? "inbound" : "outbound";
+        const activityLabel = activityLabels[activity] || activity;
         const trip = group.trip;
         const tripLabel = trip ? ["Trip " + (trip.trip_number || "—"), trip.plate_number || "Armada Plan", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ") : "Detail Plan";
+        const searchable = [activityLabel, group.label, tripLabel].join(" ").toLocaleLowerCase("id-ID");
+        if (needle && !searchable.includes(needle)) return;
+        if (!activitySections.has(activity)) activitySections.set(activity, new Map());
+        const trips = activitySections.get(activity);
         if (!trips.has(tripLabel)) trips.set(tripLabel, []);
         trips.get(tripLabel).push(group);
       });
-      planShipmentList.innerHTML = Array.from(trips.entries()).map(entry => {
-        const rows = entry[1].map((group, index) => {
-          const groupId = "hub-shipment-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
-          const alreadyProcessed = group.items.some(item => state.processedPlanItemIds.has(item.id));
-          const selectableItems = group.items.filter(item => !state.processedPlanItemIds.has(item.id));
-          const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(item => state.selectedPlanItemIds.has(item.id));
-          const someSelected = !alreadyProcessed && selectableItems.some(item => state.selectedPlanItemIds.has(item.id));
-          const tripName = group.trip ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ") : "";
-          return '<label class="border rounded-3 p-3 mb-2 d-block' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + esc(groupId) + '"') + '><div class="d-flex align-items-start gap-3">' +
-            (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + esc(groupId) + '" data-plan-group-key="' + esc(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + esc(group.label) + '">' ) +
-            '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span>' +
-            (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + (tripName ? '<span class="small text-muted">' + esc(tripName) + '</span>' : '') + '</div></div></div></label>';
+      if (!activitySections.size) {
+        planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Tidak ada DO atau Shipment yang cocok dengan pencarian.</div>';
+        updatePlanShipmentCount();
+        return;
+      }
+      planShipmentList.innerHTML = Array.from(activitySections.entries()).map(activityEntry => {
+        const tripSections = Array.from(activityEntry[1].entries()).map(entry => {
+          const rows = entry[1].map((group, index) => {
+            const groupId = "hub-shipment-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
+            const alreadyProcessed = group.items.some(item => state.processedPlanItemIds.has(item.id));
+            const selectableItems = group.items.filter(item => !state.processedPlanItemIds.has(item.id));
+            const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(item => state.selectedPlanItemIds.has(item.id));
+            const someSelected = !alreadyProcessed && selectableItems.some(item => state.selectedPlanItemIds.has(item.id));
+            const tripName = group.trip ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ") : "";
+            return '<label class="border rounded-3 p-3 mb-2 d-block' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + esc(groupId) + '"') + '><div class="d-flex align-items-start gap-3">' +
+              (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + esc(groupId) + '" data-plan-group-key="' + esc(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + esc(group.label) + '">') +
+              '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span>' +
+              (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + (tripName ? '<span class="small text-muted">' + esc(tripName) + '</span>' : '') + '</div></div></div></label>';
+          }).join("");
+          return '<div class="mb-3"><div class="small text-muted mb-2">' + esc(entry[0]) + '</div>' + rows + '</div>';
         }).join("");
-        return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + esc(entry[0]) + '</div>' + rows + '</section>';
+        return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="badge ' + (activityEntry[0] === "inbound" ? 'text-bg-info' : 'text-bg-primary') + '">' + esc(activityLabels[activityEntry[0]] || activityEntry[0]) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
       }).join("");
       planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(checkbox => {
         checkbox.addEventListener("change", () => {
@@ -214,6 +230,7 @@
     }
 
     function resetForVisit() {
+      planShipmentSearchInput.value = "";
       planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
       planSelect.disabled = true;
       refreshPlanDropdown();
@@ -227,6 +244,7 @@
       planDateFromInput.addEventListener("change", loadPlansForSelectedVisit);
       planDateToInput.addEventListener("change", loadPlansForSelectedVisit);
       showAllActivityPlansInput.addEventListener("change", loadPlansForSelectedVisit);
+      planShipmentSearchInput.addEventListener("input", renderPlanShipments);
       planSelect.addEventListener("change", () => {
         refreshPlanDropdown();
         loadPlanItems(Array.from(planSelect.selectedOptions).map(option => option.value));
