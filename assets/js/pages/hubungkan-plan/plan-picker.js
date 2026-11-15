@@ -12,6 +12,7 @@
     const {
       planDateFromInput,
       planDateToInput,
+      showAllActivityPlansInput: showAllActivityPlansInput,
       planSelect,
       planDropdownToggle,
       planDropdownLabel,
@@ -87,7 +88,7 @@
           const tripName = group.trip ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ") : "";
           return '<label class="border rounded-3 p-3 mb-2 d-block' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + esc(groupId) + '"') + '><div class="d-flex align-items-start gap-3">' +
             (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + esc(groupId) + '" data-plan-group-key="' + esc(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + esc(group.label) + '">' ) +
-            '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span><span class="badge text-bg-light border">' + group.items.length + ' referensi</span>' +
+            '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span>' +
             (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + (tripName ? '<span class="small text-muted">' + esc(tripName) + '</span>' : '') + '</div></div></div></label>';
         }).join("");
         return '<section class="mb-3"><div class="small fw-semibold text-muted mb-2">' + esc(entry[0]) + '</div>' + rows + '</section>';
@@ -118,9 +119,11 @@
       planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
       refreshPlanDropdown();
       resetPlanShipmentSelection("Memuat Plan dan DO/Shipment…");
-      if (!visit || !dateFrom || !dateTo || !visit.client_id || !visit.activity_type) {
+      if (!visit || !dateFrom || !dateTo || !visit.client_id || (!showAllActivityPlansInput.checked && !visit.activity_type)) {
         planSelect.innerHTML = '<option value="">Lengkapi rentang tanggal terlebih dahulu</option>';
-        planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan rentang tanggal operasional.";
+        planSelectionContext.textContent = showAllActivityPlansInput.checked
+          ? "Plan difilter berdasarkan klien dan rentang tanggal operasional, mencakup Inbound dan Outbound."
+          : "Plan difilter berdasarkan klien, aktivitas, dan rentang tanggal operasional.";
         refreshPlanDropdown();
         return;
       }
@@ -132,8 +135,11 @@
         return;
       }
       try {
+        const activityFilter = showAllActivityPlansInput.checked
+          ? ""
+          : "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase());
         const filters = "client_id=eq." + encodeURIComponent(visit.client_id) +
-          "&activity_type=eq." + encodeURIComponent(String(visit.activity_type).toLowerCase()) +
+          activityFilter +
           "&operational_date=gte." + encodeURIComponent(dateFrom) +
           "&operational_date=lte." + encodeURIComponent(dateTo) +
           "&status=eq.active&order=operational_date.asc,created_at.desc";
@@ -146,7 +152,11 @@
           return '<option value="' + esc(plan.id) + '">' + esc(activityLabels[plan.activity_type] || plan.activity_type) + ' · Plan ' + esc(formatPlanDate(plan.operational_date)) + ' · ' + esc(truckCount) + ' Truk</option>';
         }).join("") : '<option value="" disabled selected>Tidak ada Plan aktif yang cocok dengan filter</option>';
         planSelect.disabled = plans.length === 0;
-        planSelectionContext.textContent = plans.length ? plans.length + " Plan aktif ditemukan dari " + formatPlanDate(dateFrom) + " sampai " + formatPlanDate(dateTo) + "." : "Tidak ada Plan aktif dalam rentang tanggal ini untuk klien dan aktivitas armada.";
+        planSelectionContext.textContent = plans.length
+          ? plans.length + " Plan aktif ditemukan dari " + formatPlanDate(dateFrom) + " sampai " + formatPlanDate(dateTo) +
+            (showAllActivityPlansInput.checked ? " untuk Inbound dan Outbound." : " untuk aktivitas armada.")
+          : "Tidak ada Plan aktif dalam rentang tanggal ini untuk klien dan " +
+            (showAllActivityPlansInput.checked ? "aktivitas Inbound/Outbound." : "aktivitas armada.");
         if (!plans.length) resetPlanShipmentSelection("Tidak ada Plan aktif yang sesuai. Periksa rentang tanggal atau data Plan.");
         refreshPlanDropdown();
       } catch (error) {
@@ -193,7 +203,8 @@
         state.processedPlanItemIds = new Set(loadedItems.filter(item => item.manual_processed === true || getLinkedIds().has(item.id)).map(item => item.id));
         state.selectedPlanItemIds = new Set(Array.from(state.selectedPlanItemIds).filter(id => loadedIds.has(id) && !state.processedPlanItemIds.has(id)));
         renderPlanShipments();
-        planSelectionContext.textContent = plans.length + " Plan dipilih; DO dan Shipment ditampilkan sesuai aktivitas armada.";
+        planSelectionContext.textContent = plans.length + " Plan dipilih; DO dan Shipment ditampilkan " +
+          (showAllActivityPlansInput.checked ? "dari aktivitas Inbound dan Outbound." : "sesuai aktivitas armada.");
       } catch (error) {
         if (sequence !== state.planLoadSequence) return;
         resetPlanShipmentSelection("Rincian DO/Shipment gagal dimuat. Perbarui pilihan Plan untuk mencoba lagi.");
@@ -206,13 +217,16 @@
       planSelect.innerHTML = '<option value="">Memuat Plan…</option>';
       planSelect.disabled = true;
       refreshPlanDropdown();
-      planSelectionContext.textContent = "Plan difilter berdasarkan klien, aktivitas, dan rentang tanggal operasional armada.";
+      planSelectionContext.textContent = showAllActivityPlansInput.checked
+        ? "Plan difilter berdasarkan klien dan rentang tanggal operasional, mencakup Inbound dan Outbound."
+        : "Plan difilter berdasarkan klien, aktivitas, dan rentang tanggal operasional armada.";
       resetPlanShipmentSelection("Pilih rentang tanggal untuk melihat Plan dan DO/Shipment yang tersedia.");
     }
 
     function bind() {
       planDateFromInput.addEventListener("change", loadPlansForSelectedVisit);
       planDateToInput.addEventListener("change", loadPlansForSelectedVisit);
+      showAllActivityPlansInput.addEventListener("change", loadPlansForSelectedVisit);
       planSelect.addEventListener("change", () => {
         refreshPlanDropdown();
         loadPlanItems(Array.from(planSelect.selectedOptions).map(option => option.value));
