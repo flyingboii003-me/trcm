@@ -105,8 +105,6 @@
           </div>
         </div>
 
-        <div class="plan-callout mb-4"><i class="bi bi-info-circle-fill"></i><div>Periksa pemetaan header, data, dan pengelompokan truk sebelum konfirmasi. Validasi lokal belum memeriksa keunikan dokumen terhadap seluruh riwayat database.</div></div>
-
         <section class="plan-card mb-4" aria-labelledby="plan-settings-title">
           <div class="plan-card-head">
             <div><h2 class="plan-card-title" id="plan-settings-title">Atur impor</h2><p class="plan-card-subtitle">Tentukan tanggal operasional dan masukkan data sesuai template yang dipilih.</p></div>
@@ -129,7 +127,6 @@
               <div class="col-md-5">
                 <label class="plan-field-label" for="plan-template-name">Template yang dipilih</label>
                 <div class="form-control plan-input d-flex align-items-center justify-content-between" id="plan-template-name" aria-live="polite"><span><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i><strong>Template Inbound</strong></span><button class="btn btn-sm btn-outline-primary" type="button" id="copy-template"><i class="bi bi-clipboard me-1"></i>Salin header</button></div>
-                <div class="plan-hint" id="template-hint">Nomor DO wajib diisi. DO berulang akan dihitung satu kali dan ditandai sebagai peringatan.</div>
               </div>
             </div>
 
@@ -143,7 +140,6 @@
               <div class="plan-hint mt-0" id="paste-hint">Nama dan urutan kolom boleh bervariasi selama setiap header dikenali. Nomor DO dan Shipment dibaca sebagai teks.</div>
               <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-example"><i class="bi bi-arrow-counterclockwise me-1"></i>Muat contoh</button>
             </div>
-            <div class="plan-callout"><i class="bi bi-info-circle-fill"></i><div>Data diperiksa di halaman ini dan diverifikasi kembali saat disimpan.</div></div>
           </div>
           <div class="plan-card-body pt-0">
             <div class="plan-data-check-summary mb-3" id="data-check-summary" aria-live="polite">
@@ -230,7 +226,7 @@
   const schemas={
     inbound:{
       label:"Template Inbound",
-      headers:["DO / TRANSPORT TASK"], fields:[{key:"do_number",label:"DO / Transport task",aliases:["DO / TRANSPORT TASK","DO","NOMOR DO","NO DO","DO NUMBER","TRANSPORT TASK"]}], hint:"Satu baris mewakili satu referensi DO. Nomor DO yang berulang otomatis dihitung satu kali; baris duplikat ditandai sebagai peringatan.", sample:"DO / TRANSPORT TASK\n8576917\n8576918"
+      headers:["DO / TRANSPORT TASK"], fields:[{key:"do_number",label:"DO / Transport task",aliases:["DO / TRANSPORT TASK","DO","NOMOR DO","NO DO","DO NUMBER","TRANSPORT TASK"]}], sample:"DO / TRANSPORT TASK\n8576917\n8576918"
     },
     outbound:{
       label:"Template Outbound",
@@ -243,7 +239,7 @@
         {key:"destination_city",label:"Tujuan",aliases:["TUJUAN","KOTA TUJUAN","DESTINATION","DESTINATION CITY"]},
         {key:"shipment_number",label:"Shipment",aliases:["SHIPMENT","NOMOR SHIPMENT","NO SHIPMENT","DO","NOMOR DO","DO NUMBER","SHIPMENT NUMBER"]},
       ],
-      hint:"", sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288"
+      sample:"VENDOR\tPLAT NOMOR\tNAMA DRIVER\tTIPE TRUCK\tTUJUAN\tSHIPMENT\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001287\nVendor A\tB 9123 CJ\tBudi Santoso\tWingbox\tJakarta\tSH0001288"
     }
   };
   let type="inbound", checked=false, parsed=[], saving=false;
@@ -283,7 +279,6 @@
     type=next;checked=false;parsed=[];
     document.querySelectorAll("[data-plan-type]").forEach(b=>{const active=b.dataset.planType===type;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
     $("plan-template-name").querySelector("strong").textContent=schemas[type].label;
-    $("template-hint").textContent=schemas[type].hint;
     $("paste-hint").textContent=type==="inbound"?"Nomor DO menjadi referensi kunjungan.":"Nomor Shipment menjadi referensi kunjungan; data armada wajib lengkap.";
     $("paste-data").value=schemas[type].sample;
     resetDataCheck();
