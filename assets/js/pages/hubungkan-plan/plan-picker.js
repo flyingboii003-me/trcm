@@ -107,7 +107,7 @@
           }).join("");
           return '<div class="mb-3"><div class="small text-muted mb-2">' + esc(entry[0]) + '</div>' + rows + '</div>';
         }).join("");
-        return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="badge ' + (activityEntry[0] === "inbound" ? 'text-bg-info' : 'text-bg-primary') + '">' + esc(activityLabels[activityEntry[0]] || activityEntry[0]) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
+        return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activityEntry[0] === "inbound" ? 'inbound' : 'outbound') + '">' + esc(activityLabels[activityEntry[0]] || activityEntry[0]) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
       }).join("");
       planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(checkbox => {
         checkbox.addEventListener("change", () => {
