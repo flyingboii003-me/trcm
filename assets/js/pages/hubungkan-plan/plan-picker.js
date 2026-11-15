@@ -105,7 +105,7 @@
               '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span>' +
               (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + (tripName ? '<span class="small text-muted">' + esc(tripName) + '</span>' : '') + '</div></div></div></label>';
           }).join("");
-          return '<div class="mb-3"><div class="small text-muted mb-2">' + esc(entry[0]) + '</div>' + rows + '</div>';
+          return '<div class="mb-3"><div class="small text-muted mb-2">' + esc(entry[0].split(" · ")[0]) + '</div>' + rows + '</div>';
         }).join("");
         return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activityEntry[0] === "inbound" ? 'inbound' : 'outbound') + '">' + esc(activityLabels[activityEntry[0]] || activityEntry[0]) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
       }).join("");
