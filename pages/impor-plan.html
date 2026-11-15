@@ -200,7 +200,6 @@
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Klien</div><strong id="confirm-client">—</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Jenis Plan</div><strong id="confirm-type">Outbound</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Tanggal operasional</div><strong id="confirm-date">—</strong></div></div>
-          <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Baris detail</div><strong id="confirm-rows">0</strong></div></div>
           <div class="col-6 col-lg-3"><div class="border rounded-3 p-3 h-100"><div class="small text-secondary">Jumlah truk terdeteksi</div><strong id="confirm-groups">0</strong></div></div>
         </div>
         <div class="alert alert-warning small" id="confirm-warning" role="status"><i class="bi bi-exclamation-triangle-fill me-2"></i>Pastikan data dan pengelompokan sudah benar.</div>
@@ -459,7 +458,6 @@
     $("confirm-client").textContent=$("plan-client").selectedOptions[0]?.textContent||"—";
     $("confirm-type").textContent=type==="inbound"?"Plan Inbound":"Plan Outbound";
     $("confirm-date").textContent=$("operational-date").value||"—";
-    $("confirm-rows").textContent=String(parsed.length);
     const groups=type==="inbound"?new Set(parsed.map(r=>(r.cells[0]||"").trim().toUpperCase()).filter(Boolean)).size:new Set(parsed.filter(r=>(r.cells[1]||"").trim()&&(r.cells[2]||"").trim()).map(r=>truckKey(r))).size;
     $("confirm-groups").textContent=String(groups);
     const headers=type==="inbound"?["DO / Transport task","Status"]:["Truk","Plat nomor","Nama driver","Shipment","Vendor","Tipe truck","Tujuan","Status"];
