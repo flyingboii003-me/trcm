@@ -74,7 +74,7 @@
           <div class="row g-3">
             <div class="col-12 col-md-6"><label class="form-label" for="edit-plate-number">Plat nomor <span class="text-danger">*</span></label><input class="form-control text-uppercase" id="edit-plate-number" maxlength="20" required></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-activity-type">Tipe Aktivitas <span class="text-danger">*</span></label><select class="form-select" id="edit-activity-type" required><option value="">Pilih tipe aktivitas</option><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select></div>
-            <div class="col-12 col-md-6"><label class="form-label" for="edit-vendor">Vendor <span class="text-danger">*</span></label><input class="form-control" id="edit-vendor" maxlength="120" required></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="edit-vendor">Vendor <span class="text-danger">*</span></label><select class="form-select" id="edit-vendor" required><option value="">Memuat vendor...</option></select><div class="form-text">Pilihan diambil dari Master Data Vendor.</div></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-client">Klien <span class="text-danger">*</span></label><select class="form-select" id="edit-client" required><option value="">Pilih klien</option></select></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-driver-name">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="edit-driver-name" maxlength="120" required></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-driver-phone">Nomor telepon driver</label><input class="form-control" id="edit-driver-phone" maxlength="30"></div>
@@ -203,40 +203,73 @@ async function deleteVisit(visitId) {
   });
 }
 
-function populateEditClients(selectedId) {
-  const names = [];
-  visits.forEach(function (visit) {
-    const clientId = visit.client_id;
-    const clientName = visit.client || (visit.clients && visit.clients.name);
-    if (clientId && clientName && !names.some(function (item) { return item.id === clientId; })) {
-      names.push({ id: clientId, name: clientName });
-    }
+function buildMasterDataOptions(rows, selectedValue, placeholder) {
+  const options = Array.isArray(rows) ? rows.slice() : [];
+  const selected = String(selectedValue || "");
+  if (selected && !options.some(function (item) { return String(item.id) === selected || String(item.name) === selected; })) {
+    options.push({ id: selected, name: selected });
+  }
+  options.sort(function (a, b) {
+    return String(a.name || "").localeCompare(String(b.name || ""), "id");
   });
-  const editClient = document.getElementById("edit-client");
-  editClient.innerHTML = '<option value="">Pilih klien</option>' + names.sort(function (a, b) {
-    return a.name.localeCompare(b.name, "id");
-  }).map(function (item) {
-    return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.name) + '</option>';
+  return '<option value="">'+ escapeHtml(placeholder) +'</option>' + options.map(function (item) {
+    const value = item.id !== undefined && item.id !== null ? item.id : item.name;
+    return '<option value="' + escapeHtml(value) + '">' + escapeHtml(item.name) + '</option>';
   }).join("");
-  editClient.value = selectedId || "";
 }
 
-function openEditModal(visit) {
+async function loadEditMasterData(visit) {
+  const settings = {
+    errorFields: ["message", "details", "hint"],
+    errorMessage: "Data Master Client dan Vendor gagal dimuat.",
+    unauthorizedMessage: "Sesi berakhir. Silakan masuk kembali.",
+    loginUrl: "../index.html"
+  };
+  const results = await Promise.all([
+    window.TRCM.masterData.list("clients", "select=id,name&order=name.asc", settings),
+    window.TRCM.masterData.list("vendors", "select=id,name&order=name.asc", settings)
+  ]);
+  if (!Array.isArray(results[0]) || !Array.isArray(results[1])) {
+    throw new Error("Respons Master Data Client atau Vendor tidak valid.");
+  }
+
+  const editClient = document.getElementById("edit-client");
+  const editVendor = document.getElementById("edit-vendor");
+  editClient.innerHTML = buildMasterDataOptions(results[0], visit.client_id, "Pilih klien");
+  editVendor.innerHTML = buildMasterDataOptions(
+    results[1].map(function (vendor) { return { id: vendor.name, name: vendor.name }; }),
+    visit.vendor,
+    "Pilih vendor"
+  );
+  editClient.value = visit.client_id || "";
+  editVendor.value = visit.vendor || "";
+}
+
+async function openEditModal(visit) {
   if (!canUpdateVisits) return;
   clearEditAlert();
   editForm.classList.remove("was-validated");
+  editSaveButton.disabled = true;
   document.getElementById("edit-visit-id").value = visit.id;
   document.getElementById("edit-plate-number").value = visit.plate_number || "";
   document.getElementById("edit-activity-type").value = visit.activity_type || "";
-  document.getElementById("edit-vendor").value = visit.vendor || "";
+  document.getElementById("edit-vendor").innerHTML = '<option value="">Memuat vendor...</option>';
+  document.getElementById("edit-client").innerHTML = '<option value="">Memuat klien...</option>';
   document.getElementById("edit-driver-name").value = visit.driver_name || "";
   document.getElementById("edit-driver-phone").value = visit.driver_phone || "";
   document.getElementById("edit-truck-type").value = visit.truck_type || "";
   document.getElementById("edit-container-num").value = visit.container_num || "";
   document.getElementById("edit-destination-city").value = visit.destination_city || "";
   document.getElementById("edit-notes").value = visit.notes || "";
-  populateEditClients(visit.client_id);
   editModal.show();
+
+  try {
+    await loadEditMasterData(visit);
+    clearEditAlert();
+    editSaveButton.disabled = false;
+  } catch (error) {
+    showEditAlert(error.message || "Master Data gagal dimuat. Periksa koneksi atau permission, lalu coba lagi.", "danger");
+  }
 }
 
 function formatDuration(start, end) {
@@ -772,7 +805,7 @@ truckTable.addEventListener("click", async function (event) {
 
   if (editButton && canUpdateVisits) {
     const visit = visits.find(function (item) { return item.id === editButton.dataset.editVisitId; });
-    if (visit) openEditModal(visit);
+    if (visit) await openEditModal(visit);
     return;
   }
 
@@ -864,7 +897,10 @@ editForm.addEventListener("submit", async function (event) {
 
   try {
     const currentVisit = visits.find(function (visit) { return String(visit.id) === String(visitId); });
-    await patchVisit(visitId, payload);
+    const updatedVisit = await patchVisit(visitId, payload);
+    if (!Array.isArray(updatedVisit) || !updatedVisit.length) {
+      throw new Error("Database tidak mengembalikan data kunjungan yang diperbarui. Periksa permission/RLS atau ID visit.");
+    }
     editModal.hide();
     await Swal.fire({
       icon: "success",
