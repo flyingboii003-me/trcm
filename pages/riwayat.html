@@ -78,7 +78,7 @@
             <div class="col-12 col-md-6"><label class="form-label" for="edit-client">Klien <span class="text-danger">*</span></label><select class="form-select" id="edit-client" required><option value="">Pilih klien</option></select></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-driver-name">Nama driver <span class="text-danger">*</span></label><input class="form-control" id="edit-driver-name" maxlength="120" required></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-driver-phone">Nomor telepon driver</label><input class="form-control" id="edit-driver-phone" maxlength="30"></div>
-            <div class="col-12 col-md-6"><label class="form-label" for="edit-truck-type">Tipe truck</label><input class="form-control" id="edit-truck-type" maxlength="120"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="edit-truck-type">Tipe truck</label><select class="form-select" id="edit-truck-type"><option value="">Memuat tipe truck...</option></select><div class="form-text">Pilihan diambil dari Master Data Tipe Truck.</div></div>
             <div class="col-12 col-md-6"><label class="form-label" for="edit-container-num">Nomor container</label><input class="form-control" id="edit-container-num" maxlength="30"></div>
             <div class="col-12"><label class="form-label" for="edit-destination-city">Tujuan (Gudang / Kota) <span class="text-danger">*</span></label><input class="form-control" id="edit-destination-city" maxlength="100" required></div>
             <div class="col-12"><label class="form-label" for="edit-notes">Catatan</label><textarea class="form-control" id="edit-notes" rows="3" maxlength="1000"></textarea></div>
@@ -221,28 +221,36 @@ function buildMasterDataOptions(rows, selectedValue, placeholder, selectedLabel)
 async function loadEditMasterData(visit) {
   const settings = {
     errorFields: ["message", "details", "hint"],
-    errorMessage: "Data Master Client dan Vendor gagal dimuat.",
+    errorMessage: "Data Master Client, Vendor, dan Tipe Truck gagal dimuat.",
     unauthorizedMessage: "Sesi berakhir. Silakan masuk kembali.",
     loginUrl: "../index.html"
   };
   const results = await Promise.all([
     window.TRCM.masterData.list("clients", "select=id,name&order=name.asc", settings),
-    window.TRCM.masterData.list("vendors", "select=id,name&order=name.asc", settings)
+    window.TRCM.masterData.list("vendors", "select=id,name&order=name.asc", settings),
+    window.TRCM.masterData.list("truck_types", "select=id,name,is_active&is_active=eq.true&order=name.asc", settings)
   ]);
-  if (!Array.isArray(results[0]) || !Array.isArray(results[1])) {
-    throw new Error("Respons Master Data Client atau Vendor tidak valid.");
+  if (!Array.isArray(results[0]) || !Array.isArray(results[1]) || !Array.isArray(results[2])) {
+    throw new Error("Respons Master Data Client, Vendor, atau Tipe Truck tidak valid.");
   }
 
   const editClient = document.getElementById("edit-client");
   const editVendor = document.getElementById("edit-vendor");
+  const editTruckType = document.getElementById("edit-truck-type");
   editClient.innerHTML = buildMasterDataOptions(results[0], visit.client_id, "Pilih klien", visit.clients && visit.clients.name);
   editVendor.innerHTML = buildMasterDataOptions(
     results[1].map(function (vendor) { return { id: vendor.name, name: vendor.name }; }),
     visit.vendor,
     "Pilih vendor"
   );
+  editTruckType.innerHTML = buildMasterDataOptions(
+    results[2].map(function (truckType) { return { id: truckType.name, name: truckType.name }; }),
+    visit.truck_type,
+    "Pilih tipe truck"
+  );
   editClient.value = visit.client_id || "";
   editVendor.value = visit.vendor || "";
+  editTruckType.value = visit.truck_type || "";
 }
 
 async function openEditModal(visit) {
@@ -257,7 +265,7 @@ async function openEditModal(visit) {
   document.getElementById("edit-client").innerHTML = '<option value="">Memuat klien...</option>';
   document.getElementById("edit-driver-name").value = visit.driver_name || "";
   document.getElementById("edit-driver-phone").value = visit.driver_phone || "";
-  document.getElementById("edit-truck-type").value = visit.truck_type || "";
+  document.getElementById("edit-truck-type").innerHTML = '<option value="">Memuat tipe truck...</option>';
   document.getElementById("edit-container-num").value = visit.container_num || "";
   document.getElementById("edit-destination-city").value = visit.destination_city || "";
   document.getElementById("edit-notes").value = visit.notes || "";
@@ -738,6 +746,11 @@ async function loadVisits() {
       "vendor",
       "client_id",
       "driver_name",
+      "driver_phone",
+      "truck_type",
+      "container_num",
+      "destination_city",
+      "notes",
       "started_at",
       "completed_at",
       "wh_in_at",
