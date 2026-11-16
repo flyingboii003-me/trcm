@@ -203,11 +203,11 @@ async function deleteVisit(visitId) {
   });
 }
 
-function buildMasterDataOptions(rows, selectedValue, placeholder) {
+function buildMasterDataOptions(rows, selectedValue, placeholder, selectedLabel) {
   const options = Array.isArray(rows) ? rows.slice() : [];
   const selected = String(selectedValue || "");
   if (selected && !options.some(function (item) { return String(item.id) === selected || String(item.name) === selected; })) {
-    options.push({ id: selected, name: selected });
+    options.push({ id: selected, name: selectedLabel || selected });
   }
   options.sort(function (a, b) {
     return String(a.name || "").localeCompare(String(b.name || ""), "id");
@@ -235,7 +235,7 @@ async function loadEditMasterData(visit) {
 
   const editClient = document.getElementById("edit-client");
   const editVendor = document.getElementById("edit-vendor");
-  editClient.innerHTML = buildMasterDataOptions(results[0], visit.client_id, "Pilih klien");
+  editClient.innerHTML = buildMasterDataOptions(results[0], visit.client_id, "Pilih klien", visit.clients && visit.clients.name);
   editVendor.innerHTML = buildMasterDataOptions(
     results[1].map(function (vendor) { return { id: vendor.name, name: vendor.name }; }),
     visit.vendor,
