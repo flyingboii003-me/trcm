@@ -226,8 +226,8 @@ async function loadEditMasterData(visit) {
   };
   const results = await Promise.all([
     window.TRCM.masterData.list("clients", "select=id,name&order=name.asc", settings),
-    window.TRCM.masterData.list("vendors", "select=id,name&order=name.asc", settings),
-    window.TRCM.masterData.list("truck_types", "select=id,name,is_active&is_active=eq.true&order=name.asc", settings)
+    window.TRCM.masterData.list("vendors", "select=name&order=name.asc", settings),
+    window.TRCM.masterData.list("truck_types", "select=name&is_active=eq.true&order=name.asc", settings)
   ]);
   if (!Array.isArray(results[0]) || !Array.isArray(results[1]) || !Array.isArray(results[2])) {
     throw new Error("Respons Master Data Client, Vendor, atau Tipe Truck tidak valid.");
@@ -747,24 +747,14 @@ async function loadVisits() {
       "driver_name",
       "driver_phone",
       "truck_type",
-      "container_num",
-      "destination_city",
       "notes",
-      "started_at",
-      "completed_at",
       "wh_in_at",
       "wh_out_at",
-      "process_status",
-      "final_status",
-      "wh_in_at",
       "registered_at",
-      "started_at",
-      "completed_at",
-      "wh_out_at",
+      "process_status",
       "created_at",
       "cards(card_number)",
-      "clients(name)",
-      "gates(gate_number)"
+      "clients(name)"
     ].join(",");
 
     const data = await window.TRCM.visit.request(
