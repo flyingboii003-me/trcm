@@ -374,6 +374,8 @@
     async function loadPlansForVisit(visit, state, force) {
       if (state.plansLoaded && !force) return;
       const requestId = ++state.planRequestId;
+      state.itemRequestId += 1;
+      state.loadingItems = false;
       if (!visit.client_id) {
         state.error = "Klien armada tidak tersedia untuk pencarian Plan.";
         state.plans = [];
