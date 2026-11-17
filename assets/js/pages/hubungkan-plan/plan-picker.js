@@ -77,18 +77,10 @@ function renderPlanShipments() {
       getPlanShipmentGroups(state.availablePlanItems).forEach(group => {
         const activity = group.items[0] && group.items[0].activity_type === "inbound" ? "inbound" : "outbound";
         const activityLabel = activityLabels[activity] || activity;
-        const trip = group.trip;
-        const tripLabel = trip ? ["Trip " + (trip.trip_number || "—"), trip.plate_number || "Armada Plan", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ") : "Detail Plan";
-        const searchable = activity === "inbound" ? [activityLabel, group.label].join(" ") : [activityLabel, group.label, tripLabel].join(" ");
+        const searchable = [activityLabel, group.label].join(" ");
         if (needle && !searchable.toLocaleLowerCase("id-ID").includes(needle)) return;
-        if (!activitySections.has(activity)) activitySections.set(activity, activity === "inbound" ? { groups: [] } : { trips: new Map() });
-        const section = activitySections.get(activity);
-        if (activity === "inbound") {
-          section.groups.push(group);
-        } else {
-          if (!section.trips.has(tripLabel)) section.trips.set(tripLabel, []);
-          section.trips.get(tripLabel).push(group);
-        }
+        if (!activitySections.has(activity)) activitySections.set(activity, { groups: [] });
+        activitySections.get(activity).groups.push(group);
       });
       if (!activitySections.size) {
         planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Tidak ada DO atau Shipment yang cocok dengan pencarian.</div>';
@@ -110,16 +102,8 @@ function renderPlanShipments() {
       planShipmentList.innerHTML = Array.from(activitySections.entries()).map(([activity, section]) => {
         let content = "";
         let countLabel = "";
-        if (activity === "inbound") {
-          content = section.groups.map((group, index) => renderGroupRow(group, index, false)).join("");
-          countLabel = section.groups.length + " DO";
-        } else {
-          content = Array.from(section.trips.entries()).map(([tripLabel, groups]) => {
-            const rows = groups.map((group, index) => renderGroupRow(group, index, true)).join("");
-            return '<div class="mb-3"><div class="small text-muted mb-2">' + esc(tripLabel.split(" · ")[0]) + '</div>' + rows + '</div>';
-          }).join("");
-          countLabel = section.trips.size + " kelompok Trip";
-        }
+        content = section.groups.map((group, index) => renderGroupRow(group, index, false)).join("");
+        countLabel = section.groups.length + (activity === "inbound" ? " DO" : " Shipment");
         return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activity === "inbound" ? 'inbound' : 'outbound') + '">' + esc(activityLabels[activity] || activity) + '</span><span class="small text-muted">' + countLabel + '</span></div>' + content + '</section>';
       }).join("");
       planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(checkbox => {
