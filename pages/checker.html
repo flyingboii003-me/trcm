@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Bulk Checker TRCM">
+<title>Bulk Checker — TRCM</title>
+<link rel="icon" href="../assets/favicon/favicon.ico" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../assets/css/trcm.css">
+<style>
+.bulk-mode-switch{display:inline-flex;gap:.35rem;padding:.3rem;background:#F1F4F8;border:1px solid var(--border);border-radius:14px}
+.bulk-mode-switch .btn{min-height:42px;border:0;border-radius:11px;font-weight:700;color:var(--text-muted)}
+.bulk-mode-switch .btn.active{background:#fff;color:var(--text-main);box-shadow:0 2px 8px rgba(15,26,46,.08)}
+.bulk-visit-card{padding:1rem;border:1px solid var(--border);border-radius:16px;background:#fff;margin-bottom:.85rem}
+.bulk-visit-card:last-child{margin-bottom:0}
+.bulk-visit-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.bulk-visit-meta{display:flex;flex-wrap:wrap;gap:.4rem .8rem;color:var(--text-muted);font-size:.78rem}
+.bulk-visit-card .form-label{font-size:.8rem;font-weight:700;margin-bottom:.4rem}
+.bulk-visit-card .form-control,.bulk-visit-card .form-select{min-height:44px}
+.bulk-plan-list,.bulk-item-list{display:grid;gap:.5rem}
+.bulk-option{display:flex;align-items:flex-start;gap:.65rem;padding:.7rem .8rem;border:1px solid var(--border);border-radius:12px;background:#fff;cursor:pointer}
+.bulk-option:has(input:checked){border-color:#006ECD;background:#EEF5FB}
+.bulk-option.is-disabled{background:#F6F8FC;color:var(--text-muted);cursor:not-allowed}
+.bulk-option input{margin-top:.2rem;flex:0 0 auto}
+.bulk-option-label{min-width:0;font-size:.82rem;font-weight:600;overflow-wrap:anywhere}
+.bulk-option-meta{display:block;color:var(--text-muted);font-size:.72rem;font-weight:500;margin-top:.15rem}
+.bulk-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:.6rem;margin-top:.75rem}
+.bulk-photo-item{position:relative;aspect-ratio:1;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#F6F8FC}
+.bulk-photo-item img{width:100%;height:100%;object-fit:cover}
+.bulk-photo-item button{position:absolute;top:4px;right:4px;width:28px;height:28px;padding:0;border-radius:50%;display:grid;place-items:center}
+.bulk-result-row{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:.7rem 0;border-bottom:1px solid var(--border)}
+.bulk-result-row:last-child{border-bottom:0}
+.bulk-action-bar{position:sticky;bottom:0;z-index:5;background:rgba(244,246,245,.96);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:.85rem 0;margin-top:1rem}
+.bulk-action-bar .btn{min-height:48px}
+.bulk-count{font-variant-numeric:tabular-nums;font-weight:700}
+@media(max-width:767.98px){
+  .bulk-mode-switch{display:flex;width:100%}
+  .bulk-mode-switch .btn{flex:1}
+  .bulk-visit-heading{flex-direction:column}
+  .bulk-action-bar{margin-left:-.75rem;margin-right:-.75rem;padding:.75rem;background:rgba(244,246,245,.98)}
+}
+</style>
+</head>
+<body class="trcm-app">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Bulk Checker</h1>
+            <p class="page-subtitle">Catat Mulai Loading atau Selesai Loading untuk beberapa armada sekaligus.</p>
+          </div>
+          <button class="btn btn-date-picker" id="page-refresh-button" type="button" aria-label="Perbarui daftar armada">
+            <i class="bi bi-arrow-clockwise me-1"></i>Perbarui
+          </button>
+        </div>
+
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3">
+          <div class="bulk-mode-switch" role="group" aria-label="Pilih aktivitas Checker">
+            <button class="btn active" id="mode-start-button" type="button" aria-pressed="true"><i class="bi bi-play-circle me-1"></i>Bulk Mulai</button>
+            <button class="btn" id="mode-finish-button" type="button" aria-pressed="false"><i class="bi bi-check-circle me-1"></i>Bulk Selesai</button>
+          </div>
+          <div class="small text-muted" id="mode-description">Pilih armada yang sudah dikonfirmasi WH In.</div>
+        </div>
+
+        <section class="card content-card">
+          <div class="card-header content-card-header">
+            <div><h2 class="card-title">Daftar armada</h2><p class="small text-muted mb-0 mt-1" id="visit-count">Memuat data...</p></div>
+            <span class="badge rounded-pill text-bg-light border" id="selection-count">0 dipilih</span>
+          </div>
+          <div class="card-body p-0">
+            <div class="p-3 p-lg-4 border-bottom">
+              <div class="row g-2">
+                <div class="col-12 col-md-8">
+                  <label class="visually-hidden" for="search-card">Cari nomor kartu atau plat nomor</label>
+                  <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span><input class="form-control" id="search-card" type="search" placeholder="Cari nomor kartu atau plat nomor..."></div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="visually-hidden" for="client-filter">Filter klien</label>
+                  <select class="form-select" id="client-filter"><option value="all">Semua Klien</option></select>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle trcm-table mb-0">
+                <thead><tr>
+                  <th style="width:48px"><input class="form-check-input" type="checkbox" id="select-all-visits" aria-label="Pilih semua armada yang terlihat"></th>
+                  <th>Kartu</th><th>Plat nomor</th><th>Aktivitas</th><th>Tujuan</th><th>Vendor</th><th>Klien</th><th>Status</th>
+                </tr></thead>
+                <tbody id="bulk-visit-table"><tr><td colspan="8" class="table-state">Memuat data armada...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="card content-card" id="bulk-form-card">
+          <div class="card-header content-card-header">
+            <div><h2 class="card-title">Data yang akan dicatat</h2><p class="small text-muted mb-0 mt-1">Data umum digunakan bersama. Data khusus tetap diisi untuk setiap armada.</p></div>
+            <span class="small text-muted" id="selected-detail-count">Belum ada armada dipilih</span>
+          </div>
+          <div class="card-body">
+            <div id="bulk-empty-selection" class="text-center text-muted py-4">
+              <i class="bi bi-truck fs-2 d-block mb-2"></i>
+              Pilih satu atau beberapa armada dari daftar di atas.
+            </div>
+
+            <div id="bulk-start-fields" hidden>
+              <h3 class="h6 mb-3">Data bersama</h3>
+              <div class="row g-3 mb-4">
+                <div class="col-12 col-md-6"><label class="form-label" for="shared-gate">Nomor gerbang <span class="text-danger">*</span></label><select class="form-select" id="shared-gate" required><option value="">Pilih gerbang</option></select></div>
+                <div class="col-12 col-md-6"><label class="form-label" for="shared-line">Nomor line <span class="text-danger">*</span></label><select class="form-select" id="shared-line" required disabled><option value="">Pilih gerbang terlebih dahulu</option></select></div>
+                <div class="col-12"><label class="form-label" for="shared-start-notes">Catatan</label><textarea class="form-control" id="shared-start-notes" rows="2" maxlength="1000" placeholder="Catatan Mulai Loading untuk seluruh armada"></textarea><div class="form-text text-end"><span id="start-notes-count">0</span>/1000 karakter</div></div>
+              </div>
+              <h3 class="h6 mb-3">Data per armada</h3>
+              <div id="start-visit-details"></div>
+            </div>
+
+            <div id="bulk-finish-fields" hidden>
+              <h3 class="h6 mb-3">Data bersama</h3>
+              <div class="mb-4"><label class="form-label" for="shared-finish-notes">Catatan penyelesaian</label><textarea class="form-control" id="shared-finish-notes" rows="2" maxlength="1000" placeholder="Catatan Selesai Loading untuk seluruh armada"></textarea></div>
+              <h3 class="h6 mb-3">Foto per armada</h3>
+              <div id="finish-visit-details"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card content-card" id="bulk-results-card" hidden>
+          <div class="card-header content-card-header">
+            <div><h2 class="card-title">Hasil pemrosesan</h2><p class="small text-muted mb-0 mt-1" id="bulk-result-summary">Belum ada proses.</p></div>
+            <button class="btn btn-sm btn-outline-secondary" id="clear-results-button" type="button">Tutup hasil</button>
+          </div>
+          <div id="bulk-result-list"></div>
+          <div class="mt-3" id="retry-actions" hidden><button class="btn btn-outline-primary" id="retry-failed-button" type="button"><i class="bi bi-arrow-repeat me-1"></i>Coba ulang armada gagal</button></div>
+        </section>
+      </div>
+
+      <div class="bulk-action-bar">
+        <div class="container-fluid px-0 d-flex align-items-center justify-content-between gap-3">
+          <div class="small text-muted"><span class="bulk-count" id="action-selection-count">0</span> armada dipilih</div>
+          <button class="btn btn-warning px-4" id="save-bulk-start" type="button" disabled><i class="bi bi-play-circle me-1"></i>Mulai untuk armada dipilih</button>
+          <button class="btn btn-primary px-4" id="save-bulk-finish" type="button" disabled hidden><i class="bi bi-check-circle me-1"></i>Selesaikan armada dipilih</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/components.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/pages/checker.js"></script>
+</body>
+</html>
