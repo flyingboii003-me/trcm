@@ -387,6 +387,7 @@
       }
       if (!state.dateFrom || !state.dateTo) {
         state.error = "Lengkapi rentang tanggal Plan.";
+        state.loadingPlans = false;
         state.plansLoaded = true;
         renderPlanControls(visit, state);
         return;
@@ -397,6 +398,7 @@
         state.selectedPlanIds.clear();
         state.availableItems = [];
         state.selectedItemIds.clear();
+        state.loadingPlans = false;
         state.plansLoaded = true;
         renderPlanControls(visit, state);
         return;
@@ -791,7 +793,12 @@
 
     async function processBatch(ids, isRetry) {
       if (processing) return;
-      const selected = ids.map(function (id) { return visits.find(function (visit) { return visit.id === id; }); }).filter(Boolean);
+      const selected = ids.map(function (id) {
+        const activeVisit = visits.find(function (visit) { return visit.id === id; });
+        if (activeVisit) return activeVisit;
+        const previousResult = isRetry ? results.find(function (item) { return item.visit.id === id; }) : null;
+        return previousResult ? previousResult.visit : null;
+      }).filter(Boolean);
       if (!selected.length) return;
 
       if (!isRetry) {
