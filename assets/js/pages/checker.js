@@ -125,7 +125,9 @@
         plansLoaded: false,
         loadingItems: false,
         error: "",
-        itemError: ""
+        itemError: "",
+        planRequestId: 0,
+        itemRequestId: 0
       };
     }
 
@@ -371,6 +373,18 @@
 
     async function loadPlansForVisit(visit, state, force) {
       if (state.plansLoaded && !force) return;
+      const requestId = ++state.planRequestId;
+      if (!visit.client_id) {
+        state.error = "Klien armada tidak tersedia untuk pencarian Plan.";
+        state.plans = [];
+        state.selectedPlanIds.clear();
+        state.availableItems = [];
+        state.selectedItemIds.clear();
+        state.loadingPlans = false;
+        state.plansLoaded = true;
+        renderPlanControls(visit, state);
+        return;
+      }
       if (!state.dateFrom || !state.dateTo) {
         state.error = "Lengkapi rentang tanggal Plan.";
         state.plansLoaded = true;
@@ -409,18 +423,22 @@
           "import_plans",
           "?select=id,client_id,operational_date,activity_type,status,row_count,import_plan_trips(count)&" + filters
         );
+        if (requestId !== state.planRequestId) return;
         if (!Array.isArray(plans)) throw new Error("Respons Plan tidak valid.");
         state.plans = plans;
       } catch (error) {
-        state.error = error.message || "Plan gagal dimuat.";
+        if (requestId === state.planRequestId) state.error = error.message || "Plan gagal dimuat.";
       } finally {
-        state.loadingPlans = false;
-        state.plansLoaded = true;
-        renderPlanControls(visit, state);
+        if (requestId === state.planRequestId) {
+          state.loadingPlans = false;
+          state.plansLoaded = true;
+          renderPlanControls(visit, state);
+        }
       }
     }
 
     async function loadPlanItemsForVisit(visit, state) {
+      const requestId = ++state.itemRequestId;
       const selectedPlans = state.plans.filter(function (plan) { return state.selectedPlanIds.has(plan.id); });
       const previousSelectedIds = new Set(state.selectedItemIds);
       state.loadingItems = true;
@@ -461,6 +479,7 @@
             linkedIds: linkedIds
           };
         }));
+        if (requestId !== state.itemRequestId) return;
         const items = results.flatMap(function (result) { return result.items; });
         const loadedIds = new Set(items.map(function (item) { return item.id; }));
         state.availableItems = items;
@@ -470,10 +489,12 @@
           return loadedIds.has(id) && !state.processedIds.has(id);
         }));
       } catch (error) {
-        state.itemError = error.message || "Rincian DO/Shipment gagal dimuat.";
+        if (requestId === state.itemRequestId) state.itemError = error.message || "Rincian DO/Shipment gagal dimuat.";
       } finally {
-        state.loadingItems = false;
-        renderPlanControls(visit, state);
+        if (requestId === state.itemRequestId) {
+          state.loadingItems = false;
+          renderPlanControls(visit, state);
+        }
       }
     }
 
@@ -701,10 +722,13 @@
 
     async function processFinishVisit(visit) {
       const current = await getCurrentVisit(visit.id);
-      if (current.process_status === "completed" || current.wh_out_at) {
+      if (current.process_status === "completed") {
         return { alreadyDone: true, message: "Selesai Loading sudah tercatat; tidak mengirim ulang proses." };
       }
-      if (current.process_status !== "started" || !current.started_at || current.wh_out_at) {
+      if (current.wh_out_at) {
+        throw new Error("Armada sudah tercatat WH Out dan tidak dapat diselesaikan melalui Bulk Checker.");
+      }
+      if (current.process_status !== "started" || !current.started_at) {
         throw new Error("Status armada tidak lagi memenuhi syarat Selesai Loading.");
       }
 
@@ -747,10 +771,10 @@
         return { message: "Selesai Loading dan foto berhasil disimpan." };
       } catch (error) {
         const latest = await getCurrentVisit(visit.id).catch(function () { return null; });
-        if (latest && (latest.process_status === "completed" || latest.wh_out_at)) {
+        if (latest && latest.process_status === "completed") {
           return { alreadyDone: true, message: "Selesai Loading sudah tersimpan. Foto dipertahankan." };
         }
-        if (latest && latest.process_status === "started") {
+        if (latest && latest.process_status === "started" && !latest.wh_out_at) {
           await cleanupUploadedPhotos(photoRecordIds, uploadedPaths);
         } else {
           console.warn("Status visit tidak dapat dipastikan; foto dipertahankan untuk mencegah penghapusan bukti yang mungkin sudah terpakai.", visit.id);
@@ -849,6 +873,8 @@
         }
 
         await loadVisits();
+      } catch (error) {
+        await showMessage("error", "Gagal memperbarui daftar", error.message || "Daftar armada belum dapat diperbarui.");
       } finally {
         setProcessing(false);
         renderResults();
