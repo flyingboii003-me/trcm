@@ -188,7 +188,6 @@
         elements.table.innerHTML = rows.map(function (visit) {
           const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
           const client = visit.clients && visit.clients.name ? visit.clients.name : "—";
-          const activity = formatActivity(visit.activity_type);
           return '<tr>' +
             '<td><input class="form-check-input bulk-visit-checkbox" type="checkbox" data-visit-id="' + escapeHtml(visit.id) + '" aria-label="Pilih armada ' + escapeHtml(card) + '"' + (selectedIds.has(visit.id) ? " checked" : "") + (processing ? " disabled" : "") + '></td>' +
             '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
