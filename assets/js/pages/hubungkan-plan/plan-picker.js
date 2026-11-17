@@ -77,7 +77,8 @@ function renderPlanShipments() {
       getPlanShipmentGroups(state.availablePlanItems).forEach(group => {
         const activity = group.items[0] && group.items[0].activity_type === "inbound" ? "inbound" : "outbound";
         const activityLabel = activityLabels[activity] || activity;
-        const searchable = [activityLabel, group.label].join(" ");
+        const tripSearch = activity === "outbound" && group.trip ? [group.trip.vendor, group.trip.plate_number, group.trip.driver_name, group.trip.destination].filter(Boolean).join(" ") : "";
+        const searchable = [activityLabel, group.label, tripSearch].join(" ");
         if (needle && !searchable.toLocaleLowerCase("id-ID").includes(needle)) return;
         if (!activitySections.has(activity)) activitySections.set(activity, { groups: [] });
         activitySections.get(activity).groups.push(group);
@@ -93,11 +94,19 @@ function renderPlanShipments() {
         const selectableItems = group.items.filter(item => !state.processedPlanItemIds.has(item.id));
         const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(item => state.selectedPlanItemIds.has(item.id));
         const someSelected = !alreadyProcessed && selectableItems.some(item => state.selectedPlanItemIds.has(item.id));
-        const tripName = showTrip && group.trip ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ") : "";
+        const tripDetails = group.items[0] && group.items[0].activity_type === "outbound" && group.trip
+          ? [
+              group.trip.vendor ? "Vendor: " + group.trip.vendor : "",
+              group.trip.plate_number ? "Plat: " + group.trip.plate_number : "",
+              group.trip.driver_name ? "Driver: " + group.trip.driver_name : "",
+              group.trip.destination ? "Tujuan: " + group.trip.destination : ""
+            ].filter(Boolean)
+          : [];
         return '<label class="border rounded-3 p-3 mb-2 d-block' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + esc(groupId) + '"') + '><div class="d-flex align-items-start gap-3">' +
           (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + esc(groupId) + '" data-plan-group-key="' + esc(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + esc(group.label) + '">') +
           '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span>' +
-          (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + (tripName ? '<span class="small text-muted">' + esc(tripName) + '</span>' : '') + '</div></div></div></label>';
+          (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + '</div>' +
+          (tripDetails.length ? '<div class="small text-muted mt-1 d-flex flex-wrap gap-2">' + tripDetails.map(detail => '<span>' + esc(detail) + '</span>').join("") + '</div>' : '') + '</div></div></label>';
       }
       planShipmentList.innerHTML = Array.from(activitySections.entries()).map(([activity, section]) => {
         let content = "";
@@ -202,7 +211,7 @@ function renderPlanShipments() {
         const results = await Promise.all(plans.map(async plan => {
           const [items, trips] = await Promise.all([
             requestPlan("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,manual_processed&plan_id=eq." + encodeURIComponent(plan.id) + "&order=row_number.asc", {}, { errorMessage: "Detail DO/Shipment gagal dimuat." }),
-            requestPlan("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc", {}, { errorMessage: "Detail armada Plan gagal dimuat." })
+            requestPlan("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,driver_name,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc", {}, { errorMessage: "Detail armada Plan gagal dimuat." })
           ]);
           if (!Array.isArray(items) || !Array.isArray(trips)) throw new Error("Rincian DO/Shipment Plan tidak valid.");
           const tripById = new Map(trips.map(trip => [trip.id, trip]));
