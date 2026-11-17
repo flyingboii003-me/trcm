@@ -62,13 +62,14 @@
                     <th>Tujuan</th>
                     <th>Vendor</th>
                     <th>Klien</th>
-                    <th>Shipment</th>
+                    <th>Aktivitas</th>
+                    <th>Shipment / DO</th>
                     <th>Status</th>
                     <th class="action-column">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="loading-table">
-                  <tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>
+                  <tr><td colspan="9" class="table-state">Memuat data truck...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -110,8 +111,10 @@
                   <span class="small text-muted d-block">Tujuan</span>
                   <strong id="detail-destination">—</strong>
                 </div>
-                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker mulai loading</span><strong id="detail-start-actor">—</strong></div>
-                <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker selesai loading</span><strong id="detail-finish-actor">—</strong></div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Vendor</span>
+                  <strong id="detail-vendor">—</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -357,7 +360,7 @@ window.trcmComponentsReady.then(async function () {
     
 
     if (!filtered.length) {
-      table.innerHTML = '<tr><td colspan="8" class="table-state">Belum ada truck yang sudah dikonfirmasi WH In.</td></tr>';
+      table.innerHTML = '<tr><td colspan="9" class="table-state">Belum ada truck yang sudah dikonfirmasi WH In.</td></tr>';
       return;
     }
 
@@ -372,6 +375,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
+        '<td><span class="destination destination-' + (String(visit.activity_type || "").toLowerCase() === "inbound" ? "inbound" : "outbound") + '">' + escapeHtml(formatDestination(String(visit.activity_type || "").toLowerCase())) + '</span></td>' +
         '<td class="loading-shipment-cell">' + renderShipmentCell(visit) + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
         '<td class="action-cell">' + action + '</td>' +
@@ -407,7 +411,7 @@ window.trcmComponentsReady.then(async function () {
   }
 
   async function loadVisits() {
-    table.innerHTML = '<tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>';
+    table.innerHTML = '<tr><td colspan="9" class="table-state">Memuat data truck...</td></tr>';
     
     refreshButton.disabled = true;
 
@@ -430,7 +434,7 @@ window.trcmComponentsReady.then(async function () {
       renderTable();
     } catch (error) {
       console.error("TRCM Mulai Loading:", error);
-      table.innerHTML = '<tr><td colspan="8" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
+      table.innerHTML = '<tr><td colspan="9" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
       
       await Swal.fire({
         icon: "error",
@@ -501,16 +505,11 @@ window.trcmComponentsReady.then(async function () {
     getPlanShipmentGroups(availablePlanItems).forEach(function (group) {
       const activity = group.items[0] && group.items[0].activity_type === "inbound" ? "inbound" : "outbound";
       const activityLabel = formatDestination(activity);
-      const trip = group.trip;
-      const tripLabel = trip
-        ? ["Trip " + (trip.trip_number || "—"), trip.plate_number || "Armada Plan", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ")
-        : "Detail Plan";
-      const searchable = [activityLabel, group.label, tripLabel].join(" ").toLocaleLowerCase("id-ID");
-      if (needle && !searchable.includes(needle)) return;
-      if (!activitySections.has(activity)) activitySections.set(activity, new Map());
-      const trips = activitySections.get(activity);
-      if (!trips.has(tripLabel)) trips.set(tripLabel, []);
-      trips.get(tripLabel).push(group);
+      const tripSearch = activity === "outbound" && group.trip ? [group.trip.vendor, group.trip.plate_number, group.trip.driver_name, group.trip.destination].filter(Boolean).join(" ") : "";
+      const searchable = [activityLabel, group.label, tripSearch].join(" ");
+      if (needle && !searchable.toLocaleLowerCase("id-ID").includes(needle)) return;
+      if (!activitySections.has(activity)) activitySections.set(activity, { groups: [] });
+      activitySections.get(activity).groups.push(group);
     });
 
     if (!activitySections.size) {
@@ -519,27 +518,36 @@ window.trcmComponentsReady.then(async function () {
       return;
     }
 
+    function renderGroupRow(group, index, showTrip) {
+      const groupId = "shipment-group-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
+      const alreadyProcessed = group.items.some(function (item) { return processedPlanItemIds.has(item.id); });
+      const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
+      const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
+      const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
+      const tripDetails = group.items[0] && group.items[0].activity_type === "outbound" && group.trip
+        ? [
+            group.trip.vendor ? "Vendor: " + group.trip.vendor : "",
+            group.trip.plate_number ? "Plat: " + group.trip.plate_number : "",
+            group.trip.driver_name ? "Driver: " + group.trip.driver_name : "",
+            group.trip.destination ? "Tujuan: " + group.trip.destination : ""
+          ].filter(Boolean)
+        : [];
+      return '<label class="border rounded-3 p-3 mb-2 d-block plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + escapeHtml(groupId) + '"') + '>' +
+        '<div class="d-flex align-items-start gap-3">' +
+        (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
+        '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
+        (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') + '</div>' +
+        (tripDetails.length ? '<div class="small text-muted mt-1 d-flex flex-wrap gap-2">' + tripDetails.map(function (detail) { return '<span>' + escapeHtml(detail) + '</span>'; }).join("") + '</div>' : '') + '</div></div></label>';
+    }
+
     planShipmentList.innerHTML = Array.from(activitySections.entries()).map(function (activityEntry) {
-      const tripSections = Array.from(activityEntry[1].entries()).map(function (entry) {
-        const rows = entry[1].map(function (group, index) {
-          const groupId = "shipment-group-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
-          const alreadyProcessed = group.items.some(function (item) { return processedPlanItemIds.has(item.id); });
-          const selectableItems = group.items.filter(function (item) { return !processedPlanItemIds.has(item.id); });
-          const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(function (item) { return selectedPlanItemIds.has(item.id); });
-          const someSelected = !alreadyProcessed && selectableItems.some(function (item) { return selectedPlanItemIds.has(item.id); });
-          const tripName = group.trip
-            ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ")
-            : "";
-          return '<label class="border rounded-3 p-3 mb-2 d-block plan-shipment-option' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + escapeHtml(groupId) + '"') + '>' +
-            '<div class="d-flex align-items-start gap-3">' +
-            (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + escapeHtml(groupId) + '" data-plan-group-key="' + escapeHtml(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + escapeHtml(group.label) + '">') +
-            '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + escapeHtml(group.label) + '</span>' +
-            (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah diproses</span>' : '') +
-            (tripName ? '<span class="small text-muted">' + escapeHtml(tripName) + '</span>' : '') + '</div></div></div></label>';
-        }).join("");
-        return '<div class="mb-3"><div class="small text-muted mb-2">' + escapeHtml(entry[0].split(" · ")[0]) + '</div>' + rows + '</div>';
-      }).join("");
-      return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activityEntry[0] === "inbound" ? 'inbound' : 'outbound') + '">' + escapeHtml(formatDestination(activityEntry[0])) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
+      const activity = activityEntry[0];
+      const section = activityEntry[1];
+      let content = "";
+      let countLabel = "";
+      content = section.groups.map(function (group, index) { return renderGroupRow(group, index, false); }).join("");
+      countLabel = section.groups.length + (activity === "inbound" ? " DO" : " Shipment");
+      return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activity === "inbound" ? 'inbound' : 'outbound') + '">' + escapeHtml(formatDestination(activity)) + '</span><span class="small text-muted">' + countLabel + '</span></div>' + content + '</section>';
     }).join("");
 
     planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(function (checkbox) {
@@ -556,7 +564,6 @@ window.trcmComponentsReady.then(async function () {
     });
     updatePlanShipmentCount();
   }
-
   async function loadPlansForSelectedVisit() {
     const sequence = ++planLoadSequence;
     const visit = selectedVisit;
@@ -639,7 +646,7 @@ window.trcmComponentsReady.then(async function () {
       const results = await Promise.all(plans.map(async function (plan) {
         const [items, trips, linkedItems] = await Promise.all([
           request("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,manual_processed&plan_id=eq." + encodeURIComponent(plan.id) + "&order=row_number.asc"),
-          request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc"),
+          request("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,driver_name,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc"),
           request("/rest/v1/visit_plan_items?select=plan_item_id,import_plan_items!inner(plan_id)&import_plan_items.plan_id=eq." + encodeURIComponent(plan.id))
         ]);
         if (!Array.isArray(items) || !Array.isArray(trips) || !Array.isArray(linkedItems)) throw new Error("Rincian DO/Shipment Plan tidak valid.");
@@ -664,29 +671,6 @@ window.trcmComponentsReady.then(async function () {
     }
   }
 
-  async function loadVisitActors(visitId) {
-    const start = document.getElementById("detail-start-actor");
-    const finish = document.getElementById("detail-finish-actor");
-    if (start) start.textContent = "Memuat...";
-    if (finish) finish.textContent = "Memuat...";
-    try {
-      const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/get_visit_event_actors", {
-        method: "POST",
-        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_visit_id: visitId })
-      });
-      const rows = await response.json().catch(function () { return []; });
-      if (!response.ok || !Array.isArray(rows)) throw new Error("Atribusi aktivitas belum tersedia.");
-      const started = rows.filter(function (row) { return row.status === "started"; }).slice(-1)[0];
-      const completed = rows.filter(function (row) { return row.status === "completed"; }).slice(-1)[0];
-      if (start) start.textContent = started ? started.actor_display_name + " · " + new Date(started.created_at).toLocaleString("id-ID") : "Belum tercatat";
-      if (finish) finish.textContent = completed ? completed.actor_display_name + " · " + new Date(completed.created_at).toLocaleString("id-ID") : "Belum tercatat";
-    } catch (error) {
-      if (start) start.textContent = "Tidak tersedia";
-      if (finish) finish.textContent = "Tidak tersedia";
-      console.warn("TRCM visit actors:", error);
-    }
-  }
   function openStartModal(visit) {
     selectedVisit = visit;
     const card = visit.cards && visit.cards.card_number ? visit.cards.card_number : "—";
@@ -696,6 +680,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("detail-plate").textContent = visit.plate_number || "—";
     document.getElementById("detail-driver").textContent = visit.driver_name || "—";
     document.getElementById("detail-destination").textContent = visit.destination_city || "—";
+    document.getElementById("detail-vendor").textContent = visit.vendor || "—";
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
     lineSelect.disabled = true;
@@ -712,7 +697,6 @@ window.trcmComponentsReady.then(async function () {
     form.classList.remove("was-validated");
     modal.show();
     loadPlansForSelectedVisit();
-    loadVisitActors(visit.id);
   }
 
   async function saveStart(event) {

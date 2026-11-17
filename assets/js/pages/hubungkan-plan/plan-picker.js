@@ -67,7 +67,7 @@
       updatePlanShipmentCount();
     }
 
-    function renderPlanShipments() {
+function renderPlanShipments() {
       if (!state.availablePlanItems.length) {
         resetPlanShipmentSelection("Plan ini belum memiliki detail DO atau Shipment.");
         return;
@@ -77,37 +77,43 @@
       getPlanShipmentGroups(state.availablePlanItems).forEach(group => {
         const activity = group.items[0] && group.items[0].activity_type === "inbound" ? "inbound" : "outbound";
         const activityLabel = activityLabels[activity] || activity;
-        const trip = group.trip;
-        const tripLabel = trip ? ["Trip " + (trip.trip_number || "—"), trip.plate_number || "Armada Plan", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ") : "Detail Plan";
-        const searchable = [activityLabel, group.label, tripLabel].join(" ").toLocaleLowerCase("id-ID");
-        if (needle && !searchable.includes(needle)) return;
-        if (!activitySections.has(activity)) activitySections.set(activity, new Map());
-        const trips = activitySections.get(activity);
-        if (!trips.has(tripLabel)) trips.set(tripLabel, []);
-        trips.get(tripLabel).push(group);
+        const tripSearch = activity === "outbound" && group.trip ? [group.trip.vendor, group.trip.plate_number, group.trip.driver_name, group.trip.destination].filter(Boolean).join(" ") : "";
+        const searchable = [activityLabel, group.label, tripSearch].join(" ");
+        if (needle && !searchable.toLocaleLowerCase("id-ID").includes(needle)) return;
+        if (!activitySections.has(activity)) activitySections.set(activity, { groups: [] });
+        activitySections.get(activity).groups.push(group);
       });
       if (!activitySections.size) {
         planShipmentList.innerHTML = '<div class="border rounded-3 p-3 text-muted small">Tidak ada DO atau Shipment yang cocok dengan pencarian.</div>';
         updatePlanShipmentCount();
         return;
       }
-      planShipmentList.innerHTML = Array.from(activitySections.entries()).map(activityEntry => {
-        const tripSections = Array.from(activityEntry[1].entries()).map(entry => {
-          const rows = entry[1].map((group, index) => {
-            const groupId = "hub-shipment-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
-            const alreadyProcessed = group.items.some(item => state.processedPlanItemIds.has(item.id));
-            const selectableItems = group.items.filter(item => !state.processedPlanItemIds.has(item.id));
-            const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(item => state.selectedPlanItemIds.has(item.id));
-            const someSelected = !alreadyProcessed && selectableItems.some(item => state.selectedPlanItemIds.has(item.id));
-            const tripName = group.trip ? ["Trip " + (group.trip.trip_number || "—"), group.trip.plate_number || "Armada Plan", group.trip.vendor || "", group.trip.destination || ""].filter(Boolean).join(" · ") : "";
-            return '<label class="border rounded-3 p-3 mb-2 d-block' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + esc(groupId) + '"') + '><div class="d-flex align-items-start gap-3">' +
-              (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + esc(groupId) + '" data-plan-group-key="' + esc(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + esc(group.label) + '">') +
-              '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span>' +
-              (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + (tripName ? '<span class="small text-muted">' + esc(tripName) + '</span>' : '') + '</div></div></div></label>';
-          }).join("");
-          return '<div class="mb-3"><div class="small text-muted mb-2">' + esc(entry[0].split(" · ")[0]) + '</div>' + rows + '</div>';
-        }).join("");
-        return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activityEntry[0] === "inbound" ? 'inbound' : 'outbound') + '">' + esc(activityLabels[activityEntry[0]] || activityEntry[0]) + '</span><span class="small text-muted">' + activityEntry[1].size + ' kelompok Trip</span></div>' + tripSections + '</section>';
+      function renderGroupRow(group, index, showTrip) {
+        const groupId = "hub-shipment-" + index + "-" + group.key.replace(/[^a-z0-9_-]/g, "-");
+        const alreadyProcessed = group.items.some(item => state.processedPlanItemIds.has(item.id));
+        const selectableItems = group.items.filter(item => !state.processedPlanItemIds.has(item.id));
+        const allSelected = !alreadyProcessed && selectableItems.length > 0 && selectableItems.every(item => state.selectedPlanItemIds.has(item.id));
+        const someSelected = !alreadyProcessed && selectableItems.some(item => state.selectedPlanItemIds.has(item.id));
+        const tripDetails = group.items[0] && group.items[0].activity_type === "outbound" && group.trip
+          ? [
+              group.trip.vendor ? "Vendor: " + group.trip.vendor : "",
+              group.trip.plate_number ? "Plat: " + group.trip.plate_number : "",
+              group.trip.driver_name ? "Driver: " + group.trip.driver_name : "",
+              group.trip.destination ? "Tujuan: " + group.trip.destination : ""
+            ].filter(Boolean)
+          : [];
+        return '<label class="border rounded-3 p-3 mb-2 d-block' + (someSelected ? ' border-primary bg-primary-subtle' : '') + (alreadyProcessed ? ' border-secondary bg-body-tertiary' : '') + '"' + (alreadyProcessed ? '' : ' for="' + esc(groupId) + '"') + '><div class="d-flex align-items-start gap-3">' +
+          (alreadyProcessed ? '<span class="text-muted mt-1 flex-shrink-0" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>' : '<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" id="' + esc(groupId) + '" data-plan-group-key="' + esc(group.key) + '"' + (allSelected ? " checked" : "") + ' aria-label="Pilih DO/Shipment ' + esc(group.label) + '">') +
+          '<div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2"><span class="fw-semibold text-break">' + esc(group.label) + '</span>' +
+          (alreadyProcessed ? '<span class="badge text-bg-secondary">Sudah terhubung / diproses</span>' : '') + '</div>' +
+          (tripDetails.length ? '<div class="small text-muted mt-1 d-flex flex-wrap gap-2">' + tripDetails.map(detail => '<span>' + esc(detail) + '</span>').join("") + '</div>' : '') + '</div></div></label>';
+      }
+      planShipmentList.innerHTML = Array.from(activitySections.entries()).map(([activity, section]) => {
+        let content = "";
+        let countLabel = "";
+        content = section.groups.map((group, index) => renderGroupRow(group, index, false)).join("");
+        countLabel = section.groups.length + (activity === "inbound" ? " DO" : " Shipment");
+        return '<section class="border rounded-3 p-3 mb-3"><div class="d-flex align-items-center gap-2 mb-3"><span class="destination destination-' + (activity === "inbound" ? 'inbound' : 'outbound') + '">' + esc(activityLabels[activity] || activity) + '</span><span class="small text-muted">' + countLabel + '</span></div>' + content + '</section>';
       }).join("");
       planShipmentList.querySelectorAll("[data-plan-group-key]").forEach(checkbox => {
         checkbox.addEventListener("change", () => {
@@ -123,7 +129,6 @@
       });
       updatePlanShipmentCount();
     }
-
     async function loadPlansForSelectedVisit() {
       const sequence = ++state.planLoadSequence;
       const visit = getSelectedVisit();
@@ -206,7 +211,7 @@
         const results = await Promise.all(plans.map(async plan => {
           const [items, trips] = await Promise.all([
             requestPlan("/rest/v1/import_plan_items?select=id,plan_id,trip_id,row_number,do_number,shipment_number,manual_processed&plan_id=eq." + encodeURIComponent(plan.id) + "&order=row_number.asc", {}, { errorMessage: "Detail DO/Shipment gagal dimuat." }),
-            requestPlan("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc", {}, { errorMessage: "Detail armada Plan gagal dimuat." })
+            requestPlan("/rest/v1/import_plan_trips?select=id,plan_id,trip_number,vendor,plate_number,driver_name,destination&plan_id=eq." + encodeURIComponent(plan.id) + "&order=trip_number.asc", {}, { errorMessage: "Detail armada Plan gagal dimuat." })
           ]);
           if (!Array.isArray(items) || !Array.isArray(trips)) throw new Error("Rincian DO/Shipment Plan tidak valid.");
           const tripById = new Map(trips.map(trip => [trip.id, trip]));
