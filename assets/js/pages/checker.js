@@ -115,7 +115,7 @@
         sealNumber: visit.seal_number || "",
         dateFrom: operationalDate,
         dateTo: operationalDate,
-        allActivities: false,
+        allActivities: !visit.activity_type,
         plans: [],
         selectedPlanIds: new Set(),
         availableItems: [],
@@ -123,7 +123,8 @@
         selectedItemIds: new Set(),
         loadingPlans: false,
         loadingItems: false,
-        error: ""
+        error: "",
+        itemError: ""
       };
     }
 
@@ -318,6 +319,8 @@
       });
       if (state.loadingItems) {
         itemContainer.innerHTML = '<div class="small text-muted">Memuat DO/Shipment...</div>';
+      } else if (state.itemError) {
+        itemContainer.innerHTML = '<div class="small text-danger">' + escapeHtml(state.itemError) + '</div>';
       } else if (state.selectedPlanIds.size === 0) {
         itemContainer.innerHTML = '<div class="small text-muted">Pilih Plan untuk melihat DO/Shipment yang tersedia.</div>';
       } else if (!groups.length) {
@@ -383,6 +386,7 @@
 
       state.loadingPlans = true;
       state.error = "";
+      state.itemError = "";
       state.plans = [];
       state.selectedPlanIds.clear();
       state.availableItems = [];
@@ -412,13 +416,17 @@
 
     async function loadPlanItemsForVisit(visit, state) {
       const selectedPlans = state.plans.filter(function (plan) { return state.selectedPlanIds.has(plan.id); });
+      const previousSelectedIds = new Set(state.selectedItemIds);
       state.loadingItems = true;
+      state.itemError = "";
       state.availableItems = [];
       state.processedIds.clear();
-      state.selectedItemIds.clear();
       renderPlanControls(visit, state);
       if (!selectedPlans.length) {
         state.loadingItems = false;
+        state.availableItems = [];
+        state.processedIds.clear();
+        state.selectedItemIds.clear();
         renderPlanControls(visit, state);
         return;
       }
@@ -452,8 +460,11 @@
         state.availableItems = items;
         state.processedIds = new Set(results.flatMap(function (result) { return Array.from(result.linkedIds); }).filter(function (id) { return loadedIds.has(id); }));
         items.forEach(function (item) { if (item.manual_processed === true) state.processedIds.add(item.id); });
+        state.selectedItemIds = new Set(Array.from(previousSelectedIds).filter(function (id) {
+          return loadedIds.has(id) && !state.processedIds.has(id);
+        }));
       } catch (error) {
-        state.error = error.message || "Rincian DO/Shipment gagal dimuat.";
+        state.itemError = error.message || "Rincian DO/Shipment gagal dimuat.";
       } finally {
         state.loadingItems = false;
         renderPlanControls(visit, state);
@@ -601,6 +612,12 @@
       }
 
       const state = getStartState(visit);
+      if (state.loadingPlans || state.loadingItems) {
+        throw new Error("Tunggu sampai data Plan dan DO/Shipment selesai dimuat.");
+      }
+      if (state.error || state.itemError) {
+        throw new Error(state.error || state.itemError);
+      }
       const hasSelectableItems = state.selectedPlanIds.size > 0 && state.availableItems.some(function (item) {
         return !state.processedIds.has(item.id);
       });
@@ -969,7 +986,7 @@
     elements.saveFinish.disabled = !permission.finishUpdate || !permission.finishUpload;
 
     try {
-      await loadReferenceData();
+      if (permission.startView) await loadReferenceData();
       await loadVisits();
       window.trcmRegisterRefresh(loadVisits);
     } catch (error) {
