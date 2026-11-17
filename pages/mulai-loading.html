@@ -62,13 +62,14 @@
                     <th>Tujuan</th>
                     <th>Vendor</th>
                     <th>Klien</th>
-                    <th>Shipment</th>
+                    <th>Aktivitas</th>
+                    <th>Shipment / DO</th>
                     <th>Status</th>
                     <th class="action-column">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="loading-table">
-                  <tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>
+                  <tr><td colspan="9" class="table-state">Memuat data truck...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -109,6 +110,10 @@
                 <div class="col-12 col-md-4">
                   <span class="small text-muted d-block">Tujuan</span>
                   <strong id="detail-destination">—</strong>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="small text-muted d-block">Vendor</span>
+                  <strong id="detail-vendor">—</strong>
                 </div>
                 <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker mulai loading</span><strong id="detail-start-actor">—</strong></div>
                 <div class="col-12 col-md-6"><span class="small text-muted d-block">Checker selesai loading</span><strong id="detail-finish-actor">—</strong></div>
@@ -357,7 +362,7 @@ window.trcmComponentsReady.then(async function () {
     
 
     if (!filtered.length) {
-      table.innerHTML = '<tr><td colspan="8" class="table-state">Belum ada truck yang sudah dikonfirmasi WH In.</td></tr>';
+      table.innerHTML = '<tr><td colspan="9" class="table-state">Belum ada truck yang sudah dikonfirmasi WH In.</td></tr>';
       return;
     }
 
@@ -372,6 +377,7 @@ window.trcmComponentsReady.then(async function () {
         '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
         '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
         '<td>' + escapeHtml(client) + '</td>' +
+        '<td><span class="destination destination-' + (String(visit.activity_type || "").toLowerCase() === "inbound" ? "inbound" : "outbound") + '">' + escapeHtml(formatDestination(String(visit.activity_type || "").toLowerCase())) + '</span></td>' +
         '<td class="loading-shipment-cell">' + renderShipmentCell(visit) + '</td>' +
         '<td>' + window.trcmStatusBadge(window.trcmVisitStatus(visit)) + '</td>' +
         '<td class="action-cell">' + action + '</td>' +
@@ -407,7 +413,7 @@ window.trcmComponentsReady.then(async function () {
   }
 
   async function loadVisits() {
-    table.innerHTML = '<tr><td colspan="8" class="table-state">Memuat data truck...</td></tr>';
+    table.innerHTML = '<tr><td colspan="9" class="table-state">Memuat data truck...</td></tr>';
     
     refreshButton.disabled = true;
 
@@ -430,7 +436,7 @@ window.trcmComponentsReady.then(async function () {
       renderTable();
     } catch (error) {
       console.error("TRCM Mulai Loading:", error);
-      table.innerHTML = '<tr><td colspan="8" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
+      table.innerHTML = '<tr><td colspan="9" class="table-state error-state">Data truck gagal dimuat. Silakan perbarui.</td></tr>';
       
       await Swal.fire({
         icon: "error",
@@ -699,6 +705,7 @@ window.trcmComponentsReady.then(async function () {
     document.getElementById("detail-plate").textContent = visit.plate_number || "—";
     document.getElementById("detail-driver").textContent = visit.driver_name || "—";
     document.getElementById("detail-destination").textContent = visit.destination_city || "—";
+    document.getElementById("detail-vendor").textContent = visit.vendor || "—";
     gateSelect.value = "";
     lineSelect.innerHTML = '<option value="">Pilih gerbang terlebih dahulu</option>';
     lineSelect.disabled = true;
