@@ -122,6 +122,7 @@
         processedIds: new Set(),
         selectedItemIds: new Set(),
         loadingPlans: false,
+        plansLoaded: false,
         loadingItems: false,
         error: "",
         itemError: ""
@@ -368,9 +369,11 @@
       });
     }
 
-    async function loadPlansForVisit(visit, state) {
+    async function loadPlansForVisit(visit, state, force) {
+      if (state.plansLoaded && !force) return;
       if (!state.dateFrom || !state.dateTo) {
         state.error = "Lengkapi rentang tanggal Plan.";
+        state.plansLoaded = true;
         renderPlanControls(visit, state);
         return;
       }
@@ -380,11 +383,13 @@
         state.selectedPlanIds.clear();
         state.availableItems = [];
         state.selectedItemIds.clear();
+        state.plansLoaded = true;
         renderPlanControls(visit, state);
         return;
       }
 
       state.loadingPlans = true;
+      state.plansLoaded = false;
       state.error = "";
       state.itemError = "";
       state.plans = [];
@@ -410,6 +415,7 @@
         state.error = error.message || "Plan gagal dimuat.";
       } finally {
         state.loadingPlans = false;
+        state.plansLoaded = true;
         renderPlanControls(visit, state);
       }
     }
@@ -499,7 +505,7 @@
             '<div><div class="form-label">DO / Shipment</div><div class="bulk-item-list" data-plan-items><div class="small text-muted">Pilih Plan untuk melihat DO/Shipment.</div></div><div class="form-text mt-2" data-plan-meta>0 item DO/Shipment dipilih</div></div>';
           elements.startDetails.appendChild(card);
           renderPlanControls(visit, state);
-          loadPlansForVisit(visit, state);
+          if (!state.plansLoaded && !state.loadingPlans) loadPlansForVisit(visit, state);
         });
       } else {
         selected.forEach(function (visit) {
@@ -925,13 +931,13 @@
       if (!visit || !state) return;
       if (event.target.matches("[data-plan-date-from]")) {
         state.dateFrom = event.target.value;
-        await loadPlansForVisit(visit, state);
+        await loadPlansForVisit(visit, state, true);
       } else if (event.target.matches("[data-plan-date-to]")) {
         state.dateTo = event.target.value;
-        await loadPlansForVisit(visit, state);
+        await loadPlansForVisit(visit, state, true);
       } else if (event.target.matches("[data-all-activities]")) {
         state.allActivities = event.target.checked;
-        await loadPlansForVisit(visit, state);
+        await loadPlansForVisit(visit, state, true);
       }
     });
 
