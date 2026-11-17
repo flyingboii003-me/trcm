@@ -20,6 +20,13 @@
     return value || "—";
   }
 
+  function renderActivityBadge(value) {
+    const normalized = String(value || "").toLowerCase();
+    const label = formatActivity(normalized);
+    if (normalized !== "inbound" && normalized !== "outbound") return escapeHtml(label);
+    return '<span class="loading-activity-chip loading-activity-chip-' + normalized + '">' + escapeHtml(label) + '</span>';
+  }
+
   function formatPlanDate(value) {
     if (!value) return "Tanggal tidak tersedia";
     const parts = value.split("-");
@@ -140,6 +147,19 @@
       return visits.filter(function (visit) { return selectedIds.has(visit.id); });
     }
 
+    function getPlanItemsReservedByOtherVisit(visitId) {
+      const reservedIds = new Set();
+      selectedIds.forEach(function (selectedVisitId) {
+        if (selectedVisitId === visitId) return;
+        const otherState = startStates.get(selectedVisitId);
+        if (!otherState) return;
+        otherState.selectedItemIds.forEach(function (itemId) {
+          reservedIds.add(itemId);
+        });
+      });
+      return reservedIds;
+    }
+
     function visibleVisits() {
       const needle = elements.search.value.trim().toLocaleLowerCase("id-ID");
       const clientName = elements.client.value;
@@ -173,7 +193,7 @@
             '<td><input class="form-check-input bulk-visit-checkbox" type="checkbox" data-visit-id="' + escapeHtml(visit.id) + '" aria-label="Pilih armada ' + escapeHtml(card) + '"' + (selectedIds.has(visit.id) ? " checked" : "") + (processing ? " disabled" : "") + '></td>' +
             '<td><span class="table-card-number">' + escapeHtml(card) + '</span></td>' +
             '<td class="font-monospace fw-semibold">' + escapeHtml(visit.plate_number || "—") + '</td>' +
-            '<td>' + escapeHtml(activity) + '</td>' +
+            '<td>' + renderActivityBadge(visit.activity_type) + '</td>' +
             '<td>' + escapeHtml(visit.destination_city || "—") + '</td>' +
             '<td>' + escapeHtml(visit.vendor || "—") + '</td>' +
             '<td>' + escapeHtml(client) + '</td>' +
@@ -317,8 +337,11 @@
       }
 
       const groups = getPlanGroups(state.availableItems);
+      const reservedByOtherVisit = getPlanItemsReservedByOtherVisit(visit.id);
       const selectableGroups = groups.filter(function (group) {
-        return !group.items.some(function (item) { return state.processedIds.has(item.id); });
+        return !group.items.some(function (item) {
+          return state.processedIds.has(item.id) || reservedByOtherVisit.has(item.id);
+        });
       });
       if (state.loadingItems) {
         itemContainer.innerHTML = '<div class="small text-muted">Memuat DO/Shipment...</div>';
@@ -331,15 +354,20 @@
       } else {
         itemContainer.innerHTML = groups.map(function (group, index) {
           const processed = group.items.some(function (item) { return state.processedIds.has(item.id); });
-          const checked = !processed && group.items.every(function (item) { return state.selectedItemIds.has(item.id); });
+          const reservedByOther = !processed && group.items.some(function (item) { return reservedByOtherVisit.has(item.id); });
+          const unavailable = processed || reservedByOther;
+          const checked = !unavailable && group.items.every(function (item) { return state.selectedItemIds.has(item.id); });
           const trip = group.trip || {};
           const tripMeta = [trip.trip_number ? "Trip " + trip.trip_number : "", trip.plate_number || "", trip.vendor || "", trip.destination || ""].filter(Boolean).join(" · ");
-          return '<label class="bulk-option' + (processed ? " is-disabled" : "") + '">' +
-            (processed
-              ? '<i class="bi bi-check-circle-fill text-muted mt-1"></i>'
+          const unavailableMessage = processed
+            ? "Sudah diproses atau ditautkan ke visit lain"
+            : reservedByOther ? "Sudah dipilih oleh armada lain dalam batch ini" : "";
+          return '<label class="bulk-option' + (unavailable ? " is-disabled" : "") + '">' +
+            (unavailable
+              ? '<i class="bi ' + (reservedByOther ? "bi-lock-fill" : "bi-check-circle-fill") + ' text-muted mt-1"></i>'
               : '<input class="form-check-input" type="checkbox" data-plan-group="' + index + '"' + (checked ? " checked" : "") + '>') +
             '<span class="bulk-option-label">' + escapeHtml(group.label) +
-            (processed ? '<span class="bulk-option-meta">Sudah diproses atau ditautkan ke visit lain</span>' : (tripMeta ? '<span class="bulk-option-meta">' + escapeHtml(tripMeta) + '</span>' : "")) +
+            (unavailable ? '<span class="bulk-option-meta">' + unavailableMessage + '</span>' : (tripMeta ? '<span class="bulk-option-meta">' + escapeHtml(tripMeta) + '</span>' : "")) +
             '</span></label>';
         }).join("");
       }
@@ -366,7 +394,7 @@
             if (checkbox.checked) state.selectedItemIds.add(item.id);
             else state.selectedItemIds.delete(item.id);
           });
-          renderPlanControls(visit, state);
+          renderSelectedDetails();
         });
       });
     }
