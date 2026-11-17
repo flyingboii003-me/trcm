@@ -814,6 +814,14 @@
             await showMessage("warning", "Line tidak sesuai", "Pilih Line yang terhubung dengan Gate yang dipilih.");
             return;
           }
+          const plansNotReady = selected.filter(function (visit) {
+            const state = getStartState(visit);
+            return state.loadingPlans || state.loadingItems || state.error || state.itemError;
+          });
+          if (plansNotReady.length) {
+            await showMessage("warning", "Data Plan belum siap", plansNotReady.length + " armada masih memuat Plan atau memiliki kesalahan data Plan. Periksa kembali sebelum menyimpan.");
+            return;
+          }
           const withoutPlan = selected.filter(function (visit) {
             const state = getStartState(visit);
             return state.selectedPlanIds.size === 0;
