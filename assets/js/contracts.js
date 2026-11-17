@@ -20,13 +20,13 @@
     "user-role": { file: "user-role.html", title: "User & Role", resourceKey: "user_role" },
     profil: { file: "profil.html", title: "Profil Pengguna", resourceKey: "" },
     "live-view": { file: "live-view.html", title: "Live View", resourceKey: "live_view" },
-    checker: { file: "checker.html", title: "Checker", resourceKey: "" },
+    checker: { file: "checker.html", title: "Bulk Checker", resourceKey: "" },
     changelog: { file: "changelog.html", title: "Changelog", resourceKey: "" }
   };
 
   const navigationGroups = [
     { key: "kunjungan-armada", children: ["registrasi-armada", "wh-in", "antri-parkir", "wh-out"] },
-    { key: "checker", children: ["mulai-loading", "selesai-loading"] },
+    { key: "checker", children: ["checker", "mulai-loading", "selesai-loading"] },
     { key: "manajemen-plan", children: ["daftar-plan", "impor-plan", "hubungkan-plan"] }
   ];
 
