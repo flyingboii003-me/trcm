@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tambah data Plan Inbound dan Outbound secara manual">
+  <title>Tambah Plan Manual — TRCM</title>
+  <link rel="icon" href="../assets/favicon/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/trcm.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <style>
+    .manual-page{--manual-line:var(--border);--manual-muted:var(--text-muted)}
+    .manual-kicker{display:block;margin-bottom:.45rem;color:var(--cj-blue);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .manual-card{overflow:hidden;border:1px solid var(--manual-line);border-radius:var(--radius-xl);background:var(--card-bg,#fff);box-shadow:var(--shadow-sm)}
+    .manual-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.25rem 1.5rem;border-bottom:1px solid var(--manual-line)}
+    .manual-card-title{margin:0 0 .25rem;font-size:1.02rem;font-weight:800}
+    .manual-card-subtitle{margin:0;color:var(--manual-muted);font-size:.82rem;line-height:1.5}
+    .manual-card-body{padding:1.5rem}
+    .manual-label{display:block;margin-bottom:.45rem;font-size:.82rem;font-weight:700}
+    .manual-input{min-height:44px;border:1px solid var(--border-input,#6B7DA3);border-radius:var(--radius-lg);font-size:.875rem}
+    .manual-row{padding:1rem;border:1px solid var(--manual-line);border-radius:14px;background:var(--surface2,#F6F8FC)}
+    .manual-row-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:.85rem}
+    .manual-row-title{font-size:.84rem;font-weight:800}
+    .manual-hint{margin-top:.4rem;color:var(--manual-muted);font-size:.75rem;line-height:1.5}
+    .manual-summary{display:flex;gap:.5rem;flex-wrap:wrap}
+    .manual-count{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .65rem;border:1px solid var(--manual-line);border-radius:50rem;background:var(--card-bg,#fff);font-size:.75rem;font-weight:700}
+    .manual-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem 1.5rem;border-top:1px solid var(--manual-line);background:var(--surface2,#F6F8FC)}
+    @media(max-width:767.98px){.manual-card-head,.manual-card-body{padding:1rem}.manual-footer{padding:1rem}.manual-footer .btn{min-height:44px;width:100%}.manual-row{padding:.8rem}}
+  </style>
+</head>
+<body class="trcm-app" data-page-resource="daftar_plan">
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-wrapper">
+    <div id="topbar-container"></div>
+    <main class="content-wrapper manual-page">
+      <div class="container-fluid px-0">
+        <div class="page-header">
+          <div>
+            <span class="manual-kicker">Administrasi · Rencana operasional</span>
+            <h1 class="page-title">Tambah Plan Manual</h1>
+            <p class="page-subtitle">Tambahkan DO atau Shipment tanpa mengimpor file Excel.</p>
+          </div>
+          <a class="btn btn-outline-secondary" href="daftar-plan.html"><i class="bi bi-arrow-left me-1"></i>Kembali ke Daftar Plan</a>
+        </div>
+
+        <section class="manual-card mb-4">
+          <div class="manual-card-head">
+            <div><h2 class="manual-card-title">Informasi Plan</h2><p class="manual-card-subtitle">Pilih cakupan Plan sebelum memasukkan referensi dokumen.</p></div>
+          </div>
+          <div class="manual-card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="manual-label" for="manual-client">Klien <span class="text-danger">*</span></label>
+                <select class="form-select manual-input" id="manual-client" required><option value="">Memuat daftar klien…</option></select>
+              </div>
+              <div class="col-md-4">
+                <label class="manual-label" for="manual-date">Tanggal operasional <span class="text-danger">*</span></label>
+                <input class="form-control manual-input" id="manual-date" type="date" required>
+              </div>
+              <div class="col-md-4">
+                <label class="manual-label" for="manual-activity">Jenis aktivitas <span class="text-danger">*</span></label>
+                <select class="form-select manual-input" id="manual-activity"><option value="inbound">Inbound</option><option value="outbound">Outbound</option></select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="manual-card">
+          <div class="manual-card-head">
+            <div><h2 class="manual-card-title">Referensi dokumen</h2><p class="manual-card-subtitle" id="manual-entry-description">Masukkan satu nomor DO untuk setiap baris.</p></div>
+            <span class="badge text-bg-light border" id="manual-row-count">0 baris</span>
+          </div>
+          <div class="manual-card-body">
+            <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill me-2"></i>Data akan digabungkan ke Plan aktif dengan klien, tanggal operasional, dan jenis aktivitas yang sama. Jika belum ada, sistem membuat Plan baru.</div>
+            <div id="manual-rows" class="d-flex flex-column gap-3"></div>
+            <button class="btn btn-outline-primary mt-3" type="button" id="manual-add-row"><i class="bi bi-plus-circle me-1"></i>Tambah baris</button>
+            <div class="manual-summary mt-4" aria-live="polite">
+              <span class="manual-count"><i class="bi bi-list-ol"></i><span id="manual-summary-rows">0 referensi</span></span>
+              <span class="manual-count"><i class="bi bi-truck"></i><span id="manual-summary-trips">0 trip / truk</span></span>
+            </div>
+            <div class="manual-hint" id="manual-group-hint">Inbound: satu DO menjadi satu trip. Outbound: Shipment dengan data armada yang sama akan digabungkan ke satu trip.</div>
+          </div>
+          <div class="manual-footer">
+            <span class="manual-hint m-0" id="manual-save-state">Periksa kembali data sebelum menyimpan.</span>
+            <button class="btn btn-primary" type="button" id="manual-save"><i class="bi bi-database-check me-1"></i>Simpan Plan</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/components.js"></script>
+<script>
+(function(){
+  "use strict";
+  const $=id=>document.getElementById(id);
+  const state={activity:"inbound",clients:[],saving:false,canCreate:false};
+  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  const todayLocal=()=>{
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Jakarta",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).reduce((o,p)=>(o[p.type]=p.value,o),{});
+    return parts.year+"-"+parts.month+"-"+parts.day;
+  };
+  function notify(message,icon){
+    const type=icon||"info";
+    return Swal.fire({icon:type,title:type==="success"?"Berhasil":type==="error"?"Terjadi kesalahan":type==="warning"?"Perlu diperiksa":"Informasi",text:String(message||""),confirmButtonText:"Mengerti",confirmButtonColor:"#006ECD"});
+  }
+  function makeRow(){
+    const wrapper=document.createElement("div");
+    wrapper.className="manual-row";
+    wrapper.innerHTML=state.activity==="inbound"
+      ? '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><label class="manual-label">DO / Transport task <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="do_number" autocomplete="off" placeholder="Masukkan nomor DO">'
+      : '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><div class="row g-3"><div class="col-md-4"><label class="manual-label">Vendor <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="vendor" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Plat nomor <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="plate_number" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Nama driver <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="driver_name" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Tipe truk <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="truck_type" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Tujuan <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="destination" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Shipment <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="shipment_number" autocomplete="off"></div></div>';
+    wrapper.querySelector("[data-remove-row]").addEventListener("click",()=>{if($("manual-rows").children.length===1){notify("Minimal satu baris harus tersedia.","warning");return;}wrapper.remove();renumberRows();});
+    wrapper.querySelectorAll("input").forEach(input=>input.addEventListener("input",updateSummary));
+    $("manual-rows").appendChild(wrapper);
+    renumberRows();
+  }
+  function renumberRows(){
+    const rows=[...$("manual-rows").children];
+    rows.forEach((row,index)=>{row.querySelector(".manual-row-title").textContent="Baris "+(index+1);row.querySelector("[data-remove-row]").disabled=rows.length===1;});
+    $("manual-row-count").textContent=rows.length+" baris";
+    updateSummary();
+  }
+  function normalized(value){return String(value||"").trim().normalize("NFKC").replace(/\s+/g," ").toLocaleUpperCase("id-ID");}
+  function collectRows(){
+    return [...$("manual-rows").children].map(element=>{
+      const row={};
+      element.querySelectorAll("[data-field]").forEach(input=>row[input.dataset.field]=input.value.trim());
+      return row;
+    });
+  }
+  function groupKey(row){
+    return ["vendor","plate_number","driver_name","truck_type","destination"].map(key=>normalized(row[key])).join("|");
+  }
+  function updateSummary(){
+    const rows=collectRows();
+    const groups=state.activity==="inbound"?rows.filter(row=>normalized(row.do_number)).length:new Set(rows.filter(row=>row.plate_number).map(groupKey)).size;
+    $("manual-summary-rows").textContent=rows.length+" referensi";
+    $("manual-summary-trips").textContent=groups+" "+(state.activity==="inbound"?"trip":"truk");
+  }
+  function setActivity(activity){
+    state.activity=activity;
+    $("manual-entry-description").textContent=activity==="inbound"?"Masukkan satu nomor DO untuk setiap baris.":"Masukkan satu Shipment per baris. Ulangi data kendaraan untuk Shipment pada truk yang sama.";
+    $("manual-group-hint").textContent=activity==="inbound"?"Inbound: satu DO menjadi satu trip.":"Outbound: Shipment dengan vendor, plat, driver, tipe truk, dan tujuan yang sama akan digabungkan ke satu trip.";
+    $("manual-rows").innerHTML="";
+    makeRow();
+  }
+  async function loadClients(){
+    const select=$("manual-client");
+    try{
+      const rows=await window.TRCM.masterData.list("clients","select=id,name&order=name.asc",{errorFields:[],errorMessage:"Daftar klien tidak dapat dimuat."});
+      if(!Array.isArray(rows))throw new Error("Daftar klien tidak valid.");
+      state.clients=rows;
+      select.innerHTML='<option value="">Pilih klien</option>'+rows.map(row=>'<option value="'+escapeHtml(row.id)+'">'+escapeHtml(row.name)+'</option>').join("");
+      select.disabled=!rows.length;
+    }catch(error){select.innerHTML='<option value="">Gagal memuat klien</option>';select.disabled=true;throw error;}
+  }
+  function validate(rows){
+    if(!$("manual-client").value)return "Pilih klien terlebih dahulu.";
+    if(!$("manual-date").value)return "Tanggal operasional wajib diisi.";
+    if(!rows.length)return "Tambahkan minimal satu baris.";
+    const seen=new Set();
+    for(let index=0;index<rows.length;index++){
+      const row=rows[index];
+      if(state.activity==="inbound"){
+        if(!row.do_number)return "Nomor DO wajib diisi pada baris "+(index+1)+".";
+        const key=normalized(row.do_number);
+        if(seen.has(key))return "Nomor DO "+row.do_number+" muncul lebih dari sekali.";
+        seen.add(key);
+      }else{
+        for(const [key,label] of [["vendor","Vendor"],["plate_number","Plat nomor"],["driver_name","Nama driver"],["truck_type","Tipe truk"],["destination","Tujuan"],["shipment_number","Shipment"]]){
+          if(!row[key])return label+" wajib diisi pada baris "+(index+1)+".";
+        }
+        const key=normalized(row.shipment_number);
+        if(seen.has(key))return "Nomor Shipment "+row.shipment_number+" muncul lebih dari sekali.";
+        seen.add(key);
+      }
+    }
+    return "";
+  }
+  async function save(){
+    if(state.saving||!state.canCreate)return;
+    const rows=collectRows(),problem=validate(rows);
+    if(problem){await notify(problem,"warning");return;}
+    const client=$("manual-client").selectedOptions[0]?.textContent||"Klien";
+    const confirmation=await Swal.fire({icon:"question",title:"Simpan Plan?",text:"Tambahkan "+rows.length+" referensi ke Plan "+state.activity.toUpperCase()+" untuk "+client+" pada "+$("manual-date").value+"?",showCancelButton:true,confirmButtonText:"Ya, simpan",cancelButtonText:"Periksa kembali",confirmButtonColor:"#006ECD",reverseButtons:true});
+    if(!confirmation.isConfirmed)return;
+    state.saving=true;
+    const button=$("manual-save"),original=button.innerHTML;
+    button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyimpan…';
+    $("manual-save-state").textContent="Menyimpan data ke Plan aktif…";
+    try{
+      const result=await window.TRCM.plan.rpc("add_manual_plan_rows",{
+        p_client_id:$("manual-client").value,
+        p_operational_date:$("manual-date").value,
+        p_activity_type:state.activity,
+        p_rows:rows
+      },{errorFields:["message","details","hint"],errorMessage:"Plan gagal disimpan."});
+      const saved=Array.isArray(result)?result[0]:result;
+      if(!saved||!saved.plan_id)throw new Error("Database tidak mengembalikan ID Plan.");
+      await Swal.fire({icon:"success",title:"Plan berhasil disimpan",html:"<div class='text-start small'>"+rows.length+" referensi ditambahkan.<br>Jumlah referensi dalam Plan: <strong>"+escapeHtml(saved.row_count)+"</strong><br>Jumlah trip / truk: <strong>"+escapeHtml(saved.trip_count)+"</strong></div>",confirmButtonText:"Kembali ke Daftar Plan",confirmButtonColor:"#006ECD"});
+      window.location.href="daftar-plan.html";
+    }catch(error){
+      console.error("TRCM Tambah Plan Manual:",error);
+      const message=String(error.message||"");
+      if(message.includes("PLAN_SCOPE_AMBIGUOUS"))await notify("Ditemukan lebih dari satu Plan aktif pada klien, tanggal, dan aktivitas tersebut. Selesaikan penggabungan Plan terlebih dahulu.","error");
+      else if(message.includes("PLAN_DO_EXISTS"))await notify("Nomor DO sudah ada pada Plan aktif dengan cakupan yang sama.","error");
+      else if(message.includes("PLAN_SHIPMENT_EXISTS"))await notify("Nomor Shipment sudah ada pada Plan aktif dengan cakupan yang sama.","error");
+      else await notify(error.message||"Plan gagal disimpan.","error");
+      $("manual-save-state").textContent="Penyimpanan gagal. Periksa data dan coba kembali.";
+    }finally{state.saving=false;button.disabled=false;button.innerHTML=original;}
+  }
+  $("manual-add-row").addEventListener("click",makeRow);
+  $("manual-activity").addEventListener("change",event=>setActivity(event.target.value));
+  $("manual-save").addEventListener("click",save);
+  $("manual-date").value=todayLocal();
+  window.trcmComponentsReady.then(async()=>{
+    const session=typeof getTrcmSession==="function"?getTrcmSession():null;
+    if(!session||!session.access_token){window.location.replace("../index.html");return;}
+    const permissions=window.trcmPermissions;
+    state.canCreate=!!(permissions&&permissions.can("import_plan","create"));
+    if(!state.canCreate){await notify("Akun Anda tidak memiliki izin untuk menambah Plan.","error");window.location.replace("daftar-plan.html");return;}
+    const title=document.querySelector("[data-page-title]");if(title)title.textContent="Tambah Plan Manual";
+    const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";
+    try{await loadClients();setActivity("inbound");}
+    catch(error){console.error("TRCM Tambah Plan Manual clients:",error);await notify(error.message||"Daftar klien gagal dimuat.","error");}
+  });
+})();
+</script>
+</body>
+</html>
