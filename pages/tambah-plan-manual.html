@@ -117,7 +117,7 @@
     wrapper.className="manual-row";
     wrapper.innerHTML=state.activity==="inbound"
       ? '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><label class="manual-label">DO / Transport task <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="do_number" autocomplete="off" placeholder="Masukkan nomor DO">'
-      : '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><div class="row g-3"><div class="col-md-4"><label class="manual-label">Vendor <span class="text-danger">*</span></label><select class="form-select manual-input" data-field="vendor" required><option value="">Pilih vendor</option>'+state.vendors.map(row=>'<option value="'+escapeHtml(row.name)+'">'+escapeHtml(row.name)+'</option>').join("")+'</select></div><div class="col-md-4"><label class="manual-label">Plat nomor <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="plate_number" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Nama driver <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="driver_name" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Tipe truk <span class="text-danger">*</span></label><select class="form-select manual-input" data-field="truck_type" required><option value="">Pilih tipe truck</option>'+state.truckTypes.map(row=>'<option value="'+escapeHtml(row.name)+'">'+escapeHtml(row.name)+'</option>').join("")+'</select></div><div class="col-md-4"><label class="manual-label">Tujuan <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="destination" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Shipment <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="shipment_number" autocomplete="off"></div></div>';
+      : '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><div class="row g-3"><div class="col-md-4"><label class="manual-label">Vendor <span class="text-danger">*</span></label><div class="searchable-select" data-searchable-field="vendor"><input class="form-control manual-input" type="search" data-field="vendor" data-master-type="vendors" autocomplete="off" role="combobox" aria-expanded="false" placeholder="Cari vendor..." required><div class="searchable-options" data-options="vendors" role="listbox"></div></div></div><div class="col-md-4"><label class="manual-label">Plat nomor <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="plate_number" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Nama driver <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="driver_name" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Tipe truk <span class="text-danger">*</span></label><div class="searchable-select" data-searchable-field="truck_type"><input class="form-control manual-input" type="search" data-field="truck_type" data-master-type="truck_types" autocomplete="off" role="combobox" aria-expanded="false" placeholder="Cari tipe truck..." required><div class="searchable-options" data-options="truck_types" role="listbox"></div></div></div><div class="col-md-4"><label class="manual-label">Tujuan <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="destination" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Shipment <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="shipment_number" autocomplete="off"></div></div>';
     wrapper.querySelector("[data-remove-row]").addEventListener("click",()=>{if($("manual-rows").children.length===1){notify("Minimal satu baris harus tersedia.","warning");return;}wrapper.remove();renumberRows();});
     wrapper.querySelectorAll("input,select").forEach(input=>{input.addEventListener("input",updateSummary);input.addEventListener("change",updateSummary);});
     $("manual-rows").appendChild(wrapper);
@@ -136,6 +136,56 @@
       element.querySelectorAll("[data-field]").forEach(input=>row[input.dataset.field]=input.value.trim());
       return row;
     });
+  }
+  function masterRows(type){return type==="vendors"?state.vendors:state.truckTypes;}
+  function renderMasterOptions(input){
+    const type=input.dataset.masterType, query=input.value.trim().toLocaleLowerCase("id-ID");
+    const options=input.parentElement.querySelector("[data-options]");
+    const rows=masterRows(type).filter(row=>String(row.name||"").toLocaleLowerCase("id-ID").includes(query));
+    const exact=masterRows(type).some(row=>String(row.name||"").trim().toLocaleLowerCase("id-ID")===query);
+    options.innerHTML=rows.map(row=>'<button type="button" class="searchable-option" data-master-name="'+escapeHtml(row.name)+'">'+escapeHtml(row.name)+'</button>').join("");
+    if(input.value.trim()&&!exact)options.innerHTML+='<button type="button" class="searchable-option searchable-option-custom" data-master-custom="'+escapeHtml(input.value.trim())+'">Gunakan "'+escapeHtml(input.value.trim())+'"</button>';
+    if(!rows.length&&!input.value.trim())options.innerHTML='<div class="searchable-empty">'+(type==="vendors"?"Vendor":"Tipe truck")+' tidak ditemukan.</div>';
+    options.classList.add("is-open");
+    input.setAttribute("aria-expanded","true");
+  }
+  function closeMasterOptions(container){
+    container.querySelectorAll(".searchable-options").forEach(options=>options.classList.remove("is-open"));
+    container.querySelectorAll('[data-master-type]').forEach(input=>input.setAttribute("aria-expanded","false"));
+  }
+  async function persistMasterValue(type,name){
+    const normalizedName=String(name||"").trim().replace(/\\s+/g," ");
+    if(!normalizedName)throw new Error((type==="vendors"?"Vendor":"Tipe truck")+" wajib diisi.");
+    const rows=masterRows(type);
+    const existing=rows.find(row=>row.name.trim().toLocaleLowerCase("id-ID")===normalizedName.toLocaleLowerCase("id-ID"));
+    if(existing)return existing;
+    const resource=type==="vendors"?"vendors":"truck_types";
+    const payload=type==="vendors"?{name:normalizedName}:{name:normalizedName,is_active:true};
+    const settings={errorFields:["message","details","hint"],errorMessage:"Data Master "+(type==="vendors"?"Vendor":"Tipe Truck")+" gagal disimpan.",unauthorizedMessage:"Sesi berakhir. Silakan masuk kembali.",loginUrl:"../index.html"};
+    try{
+      const inserted=await window.TRCM.masterData.request("/rest/v1/"+resource,{
+        method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(payload)
+      },settings);
+      const saved=Array.isArray(inserted)?inserted[0]:inserted;
+      if(saved&&saved.id&&saved.name){rows.push(saved);rows.sort((a,b)=>a.name.localeCompare(b.name));return saved;}
+      throw new Error("Master "+(type==="vendors"?"Vendor":"Tipe Truck")+" tidak mengembalikan data tersimpan.");
+    }catch(error){
+      const query=type==="vendors"
+        ? "select=id,name&name=ilike."+encodeURIComponent(normalizedName)+"&limit=1"
+        : "select=id,name,is_active&is_active=eq.true&name=ilike."+encodeURIComponent(normalizedName)+"&limit=1";
+      const refreshed=await window.TRCM.masterData.list(resource,query,settings);
+      const duplicate=Array.isArray(refreshed)?refreshed.find(row=>row.name.trim().toLocaleLowerCase("id-ID")===normalizedName.toLocaleLowerCase("id-ID")):null;
+      if(duplicate){if(!rows.some(row=>row.id===duplicate.id))rows.push(duplicate);return duplicate;}
+      throw error;
+    }
+  }
+  async function persistOutboundMasterData(rows){
+    for(const row of rows){
+      const vendor=await persistMasterValue("vendors",row.vendor);
+      const truckType=await persistMasterValue("truck_types",row.truck_type);
+      row.vendor=vendor.name;
+      row.truck_type=truckType.name;
+    }
   }
   function groupKey(row){
     return ["vendor","plate_number","driver_name","truck_type","destination"].map(key=>normalized(row[key])).join("|");
@@ -207,6 +257,7 @@
     button.disabled=true;button.innerHTML='<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Menyimpan…';
     $("manual-save-state").textContent="Menyimpan data ke Plan aktif…";
     try{
+      if(state.activity==="outbound")await persistOutboundMasterData(rows);
       const result=await window.TRCM.plan.rpc("add_manual_plan_rows",{
         p_client_id:$("manual-client").value,
         p_operational_date:$("manual-date").value,
@@ -227,6 +278,29 @@
       $("manual-save-state").textContent="Penyimpanan gagal. Periksa data dan coba kembali.";
     }finally{state.saving=false;button.disabled=false;button.innerHTML=original;}
   }
+  $("manual-rows").addEventListener("focusin",event=>{
+    const input=event.target.closest("[data-master-type]");
+    if(input)renderMasterOptions(input);
+  });
+  $("manual-rows").addEventListener("input",event=>{
+    const input=event.target.closest("[data-master-type]");
+    if(input){renderMasterOptions(input);updateSummary();}
+  });
+  $("manual-rows").addEventListener("click",event=>{
+    const option=event.target.closest(".searchable-option");
+    if(!option)return;
+    const container=option.closest("[data-searchable-field]");
+    const input=container&&container.querySelector("[data-master-type]");
+    if(!input)return;
+    input.value=option.dataset.masterCustom||option.dataset.masterName||"";
+    closeMasterOptions(container);
+    updateSummary();
+  });
+  document.addEventListener("click",event=>{
+    $("manual-rows").querySelectorAll("[data-searchable-field]").forEach(container=>{
+      if(!container.contains(event.target))closeMasterOptions(container);
+    });
+  });
   $("manual-add-row").addEventListener("click",makeRow);
   $("manual-activity").addEventListener("change",event=>setActivity(event.target.value));
   $("manual-save").addEventListener("click",save);
