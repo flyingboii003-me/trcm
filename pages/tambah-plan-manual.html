@@ -215,8 +215,8 @@
   async function loadOutboundMasterData(){
     const settings={errorFields:["message","details","hint"],errorMessage:"Master Data Vendor dan Tipe Truck gagal dimuat.",unauthorizedMessage:"Sesi berakhir. Silakan masuk kembali.",loginUrl:"../index.html"};
     const results=await Promise.all([
-      window.TRCM.masterData.list("vendors","select=name&order=name.asc",settings),
-      window.TRCM.masterData.list("truck_types","select=name&is_active=eq.true&order=name.asc",settings)
+      window.TRCM.masterData.request("/rest/v1/vendors?select=id,name&order=name.asc",{},settings),
+      window.TRCM.masterData.request("/rest/v1/truck_types?select=id,name,is_active&is_active=eq.true&order=name.asc",{},settings)
     ]);
     if(!Array.isArray(results[0])||!Array.isArray(results[1]))throw new Error("Respons Master Data Vendor atau Tipe Truck tidak valid.");
     state.vendors=results[0].filter(row=>row&&row.name);
