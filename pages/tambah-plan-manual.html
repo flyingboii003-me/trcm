@@ -143,7 +143,6 @@
   function updateSummary(){
     const rows=collectRows();
     const groups=state.activity==="inbound"?rows.filter(row=>normalized(row.do_number)).length:new Set(rows.filter(row=>row.plate_number).map(groupKey)).size;
-    $("manual-summary-rows").textContent=rows.length+" referensi";
     $("manual-summary-trips").textContent=groups+" "+(state.activity==="inbound"?"trip":"truk");
   }
   function setActivity(activity){
