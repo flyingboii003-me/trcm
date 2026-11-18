@@ -102,7 +102,7 @@
 (function(){
   "use strict";
   const $=id=>document.getElementById(id);
-  const state={activity:"inbound",clients:[],saving:false,canCreate:false};
+  const state={activity:"inbound",clients:[],vendors:[],truckTypes:[],saving:false,canCreate:false};
   const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
   const todayLocal=()=>{
     const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Jakarta",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).reduce((o,p)=>(o[p.type]=p.value,o),{});
@@ -117,9 +117,9 @@
     wrapper.className="manual-row";
     wrapper.innerHTML=state.activity==="inbound"
       ? '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><label class="manual-label">DO / Transport task <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="do_number" autocomplete="off" placeholder="Masukkan nomor DO">'
-      : '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><div class="row g-3"><div class="col-md-4"><label class="manual-label">Vendor <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="vendor" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Plat nomor <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="plate_number" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Nama driver <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="driver_name" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Tipe truk <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="truck_type" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Tujuan <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="destination" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Shipment <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="shipment_number" autocomplete="off"></div></div>';
+      : '<div class="manual-row-head"><span class="manual-row-title"></span><button class="btn btn-sm btn-outline-danger" type="button" data-remove-row aria-label="Hapus baris"><i class="bi bi-trash"></i></button></div><div class="row g-3"><div class="col-md-4"><label class="manual-label">Vendor <span class="text-danger">*</span></label><select class="form-select manual-input" data-field="vendor" required><option value="">Pilih vendor</option>'+state.vendors.map(row=>'<option value="'+escapeHtml(row.name)+'">'+escapeHtml(row.name)+'</option>').join("")+'</select></div><div class="col-md-4"><label class="manual-label">Plat nomor <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="plate_number" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Nama driver <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="driver_name" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Tipe truk <span class="text-danger">*</span></label><select class="form-select manual-input" data-field="truck_type" required><option value="">Pilih tipe truck</option>'+state.truckTypes.map(row=>'<option value="'+escapeHtml(row.name)+'">'+escapeHtml(row.name)+'</option>').join("")+'</select></div><div class="col-md-4"><label class="manual-label">Tujuan <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="destination" autocomplete="off"></div><div class="col-md-4"><label class="manual-label">Shipment <span class="text-danger">*</span></label><input class="form-control manual-input" data-field="shipment_number" autocomplete="off"></div></div>';
     wrapper.querySelector("[data-remove-row]").addEventListener("click",()=>{if($("manual-rows").children.length===1){notify("Minimal satu baris harus tersedia.","warning");return;}wrapper.remove();renumberRows();});
-    wrapper.querySelectorAll("input").forEach(input=>input.addEventListener("input",updateSummary));
+    wrapper.querySelectorAll("input,select").forEach(input=>{input.addEventListener("input",updateSummary);input.addEventListener("change",updateSummary);});
     $("manual-rows").appendChild(wrapper);
     renumberRows();
   }
@@ -161,6 +161,16 @@
       select.innerHTML='<option value="">Pilih klien</option>'+rows.map(row=>'<option value="'+escapeHtml(row.id)+'">'+escapeHtml(row.name)+'</option>').join("");
       select.disabled=!rows.length;
     }catch(error){select.innerHTML='<option value="">Gagal memuat klien</option>';select.disabled=true;throw error;}
+  }
+  async function loadOutboundMasterData(){
+    const settings={errorFields:["message","details","hint"],errorMessage:"Master Data Vendor dan Tipe Truck gagal dimuat.",unauthorizedMessage:"Sesi berakhir. Silakan masuk kembali.",loginUrl:"../index.html"};
+    const results=await Promise.all([
+      window.TRCM.masterData.list("vendors","select=name&order=name.asc",settings),
+      window.TRCM.masterData.list("truck_types","select=name&is_active=eq.true&order=name.asc",settings)
+    ]);
+    if(!Array.isArray(results[0])||!Array.isArray(results[1]))throw new Error("Respons Master Data Vendor atau Tipe Truck tidak valid.");
+    state.vendors=results[0].filter(row=>row&&row.name);
+    state.truckTypes=results[1].filter(row=>row&&row.name);
   }
   function validate(rows){
     if(!$("manual-client").value)return "Pilih klien terlebih dahulu.";
@@ -229,7 +239,7 @@
     if(!state.canCreate){await notify("Akun Anda tidak memiliki izin untuk menambah Plan.","error");window.location.replace("daftar-plan.html");return;}
     const title=document.querySelector("[data-page-title]");if(title)title.textContent="Tambah Plan Manual";
     const eyebrow=document.querySelector("[data-page-eyebrow]");if(eyebrow)eyebrow.textContent="Administrasi";
-    try{await loadClients();setActivity("inbound");}
+    try{await Promise.all([loadClients(),loadOutboundMasterData()]);setActivity("inbound");}
     catch(error){console.error("TRCM Tambah Plan Manual clients:",error);await notify(error.message||"Daftar klien gagal dimuat.","error");}
   });
 })();
