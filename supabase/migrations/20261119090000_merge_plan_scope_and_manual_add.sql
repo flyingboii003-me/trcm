@@ -181,13 +181,24 @@ begin
     p_client_id::text || '|' || p_operational_date::text || '|' || p_activity_type, 0
   ));
 
-  select count(*)::integer, min(p.id)
-  into v_plan_count, v_plan_id
+  select count(*)::integer
+  into v_plan_count
   from public.import_plans p
   where p.client_id = p_client_id
     and p.operational_date = p_operational_date
     and p.activity_type = p_activity_type
     and p.status = 'active';
+
+  if v_plan_count = 1 then
+    select p.id into v_plan_id
+    from public.import_plans p
+    where p.client_id = p_client_id
+      and p.operational_date = p_operational_date
+      and p.activity_type = p_activity_type
+      and p.status = 'active'
+    order by p.created_at asc, p.id asc
+    limit 1;
+  end if;
 
   if v_plan_count > 1 then
     raise exception using
